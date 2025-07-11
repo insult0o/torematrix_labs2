@@ -1683,44 +1683,61 @@ class ManualValidationWidget(QWidget):
     
     def _update_selection_list(self):
         """Update the selection list display."""
-        self.selection_list.clear()
+        try:
+            self.logger.info(f"UPDATE_SELECTION_LIST: Starting update with {len(self.all_selections)} pages")
+            
+            self.selection_list.clear()
+            
+            total_areas = sum(len(selections) for selections in self.all_selections.values())
+            self.logger.info(f"UPDATE_SELECTION_LIST: Total areas to add: {total_areas}")
+            
+            for page, selections in sorted(self.all_selections.items()):
+                self.logger.info(f"UPDATE_SELECTION_LIST: Processing page {page} with {len(selections)} selections")
+                
+                for selection in selections:
+                    # Create display text
+                    name = selection.get('name', f"{selection.get('type', 'AREA')}_AUTO")
+                    if not name:
+                        name = f"{selection['type']} area"
+                    
+                    item_text = f"Page {page}: {selection['type']} - {name}"
+                    
+                    # Create list item
+                    item = QListWidgetItem(item_text)
+                    
+                    # Enhanced color based on type
+                    if selection['type'] == 'IMAGE':
+                        item.setBackground(QColor(52, 152, 219, 50))  # Blue
+                    elif selection['type'] == 'TABLE':
+                        item.setBackground(QColor(231, 76, 60, 50))  # Red
+                    elif selection['type'] == 'DIAGRAM':
+                        item.setBackground(QColor(243, 156, 18, 50))  # Orange
+                    elif selection['type'] == 'CHART':
+                        item.setBackground(QColor(155, 89, 182, 50))  # Purple
+                    elif selection['type'] == 'COMPLEX':
+                        item.setBackground(QColor(52, 73, 94, 50))  # Dark blue-gray
+                    
+                    # Store area data in item
+                    item.setData(Qt.UserRole, selection)
+                    
+                    self.selection_list.addItem(item)
+                    self.logger.debug(f"UPDATE_SELECTION_LIST: Added item '{item_text}' to list")
         
-        for page, selections in sorted(self.all_selections.items()):
-            for selection in selections:
-                # Create display text
-                name = selection.get('name', f"{selection.get('type', 'AREA')}_AUTO")
-                if not name:
-                    name = f"{selection['type']} area"
-                
-                item_text = f"Page {page}: {selection['type']} - {name}"
-                
-                # Create list item
-                item = QListWidgetItem(item_text)
-                
-                # Enhanced color based on type
-                if selection['type'] == 'IMAGE':
-                    item.setBackground(QColor(52, 152, 219, 50))  # Blue
-                elif selection['type'] == 'TABLE':
-                    item.setBackground(QColor(231, 76, 60, 50))  # Red
-                elif selection['type'] == 'DIAGRAM':
-                    item.setBackground(QColor(243, 156, 18, 50))  # Orange
-                elif selection['type'] == 'CHART':
-                    item.setBackground(QColor(155, 89, 182, 50))  # Purple
-                elif selection['type'] == 'COMPLEX':
-                    item.setBackground(QColor(52, 73, 94, 50))  # Dark blue-gray
-                
-                # Store area data in item
-                item.setData(Qt.UserRole, selection)
-                
-                self.selection_list.addItem(item)
-        
-        # Auto-select the last added item to show its preview
-        if self.selection_list.count() > 0:
-            last_item = self.selection_list.item(self.selection_list.count() - 1)
-            self.selection_list.setCurrentItem(last_item)
-        
-        # Update navigation buttons
-        self._update_navigation_buttons()
+            # Auto-select the last added item to show its preview
+            if self.selection_list.count() > 0:
+                last_item = self.selection_list.item(self.selection_list.count() - 1)
+                self.selection_list.setCurrentItem(last_item)
+                self.logger.info(f"UPDATE_SELECTION_LIST: Auto-selected last item")
+            
+            # Update navigation buttons
+            self._update_navigation_buttons()
+            
+            self.logger.info(f"UPDATE_SELECTION_LIST: Successfully updated selection list with {self.selection_list.count()} items")
+            
+        except Exception as e:
+            self.logger.error(f"UPDATE_SELECTION_LIST: Error updating selection list: {e}")
+            import traceback
+            self.logger.error(f"UPDATE_SELECTION_LIST: Traceback: {traceback.format_exc()}")
     
     def _clear_current_page(self):
         """Clear selections for the current page."""
@@ -1984,22 +2001,39 @@ class ManualValidationWidget(QWidget):
     
     def _update_area_preview(self):
         """Update the area preview image."""
-        current_item = self.selection_list.currentItem()
-        if current_item:
-            area_data = current_item.data(Qt.UserRole)
-            if area_data:
-                area_name = area_data.get('name', 'Unknown')
-                area_type = area_data.get('type', 'Unknown')
-                page_num = area_data.get('page', 1)  # Default to page 1, not 0
+        try:
+            self.logger.info("UPDATE_AREA_PREVIEW: Starting area preview update")
+            
+            current_item = self.selection_list.currentItem()
+            self.logger.info(f"UPDATE_AREA_PREVIEW: Current item: {current_item is not None}")
+            
+            if current_item:
+                area_data = current_item.data(Qt.UserRole)
+                self.logger.info(f"UPDATE_AREA_PREVIEW: Area data: {area_data is not None}")
                 
-                # Update preview info
-                self.preview_info_label.setText(f"Area: {area_name} ({area_type}) - Page {page_num}")
-                
-                # Extract and display area image
-                self._extract_and_display_area_image(area_data)
+                if area_data:
+                    area_name = area_data.get('name', 'Unknown')
+                    area_type = area_data.get('type', 'Unknown')
+                    page_num = area_data.get('page', 1)  # Default to page 1, not 0
+                    
+                    self.logger.info(f"UPDATE_AREA_PREVIEW: Showing preview for '{area_name}' ({area_type}) on page {page_num}")
+                    
+                    # Update preview info
+                    self.preview_info_label.setText(f"Area: {area_name} ({area_type}) - Page {page_num}")
+                    
+                    # Extract and display area image
+                    self._extract_and_display_area_image(area_data)
+                else:
+                    self.logger.warning("UPDATE_AREA_PREVIEW: No area data found in current item")
+                    self._clear_area_preview()
             else:
+                self.logger.info("UPDATE_AREA_PREVIEW: No current item selected")
                 self._clear_area_preview()
-        else:
+                
+        except Exception as e:
+            self.logger.error(f"UPDATE_AREA_PREVIEW: Error updating area preview: {e}")
+            import traceback
+            self.logger.error(f"UPDATE_AREA_PREVIEW: Traceback: {traceback.format_exc()}")
             self._clear_area_preview()
     
     def _clear_area_preview(self):
