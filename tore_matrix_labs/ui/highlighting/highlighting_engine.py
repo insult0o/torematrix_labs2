@@ -310,3 +310,100 @@ class HighlightingEngine:
             'coordinate_mapper_stats': self.coordinate_mapper.get_statistics(),
             'position_tracker_stats': self.position_tracker.get_statistics()
         }
+    
+    def has_highlights(self) -> bool:
+        """Check if there are any active highlights."""
+        return len(self.active_highlights) > 0
+    
+    def clear_highlights(self):
+        """Clear all highlights (alias for clear_all_highlights)."""
+        self.clear_all_highlights()
+    
+    def highlight_area(self, page_number: int, bbox, search_text: str = None, highlight_type: str = "issue"):
+        """Highlight a specific area on a page."""
+        try:
+            if not self.is_enabled:
+                return
+            
+            # Generate unique highlight ID
+            highlight_id = f"area_{uuid.uuid4().hex[:8]}"
+            
+            self.logger.info(f"HIGHLIGHTING_ENGINE: Creating area highlight {highlight_id} for page {page_number}")
+            
+            # Convert bbox to proper format
+            if isinstance(bbox, dict) and 'regions' in bbox:
+                # Enhanced coordinate data with multi-line support
+                pdf_boxes = bbox['regions']
+            elif isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
+                # Simple bbox format
+                pdf_boxes = [bbox]
+            else:
+                self.logger.warning(f"Invalid bbox format: {bbox}")
+                return
+            
+            # Create highlight info
+            highlight_info = {
+                'id': highlight_id,
+                'page': page_number,
+                'type': highlight_type,
+                'bbox': bbox,
+                'search_text': search_text,
+                'pdf_boxes': pdf_boxes,
+                'created_at': datetime.now().isoformat(),
+                'active': True
+            }
+            
+            # Store highlight
+            self.active_highlights[highlight_id] = highlight_info
+            
+            # Render in PDF viewer
+            if self.pdf_viewer:
+                self.multi_box_renderer.render_pdf_highlight(
+                    self.pdf_viewer, pdf_boxes, page_number, highlight_type
+                )
+            
+            self.logger.info(f"HIGHLIGHTING_ENGINE: Successfully created area highlight {highlight_id}")
+            return highlight_id
+            
+        except Exception as e:
+            self.logger.error(f"HIGHLIGHTING_ENGINE: Error creating area highlight: {e}")
+            return None
+    
+    def update_current_page(self, page_number: int):
+        """Update the current page number for proper highlight filtering."""
+        self.current_page = page_number
+        self.logger.debug(f"HIGHLIGHTING_ENGINE: Current page updated to {page_number}")
+    
+    def apply_highlights_to_pixmap(self, pixmap, zoom_factor: float):
+        """Apply highlights to a pixmap."""
+        try:
+            if not self.has_highlights():
+                return pixmap
+            
+            # Get PDF viewer's current page if available
+            if self.pdf_viewer and hasattr(self.pdf_viewer, 'current_page'):
+                pdf_current_page = self.pdf_viewer.current_page + 1  # Convert to 1-based
+                self.current_page = pdf_current_page
+            
+            # Get current page highlights
+            page_highlights = {
+                hid: hinfo for hid, hinfo in self.active_highlights.items()
+                if hinfo['page'] == self.current_page
+            }
+            
+            if not page_highlights:
+                self.logger.debug(f"HIGHLIGHTING_ENGINE: No highlights for page {self.current_page}")
+                return pixmap
+            
+            self.logger.info(f"HIGHLIGHTING_ENGINE: Applying {len(page_highlights)} highlights to page {self.current_page}")
+            
+            # Use multi-box renderer to apply highlights
+            return self.multi_box_renderer.apply_highlights_to_pixmap(
+                pixmap, page_highlights, zoom_factor
+            )
+            
+        except Exception as e:
+            self.logger.error(f"HIGHLIGHTING_ENGINE: Error applying highlights to pixmap: {e}")
+            import traceback
+            self.logger.error(f"HIGHLIGHTING_ENGINE: Traceback: {traceback.format_exc()}")
+            return pixmap

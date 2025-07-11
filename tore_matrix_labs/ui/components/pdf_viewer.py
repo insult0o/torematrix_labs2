@@ -16,6 +16,7 @@ from ..qt_compat import (
 )
 from .enhanced_pdf_highlighting import create_multiline_highlight, draw_multiline_highlight, MultiLineHighlight
 from .enhanced_drag_select import EnhancedDragSelectLabel
+from ..highlighting import HighlightingEngine, HighlightStyle
 
 
 class DragSelectLabel(QLabel):
@@ -229,7 +230,12 @@ class PDFViewer(QWidget):
         self.current_page_rect = None
         self.current_pixmap_size = None
         
-        # Highlighting state
+        # Highlighting state (NEW SYSTEM)
+        self.highlighting_engine = HighlightingEngine()
+        self.highlighting_engine.set_pdf_viewer(self)
+        self.highlight_style = HighlightStyle()
+        
+        # Legacy highlighting state (to be removed)
         self.highlight_bbox = None  # Current highlight bounding box
         self.highlight_search_text = None  # Text being highlighted for precise location
         self.highlight_color = QColor(255, 255, 0, 120)  # Brighter yellow with transparency
@@ -440,6 +446,10 @@ class PDFViewer(QWidget):
             
             # Store current pixmap size for coordinate conversion
             self.current_pixmap_size = qpixmap.size()
+            
+            # Update highlighting engine current page (convert to 1-based)
+            if hasattr(self, 'highlighting_engine'):
+                self.highlighting_engine.update_current_page(self.current_page + 1)
             
             # Add highlighting if available
             if self.highlight_bbox or self.current_multiline_highlight:
@@ -689,7 +699,7 @@ class PDFViewer(QWidget):
         super().closeEvent(event)
     
     def highlight_area(self, page_number, bbox, search_text=None, highlight_type="issue"):
-        """Highlight a specific area on a specific page with enhanced multi-line support and type-specific colors."""
+        """Highlight a specific area on a specific page using the new advanced highlighting system."""
         try:
             if not self.current_document:
                 self.logger.warning("No document loaded for highlighting")
@@ -701,125 +711,27 @@ class PDFViewer(QWidget):
             # Handle clear highlighting - clear all highlights and just navigate to page
             if highlight_type == "clear" or (isinstance(bbox, list) and len(bbox) == 0):
                 self._go_to_page(page_number)
-                self._clear_highlights()
+                self.highlighting_engine.clear_highlights()
                 return
             
-            # Determine highlight colors based on type
-            highlight_colors = self._get_highlight_colors(highlight_type, search_text)
+            # Navigate to the page first
+            self._go_to_page(page_number)
             
-            # Check if bbox is enhanced coordinate data from coordinate correspondence engine
-            if isinstance(bbox, dict) and 'regions' in bbox:
-                # Enhanced coordinate data with multi-line support
-                regions = bbox['regions']
-                confidence = bbox.get('confidence', 1.0)
-                match_type = bbox.get('match_type', 'enhanced')
-                
-                self.logger.info(f"Using enhanced highlighting: {match_type} match "
-                               f"with {confidence:.2f} confidence, {len(regions)} regions")
-                
-                # Validate all regions
-                valid_regions = []
-                for region in regions:
-                    if region and len(region) >= 4:
-                        try:
-                            region_coords = [float(x) for x in region[:4]]
-                            valid_regions.append(region_coords)
-                        except (ValueError, TypeError):
-                            self.logger.warning(f"Invalid region coordinates: {region}")
-                            continue
-                
-                if not valid_regions:
-                    self.logger.error("No valid regions found in enhanced coordinate data")
-                    return
-                
-                bbox_coords = valid_regions[0]  # Primary region for backward compatibility
-                multi_regions = valid_regions
-                
-            else:
-                # Traditional single bbox
-                if not bbox or len(bbox) < 4:
-                    self.logger.warning(f"Invalid bbox for highlighting: {bbox}")
-                    return
-                
-                # Ensure bbox contains valid numbers
-                try:
-                    bbox_coords = [float(x) for x in bbox[:4]]
-                    multi_regions = [bbox_coords]
-                except (ValueError, TypeError):
-                    self.logger.error(f"Invalid bbox coordinates: {bbox}")
-                    return
+            # Use the new highlighting engine
+            self.highlighting_engine.highlight_area(
+                page_number=page_number,
+                bbox=bbox,
+                search_text=search_text,
+                highlight_type=highlight_type
+            )
             
-            # Navigate to the target page if needed
-            target_page_index = page_number - 1  # Convert to 0-indexed
-            if target_page_index != self.current_page:
-                if 0 <= target_page_index < self.total_pages:
-                    self.logger.info(f"Navigating to page {page_number} for highlighting")
-                    self.current_page = target_page_index
-                    self._update_navigation_state()
-                else:
-                    self.logger.error(f"Page {page_number} out of range (1-{self.total_pages})")
-                    return
+            # Update the display
+            self._update_display()
             
-            # Store bbox for highlighting
-            self.highlight_bbox = bbox_coords
-            self.highlight_search_text = search_text
-            self.highlight_type = highlight_type
-            
-            # Create multi-line highlight using enhanced regions
-            try:
-                if len(multi_regions) > 1:
-                    # Use enhanced multi-region highlighting
-                    from .enhanced_pdf_highlighting import MultiLineHighlight, HighlightRectangle
-                    
-                    # Convert coordinate arrays to HighlightRectangle objects
-                    rectangles = []
-                    for i, region in enumerate(multi_regions):
-                        if len(region) >= 4:
-                            x0, y0, x1, y1 = region[:4]
-                            rect = HighlightRectangle(
-                                x=x0, y=y0, 
-                                width=x1-x0, height=y1-y0,
-                                line_number=i
-                            )
-                            rectangles.append(rect)
-                    
-                    self.current_multiline_highlight = MultiLineHighlight(
-                        rectangles=rectangles,
-                        original_bbox=bbox_coords,
-                        text_content=search_text or "",
-                        color=highlight_colors['fill'],
-                        border_color=highlight_colors['border'],
-                        border_width=highlight_colors['border_width']
-                    )
-                    
-                    self.logger.info(f"Created enhanced multi-line highlight with {len(rectangles)} regions")
-                    
-                else:
-                    # Single region - use enhanced highlighting to break into lines
-                    self.logger.info(f"Creating multi-line highlight for single region with search_text: '{search_text}'")
-                    self.current_multiline_highlight = create_multiline_highlight(
-                        self.current_document, self.current_page, bbox_coords, search_text or "",
-                        color=highlight_colors['fill'], border_color=highlight_colors['border'],
-                        border_width=highlight_colors['border_width']
-                    )
-                    self.logger.info(f"Created multi-line highlight with {len(self.current_multiline_highlight.rectangles)} rectangles")
-                    
-            except Exception as e:
-                self.logger.warning(f"Failed to create multi-line highlight, using fallback: {e}")
-                self.current_multiline_highlight = None
-            
-            # Debug log
-            page = self.current_document[self.current_page]
-            page_rect = page.rect
-            self.logger.info(f"Page {page_number} rect: {page_rect.width}x{page_rect.height}")
-            self.logger.info(f"Highlighting bbox: {bbox_coords}")
-            self.logger.info(f"Search text: '{search_text}'")
-            
-            # Re-render the current page with highlighting
-            self._display_current_page()
-            self.logger.info(f"Successfully applied highlight to page {page_number}")
         except Exception as e:
-            self.logger.error(f"Failed to highlight area on page {page_number}: {str(e)}")
+            self.logger.error(f"Error highlighting area: {e}")
+            import traceback
+            traceback.print_exc()
     
     def _find_precise_text_location(self, page_number, search_text):
         """Find the precise bounding box of specific text on a page."""
@@ -894,22 +806,33 @@ class PDFViewer(QWidget):
             return None
     
     def clear_highlight(self):
-        """Clear any current highlighting."""
+        """Clear any current highlighting using the new system."""
+        # Clear using new highlighting engine
+        self.highlighting_engine.clear_highlights()
+        
+        # Clear legacy highlighting state
         self.highlight_bbox = None
         self.highlight_search_text = None
         self.current_multiline_highlight = None
+        
         # Re-render without highlighting
         self._display_current_page()
     
     def _add_highlight_to_pixmap(self, qpixmap: QPixmap, zoom_factor: float) -> QPixmap:
-        """Add highlighting overlay to the pixmap with improved multi-line support."""
+        """Add highlighting overlay to the pixmap using the new highlighting system."""
         try:
-            # Use multi-line highlighting if available
+            # Use the new highlighting engine
+            if self.highlighting_engine.has_highlights():
+                self.logger.info(f"PDF_VIEWER: Applying highlights to pixmap (page={self.current_page + 1}, zoom={zoom_factor})")
+                return self.highlighting_engine.apply_highlights_to_pixmap(qpixmap, zoom_factor)
+            else:
+                self.logger.debug(f"PDF_VIEWER: No highlights to apply (page={self.current_page + 1})")
+            
+            # Legacy fallback - use old system if still needed
             if self.current_multiline_highlight:
                 return draw_multiline_highlight(qpixmap, self.current_multiline_highlight, zoom_factor)
             
-            # Fallback to original single-rectangle highlighting
-            # Create a painter to draw on the pixmap
+            # Original single-rectangle highlighting as final fallback
             painter = QPainter(qpixmap)
             painter.setRenderHint(QPainter.Antialiasing)
             
