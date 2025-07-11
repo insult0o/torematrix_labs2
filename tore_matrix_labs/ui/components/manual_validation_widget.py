@@ -967,6 +967,10 @@ class ManualValidationWidget(QWidget):
         self.logger.info(f"Document set: current_document={self.current_document}")
         self.logger.info(f"File path set: current_file_path={self.current_file_path}")
         
+        # Ensure document has a proper ID for project consistency
+        if self.current_document and self.current_file_path:
+            self._ensure_document_id_consistency()
+        
         if not self.current_file_path:
             self.logger.error("No valid file path found!")
             self.status_message.emit("Error: No valid file path found")
@@ -2146,10 +2150,72 @@ class ManualValidationWidget(QWidget):
         return parent
     
     def _get_current_document_id(self):
-        """Get the current document ID."""
-        if hasattr(self, 'current_document') and self.current_document:
-            return getattr(self.current_document, 'id', None)
-        return None
+        """Get the current document ID with enhanced resolution."""
+        try:
+            # Method 1: Direct document ID
+            if hasattr(self, 'current_document') and self.current_document:
+                doc_id = getattr(self.current_document, 'id', None)
+                if doc_id:
+                    self.logger.debug(f"GET_DOC_ID: Found document ID via direct access: {doc_id}")
+                    return doc_id
+            
+            # Method 2: Try from document metadata
+            if hasattr(self, 'current_document') and self.current_document:
+                if hasattr(self.current_document, 'metadata') and self.current_document.metadata:
+                    doc_id = getattr(self.current_document.metadata, 'document_id', None)
+                    if doc_id:
+                        self.logger.debug(f"GET_DOC_ID: Found document ID via metadata: {doc_id}")
+                        return doc_id
+            
+            # Method 3: Generate from file path if available
+            if hasattr(self, 'current_file_path') and self.current_file_path:
+                from pathlib import Path
+                file_name = Path(self.current_file_path).stem
+                # Try to match the document ID format used in project files
+                main_window = self._get_main_window()
+                if main_window and hasattr(main_window, 'project_widget'):
+                    project_docs = main_window.project_widget.get_project_documents()
+                    for doc in project_docs:
+                        if doc.get('path') == self.current_file_path or doc.get('name') == file_name + '.pdf':
+                            doc_id = doc.get('id')
+                            if doc_id:
+                                self.logger.info(f"GET_DOC_ID: Found document ID via project lookup: {doc_id}")
+                                return doc_id
+            
+            self.logger.warning("GET_DOC_ID: Could not resolve document ID")
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"GET_DOC_ID: Error resolving document ID: {e}")
+            return None
+    
+    def _ensure_document_id_consistency(self):
+        """Ensure the current document has a consistent ID that matches the project."""
+        try:
+            # Check if document already has a valid ID
+            current_id = getattr(self.current_document, 'id', None)
+            if current_id:
+                self.logger.debug(f"ENSURE_ID: Document already has ID: {current_id}")
+                return
+            
+            # Try to find the matching document ID from project
+            main_window = self._get_main_window()
+            if main_window and hasattr(main_window, 'project_widget'):
+                project_docs = main_window.project_widget.get_project_documents()
+                for doc in project_docs:
+                    if (doc.get('path') == self.current_file_path or 
+                        doc.get('name') == Path(self.current_file_path).name):
+                        doc_id = doc.get('id')
+                        if doc_id:
+                            # Set the ID on the current document
+                            self.current_document.id = doc_id
+                            self.logger.info(f"ENSURE_ID: Set document ID to {doc_id}")
+                            return
+            
+            self.logger.warning(f"ENSURE_ID: Could not find matching document ID in project")
+            
+        except Exception as e:
+            self.logger.error(f"ENSURE_ID: Error ensuring document ID consistency: {e}")
     
     def _refresh_pdf_viewer_areas(self, page: int):
         """Force refresh of PDF viewer areas for a specific page."""
@@ -2179,15 +2245,31 @@ class ManualValidationWidget(QWidget):
     def load_existing_areas_from_project(self):
         """Load existing areas from project storage when document is loaded."""
         try:
-            document_id = self._get_current_document_id()
-            main_window = self._get_main_window()
+            self.logger.info("LOAD EXISTING: Starting load_existing_areas_from_project")
             
-            if not document_id or not main_window or not hasattr(main_window, 'area_storage_manager'):
-                self.logger.warning("LOAD EXISTING: Cannot load areas - missing document_id or area storage")
+            document_id = self._get_current_document_id()
+            self.logger.info(f"LOAD EXISTING: Retrieved document_id = {document_id}")
+            
+            main_window = self._get_main_window()
+            self.logger.info(f"LOAD EXISTING: Retrieved main_window = {main_window is not None}")
+            
+            if not document_id:
+                self.logger.warning("LOAD EXISTING: Cannot load areas - missing document_id")
+                return
+                
+            if not main_window:
+                self.logger.warning("LOAD EXISTING: Cannot load areas - missing main_window")
+                return
+                
+            if not hasattr(main_window, 'area_storage_manager'):
+                self.logger.warning("LOAD EXISTING: Cannot load areas - missing area_storage_manager")
                 return
             
             area_storage = main_window.area_storage_manager
+            self.logger.info(f"LOAD EXISTING: Got area_storage_manager = {area_storage is not None}")
+            
             all_areas = area_storage.load_areas(document_id)
+            self.logger.info(f"LOAD EXISTING: area_storage.load_areas returned {len(all_areas) if all_areas else 0} areas")
             
             if not all_areas:
                 self.logger.info("LOAD EXISTING: No existing areas found in project")

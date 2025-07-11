@@ -134,23 +134,114 @@ class AreaStorageManager:
             return {}
     
     def _dict_to_visual_area(self, area_data: Dict[str, Any]) -> VisualArea:
-        """Convert dictionary to VisualArea object."""
-        return VisualArea(
-            id=area_data["id"],
-            document_id=area_data["document_id"],
-            area_type=AreaType(area_data["type"]),
-            bbox=tuple(area_data["bbox"]),
-            page=area_data["page"],
-            color=area_data.get("color", "#FF4444"),
-            status=AreaStatus(area_data.get("status", "saved")),
-            created_at=datetime.fromisoformat(area_data["created_at"]),
-            modified_at=datetime.fromisoformat(area_data["modified_at"]),
-            user_notes=area_data.get("user_notes", ""),
-            border_width=area_data.get("border_width", 2),
-            fill_opacity=area_data.get("fill_opacity", 0.3),
-            border_glow=area_data.get("border_glow", True),
-            widget_rect=tuple(area_data["widget_rect"]) if area_data.get("widget_rect") else None
-        )
+        """Convert dictionary to VisualArea object with robust error handling."""
+        try:
+            # Safe enum conversion for area type
+            area_type = AreaType.IMAGE  # Default fallback
+            try:
+                if "type" in area_data:
+                    if isinstance(area_data["type"], str):
+                        area_type = AreaType(area_data["type"])
+                    else:
+                        area_type = area_data["type"]  # Already an enum
+            except (ValueError, KeyError) as e:
+                self.logger.warning(f"CONVERT: Invalid area type '{area_data.get('type')}', using IMAGE: {e}")
+                area_type = AreaType.IMAGE
+            
+            # Safe enum conversion for status
+            status = AreaStatus.SAVED  # Default fallback
+            try:
+                status_value = area_data.get("status", "saved")
+                if isinstance(status_value, str):
+                    status = AreaStatus(status_value)
+                else:
+                    status = status_value  # Already an enum
+            except (ValueError, KeyError) as e:
+                self.logger.warning(f"CONVERT: Invalid status '{area_data.get('status')}', using SAVED: {e}")
+                status = AreaStatus.SAVED
+            
+            # Safe datetime conversion
+            created_at = datetime.now()
+            modified_at = datetime.now()
+            
+            try:
+                if "created_at" in area_data:
+                    created_at = datetime.fromisoformat(area_data["created_at"])
+            except (ValueError, TypeError) as e:
+                self.logger.warning(f"CONVERT: Invalid created_at '{area_data.get('created_at')}', using current time: {e}")
+            
+            try:
+                if "modified_at" in area_data:
+                    modified_at = datetime.fromisoformat(area_data["modified_at"])
+            except (ValueError, TypeError) as e:
+                self.logger.warning(f"CONVERT: Invalid modified_at '{area_data.get('modified_at')}', using current time: {e}")
+            
+            # Safe bbox conversion
+            bbox = (0, 0, 100, 100)  # Default bbox
+            try:
+                if "bbox" in area_data and area_data["bbox"]:
+                    bbox_data = area_data["bbox"]
+                    if isinstance(bbox_data, (list, tuple)) and len(bbox_data) >= 4:
+                        bbox = tuple(float(x) for x in bbox_data[:4])
+                    else:
+                        self.logger.warning(f"CONVERT: Invalid bbox format '{bbox_data}', using default")
+            except (ValueError, TypeError) as e:
+                self.logger.warning(f"CONVERT: Error converting bbox '{area_data.get('bbox')}', using default: {e}")
+            
+            # Safe widget_rect conversion
+            widget_rect = None
+            try:
+                if area_data.get("widget_rect"):
+                    widget_data = area_data["widget_rect"]
+                    if isinstance(widget_data, (list, tuple)) and len(widget_data) >= 4:
+                        widget_rect = tuple(float(x) for x in widget_data[:4])
+            except (ValueError, TypeError) as e:
+                self.logger.warning(f"CONVERT: Error converting widget_rect, using None: {e}")
+            
+            # Create VisualArea with safe values
+            visual_area = VisualArea(
+                id=str(area_data.get("id", "unknown")),
+                document_id=str(area_data.get("document_id", "")),
+                area_type=area_type,
+                bbox=bbox,
+                page=int(area_data.get("page", 1)),
+                color=str(area_data.get("color", "#FF4444")),
+                status=status,
+                created_at=created_at,
+                modified_at=modified_at,
+                user_notes=str(area_data.get("user_notes", "")),
+                border_width=float(area_data.get("border_width", 2)),
+                fill_opacity=float(area_data.get("fill_opacity", 0.3)),
+                border_glow=bool(area_data.get("border_glow", True)),
+                widget_rect=widget_rect
+            )
+            
+            self.logger.debug(f"CONVERT: Successfully converted area {visual_area.id} (type: {visual_area.area_type.value})")
+            return visual_area
+            
+        except Exception as e:
+            self.logger.error(f"CONVERT: Critical error converting area data: {e}")
+            self.logger.error(f"CONVERT: Area data: {area_data}")
+            import traceback
+            self.logger.error(f"CONVERT: Traceback: {traceback.format_exc()}")
+            
+            # Return a minimal valid VisualArea as fallback
+            return VisualArea(
+                id=str(area_data.get("id", f"error_{int(datetime.now().timestamp())}")),
+                document_id=str(area_data.get("document_id", "")),
+                area_type=AreaType.IMAGE,
+                bbox=(0, 0, 100, 100),
+                page=int(area_data.get("page", 1)),
+                color="#FF4444",
+                status=AreaStatus.SAVED,
+                created_at=datetime.now(),
+                modified_at=datetime.now(),
+                user_notes="Recovered from conversion error",
+                border_width=2,
+                fill_opacity=0.3,
+                border_glow=True,
+                widget_rect=None
+            )
     
     def delete_area(self, document_id: str, area_id: str) -> bool:
         """Delete area from document's storage."""
