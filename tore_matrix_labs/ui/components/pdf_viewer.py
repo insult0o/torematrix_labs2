@@ -403,6 +403,11 @@ class PDFViewer(QWidget):
             # Display first page
             self._display_current_page()
             
+            # Update highlighting engine with new document
+            if hasattr(self, 'highlighting_engine') and self.highlighting_engine:
+                self.highlighting_engine.update_document(self.current_document)
+                self.logger.info("Updated highlighting engine with new document")
+            
             self.logger.info(f"Loaded document: {file_path} ({self.total_pages} pages)")
             
         except Exception as e:
@@ -726,7 +731,7 @@ class PDFViewer(QWidget):
             )
             
             # Update the display
-            self._update_display()
+            self._display_current_page()
             
         except Exception as e:
             self.logger.error(f"Error highlighting area: {e}")
@@ -938,7 +943,7 @@ class PDFViewer(QWidget):
         """Highlight a text selection in the PDF viewer."""
         try:
             # Use the existing highlight_area method with a different style
-            self.highlight_area(page_number, bbox, "TEXT_SELECTION")
+            self.highlight_area(page_number, bbox, "text_selection")
             self.logger.info(f"Highlighted text selection on page {page_number}: {bbox}")
         except Exception as e:
             self.logger.error(f"Failed to highlight selection: {str(e)}")
@@ -950,7 +955,7 @@ class PDFViewer(QWidget):
             if bbox and len(bbox) >= 4:
                 # Create a small cursor indicator
                 cursor_bbox = [bbox[0], bbox[1], bbox[0] + 2, bbox[3]]  # Thin vertical line
-                self.highlight_area(page_number, cursor_bbox, "CURSOR")
+                self.highlight_area(page_number, cursor_bbox, "cursor")
                 self.logger.info(f"Showed cursor location on page {page_number}: {cursor_bbox}")
         except Exception as e:
             self.logger.error(f"Failed to show cursor location: {str(e)}")
