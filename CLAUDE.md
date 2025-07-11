@@ -154,3 +154,5 @@ python test_final_vertical_layout.py
 - sleep
 - after sleep debugging
 - afternoon work end
+- nadadenada
+- debbuging

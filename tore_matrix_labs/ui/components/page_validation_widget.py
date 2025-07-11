@@ -12,7 +12,7 @@ from ..qt_compat import (
     QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
     QLabel, QPushButton, QTextEdit, 
     QFrame, Qt, QColor, QTextCharFormat, QTextCursor, QFont,
-    pyqtSignal
+    QEvent, pyqtSignal
 )
 
 from ...config.settings import Settings
@@ -20,6 +20,7 @@ from ...models.document_models import Document
 from ...core.ocr_based_extractor import OCRBasedExtractor, OCR_DEPENDENCIES_AVAILABLE
 from ...core.enhanced_pdf_extractor import EnhancedPDFExtractor
 from ...core.unstructured_extractor import UnstructuredExtractor, UNSTRUCTURED_AVAILABLE
+from ..highlighting import HighlightingEngine, HighlightStyle
 
 
 class PageValidationWidget(QWidget):
@@ -65,8 +66,12 @@ class PageValidationWidget(QWidget):
         self.use_ocr = OCR_DEPENDENCIES_AVAILABLE and not UNSTRUCTURED_AVAILABLE  # Good: Visual recognition
         self.use_enhanced = True  # Fallback: Advanced PyMuPDF
         
+        # Initialize highlighting engine
+        self.highlighting_engine = HighlightingEngine()
+        self.highlight_style = HighlightStyle()
+        
         self._init_ui()
-        self.logger.info("Page validation widget initialized")
+        self.logger.info("Page validation widget initialized with highlighting engine")
     
     def handle_page_change(self, page_number: int):
         """Handle page change from external source (e.g., document viewer)."""
@@ -203,10 +208,13 @@ class PageValidationWidget(QWidget):
         self.extracted_text.cursorPositionChanged.connect(self._on_cursor_position_changed)
         self.extracted_text.selectionChanged.connect(self._on_text_selection_changed)
         
-        # Enable mouse interaction
+        # Connect highlighting engine to text widget
+        self.highlighting_engine.set_text_widget(self.extracted_text)
+        self.logger.info("Highlighting engine connected to text widget")
+        
+        # Enable mouse interaction - use event filter instead of direct override
         self.extracted_text.setMouseTracking(True)
-        self.extracted_text.mousePressEvent = self._on_mouse_press
-        self.extracted_text.mouseMoveEvent = self._on_mouse_move
+        self.extracted_text.installEventFilter(self)
         
         layout.addWidget(self.extracted_text)
         
@@ -838,7 +846,7 @@ class PageValidationWidget(QWidget):
             self.logger.error(f"Error handling cursor position change: {str(e)}")
     
     def _on_text_selection_changed(self):
-        """Handle text selection changes to highlight in PDF."""
+        """Handle text selection changes to highlight in PDF using new highlighting engine."""
         try:
             cursor = self.extracted_text.textCursor()
             
@@ -847,13 +855,23 @@ class PageValidationWidget(QWidget):
                 end_pos = cursor.selectionEnd()
                 selected_text = cursor.selectedText()
                 
-                # Map selection to PDF coordinates
-                pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
+                # Use the new highlighting engine
+                highlight_id = self.highlighting_engine.highlight_text_range(
+                    text_start=start_pos,
+                    text_end=end_pos,
+                    highlight_type='active_highlight',
+                    page=self.current_page
+                )
                 
-                if pdf_selection:
-                    page, bbox = pdf_selection
-                    self.highlight_pdf_text_selection.emit(page, bbox)
-                    self.log_message.emit(f"Selected '{selected_text}' at {start_pos}-{end_pos} → PDF page {page}, bbox {bbox}")
+                if highlight_id:
+                    self.log_message.emit(f"✅ Highlighted '{selected_text}' at {start_pos}-{end_pos} (ID: {highlight_id})")
+                else:
+                    # Fall back to old method if highlighting engine fails
+                    pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
+                    if pdf_selection:
+                        page, bbox = pdf_selection
+                        self.highlight_pdf_text_selection.emit(page, bbox)
+                        self.log_message.emit(f"Selected '{selected_text}' at {start_pos}-{end_pos} → PDF page {page}, bbox {bbox}")
             
         except Exception as e:
             self.logger.error(f"Error handling text selection change: {str(e)}")
@@ -998,39 +1016,47 @@ class PageValidationWidget(QWidget):
         
         return start_pdf or end_pdf
     
-    def _on_mouse_press(self, event):
-        """Handle mouse press events on text area."""
-        # Call original mousePressEvent
-        QTextEdit.mousePressEvent(self.extracted_text, event)
+    def eventFilter(self, source, event):
+        """Handle events from the text widget."""
         
-        # Get cursor position after mouse press
-        cursor = self.extracted_text.cursorForPosition(event.pos())
-        position = cursor.position()
-        
-        # Map to PDF and highlight
-        pdf_location = self._map_text_position_to_pdf(position)
-        if pdf_location:
-            page, bbox = pdf_location
-            self.cursor_pdf_location.emit(page, bbox)
-            self.log_message.emit(f"Mouse click at text position {position} → PDF page {page}, bbox {bbox}")
-    
-    def _on_mouse_move(self, event):
-        """Handle mouse move events on text area."""
-        # Call original mouseMoveEvent
-        QTextEdit.mouseMoveEvent(self.extracted_text, event)
-        
-        # If mouse is pressed (dragging), update selection highlighting
-        if event.buttons() & Qt.LeftButton:
-            cursor = self.extracted_text.textCursor()
-            if cursor.hasSelection():
-                start_pos = cursor.selectionStart()
-                end_pos = cursor.selectionEnd()
+        if source == self.extracted_text:
+            if event.type() == QEvent.MouseButtonPress:
+                # Let the normal selection happen first
+                result = super().eventFilter(source, event)
                 
-                # Map selection to PDF
-                pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
-                if pdf_selection:
-                    page, bbox = pdf_selection
-                    self.highlight_pdf_text_selection.emit(page, bbox)
+                # Get cursor position after mouse press
+                cursor = self.extracted_text.cursorForPosition(event.pos())
+                position = cursor.position()
+                
+                # Map to PDF and highlight
+                pdf_location = self._map_text_position_to_pdf(position)
+                if pdf_location:
+                    page, bbox = pdf_location
+                    self.cursor_pdf_location.emit(page, bbox)
+                    self.log_message.emit(f"Mouse click at text position {position} → PDF page {page}, bbox {bbox}")
+                
+                return result
+            
+            elif event.type() == QEvent.MouseMove:
+                # Let the normal selection happen first
+                result = super().eventFilter(source, event)
+                
+                # If mouse is pressed (dragging), update selection highlighting
+                if event.buttons() & Qt.LeftButton:
+                    cursor = self.extracted_text.textCursor()
+                    if cursor.hasSelection():
+                        start_pos = cursor.selectionStart()
+                        end_pos = cursor.selectionEnd()
+                        
+                        # Map selection to PDF
+                        pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
+                        if pdf_selection:
+                            page, bbox = pdf_selection
+                            self.highlight_pdf_text_selection.emit(page, bbox)
+                
+                return result
+        
+        return super().eventFilter(source, event)
     
     def _synchronize_viewers(self, page_number, bbox):
         """Synchronize document preview and extracted content viewers."""
@@ -2945,3 +2971,51 @@ class PageValidationWidget(QWidget):
             
         except Exception as e:
             self.logger.error(f"Error loading document without corrections: {e}")
+    
+    def load_extracted_content(self, extracted_content):
+        """Load extracted content into the widget for highlighting and display."""
+        try:
+            self.logger.info(f"LOAD EXTRACTED: Loading extracted content into PageValidationWidget")
+            
+            # Store extracted content
+            self.extracted_content = extracted_content
+            
+            # Get text elements and display them
+            text_elements = extracted_content.get('text_elements', [])
+            
+            if not text_elements:
+                self.logger.warning("LOAD EXTRACTED: No text elements found in extracted content")
+                self.extracted_text.setPlainText("No extracted text available.")
+                return
+            
+            # Extract text from elements and display
+            full_text = ""
+            for element in text_elements:
+                # Handle both dict and object formats
+                if isinstance(element, dict):
+                    content = element.get('content', '')
+                    element_type = element.get('element_type', 'text')
+                else:
+                    content = getattr(element, 'content', '')
+                    element_type = getattr(element, 'element_type', 'text')
+                
+                if content:
+                    full_text += content + "\n"
+            
+            # Display the extracted text
+            self.extracted_text.setPlainText(full_text)
+            
+            # Update UI state
+            self.page_label.setText("Extracted content loaded")
+            self.issue_label.setText(f"Ready for highlighting ({len(text_elements)} text elements)")
+            
+            # Enable highlighting engine
+            if hasattr(self, 'highlighting_engine') and self.highlighting_engine:
+                self.highlighting_engine.set_text_widget(self.extracted_text)
+                self.logger.info("LOAD EXTRACTED: Highlighting engine connected to text widget")
+            
+            self.logger.info(f"LOAD EXTRACTED: Successfully loaded {len(text_elements)} text elements")
+            
+        except Exception as e:
+            self.logger.error(f"LOAD EXTRACTED: Error loading extracted content: {e}")
+            self.extracted_text.setPlainText(f"Error loading extracted content: {e}")

@@ -413,7 +413,9 @@ class ProjectManagerWidget(QWidget):
             'validation_status': document_data.get('validation_status', 'unknown'),
             'added_at': datetime.now().isoformat(),
             'last_modified': datetime.now().isoformat(),
-            'processing_data': document_data  # Keep full data for compatibility
+            'processing_data': document_data,  # Keep full data for compatibility
+            # SAVE EXTRACTED CONTENT
+            'extracted_content': document_data.get('extracted_content', {})
         }
         
         # Check if document already exists
@@ -428,6 +430,11 @@ class ProjectManagerWidget(QWidget):
         
         # Auto-save the project when documents are added
         print(f"🟢 PROJECT: Document added, auto-saving project...")
+        print(f"🟢 PROJECT: Document data includes: {list(doc_info.keys())}")
+        if 'visual_areas' in doc_info:
+            print(f"🟢 PROJECT: Document has {len(doc_info['visual_areas'])} visual areas")
+        else:
+            print(f"🔴 PROJECT: Document has NO visual areas")
         self.save_current_project()
         
         self.status_label.setText(f"Added document: {doc_info['name']}")

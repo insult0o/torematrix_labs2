@@ -378,3 +378,56 @@ class MultiBoxRenderer:
             'total_text_highlights': sum(len(highlights) for highlights in self.active_text_highlights.values()),
             'total_pdf_highlights': sum(len(highlights) for highlights in self.active_pdf_highlights.values())
         }
+    
+    def apply_highlights_to_pixmap(self, pixmap, highlights: Dict[str, Any], zoom_factor: float):
+        """Apply highlights to a pixmap using pure yellow color scheme."""
+        try:
+            if not highlights:
+                return pixmap
+            
+            # Create a painter to draw on the pixmap
+            painter = QPainter(pixmap)
+            painter.setRenderHint(QPainter.Antialiasing)
+            
+            # Set up pure yellow highlighting (no red outlines)
+            brush = QBrush(QColor(255, 255, 0, 100))  # Pure yellow with transparency
+            painter.setBrush(brush)
+            painter.setPen(Qt.NoPen)  # No outline
+            
+            # Draw highlights
+            for highlight_id, highlight_info in highlights.items():
+                try:
+                    pdf_boxes = highlight_info.get('pdf_boxes', [])
+                    
+                    for box in pdf_boxes:
+                        if isinstance(box, (list, tuple)) and len(box) >= 4:
+                            x0, y0, x1, y1 = box[:4]
+                            
+                            # Scale coordinates by zoom factor
+                            x0 *= zoom_factor
+                            y0 *= zoom_factor
+                            x1 *= zoom_factor
+                            y1 *= zoom_factor
+                            
+                            # Calculate rectangle dimensions
+                            width = abs(x1 - x0)
+                            height = abs(y1 - y0)
+                            
+                            # Draw the highlight rectangle
+                            if width > 2 and height > 2:
+                                painter.drawRect(int(x0), int(y0), int(width), int(height))
+                                
+                except Exception as e:
+                    self.logger.warning(f"Error drawing highlight {highlight_id}: {e}")
+                    continue
+            
+            painter.end()
+            
+            self.logger.debug(f"MULTI_BOX_RENDERER: Applied {len(highlights)} highlights to pixmap")
+            return pixmap
+            
+        except Exception as e:
+            self.logger.error(f"MULTI_BOX_RENDERER: Error applying highlights to pixmap: {e}")
+            if 'painter' in locals():
+                painter.end()
+            return pixmap

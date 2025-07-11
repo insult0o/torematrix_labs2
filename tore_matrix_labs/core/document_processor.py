@@ -74,15 +74,53 @@ class DocumentProcessor:
             self.logger.info("Step 3: Extracting content")
             extracted_content = self.content_extractor.extract_content(str(file_path), page_analyses)
             
-            # Update document with extracted content
+            # Update document with extracted content (FULL CONTENT SAVE)
+            import dataclasses
+            import json
+            
+            def safe_serialize(obj):
+                """Safely serialize objects to JSON-compatible format."""
+                try:
+                    if dataclasses.is_dataclass(obj):
+                        # Convert dataclass to dict and recursively serialize all fields
+                        data_dict = dataclasses.asdict(obj)
+                        return {k: safe_serialize(v) for k, v in data_dict.items()}
+                    elif hasattr(obj, 'value'):  # Handle enums (including ElementType) - CHECK THIS FIRST
+                        return str(obj.value)
+                    elif hasattr(obj, '__dict__'):
+                        return {k: safe_serialize(v) for k, v in obj.__dict__.items() if not k.startswith('_')}
+                    elif isinstance(obj, (list, tuple)):
+                        return [safe_serialize(item) for item in obj]
+                    elif isinstance(obj, dict):
+                        return {k: safe_serialize(v) for k, v in obj.items()}
+                    else:
+                        # Try to serialize to check if it's JSON-compatible
+                        json.dumps(obj)
+                        return obj
+                except (TypeError, ValueError):
+                    return str(obj)
+            
             document.extracted_content = {
                 'text_elements_count': len(extracted_content.text_elements),
                 'tables_count': len(extracted_content.tables),
                 'images_count': len(extracted_content.images),
                 'extraction_time': extracted_content.extraction_time,
-                'initial_quality_score': extracted_content.quality_score
+                'initial_quality_score': extracted_content.quality_score,
+                # Save the actual content data with safe serialization
+                'text_elements': [safe_serialize(elem) for elem in extracted_content.text_elements],
+                'tables': [safe_serialize(table) for table in extracted_content.tables],
+                'images': [safe_serialize(image) for image in extracted_content.images],
+                'metadata': safe_serialize(extracted_content.metadata)
             }
             document.update_status(ProcessingStatus.EXTRACTED)
+            
+            # Ensure processing status is also JSON-serializable
+            if hasattr(document.processing_status, 'value'):
+                document.processing_status = str(document.processing_status.value)
+            elif hasattr(document.processing_status, 'name'):
+                document.processing_status = str(document.processing_status.name)
+            else:
+                document.processing_status = str(document.processing_status)
             
             # Step 4: Post-processing and quality assessment
             self.logger.info("Step 4: Post-processing and quality assessment")

@@ -69,6 +69,25 @@ tore_matrix_labs.egg-info/
 # Test files
 test_*.py.backup
 *_backup.py
+debug_*.py
+test_*.py
+*_debug.py
+*_test.py
+
+# Debugging and diagnostic files
+*_DIAGNOSIS.md
+*_SUMMARY.md
+*_FIXES.md
+*_STATUS.md
+FINAL_*.md
+HIGHLIGHTING_*.md
+
+# Project selections temp data
+.tore_project_selections/
+
+# TORE project files (exclude from git)
+*.tore
+!test_project.tore
 
 # Enhanced system temp files
 .tore_matrix_labs_enhanced/

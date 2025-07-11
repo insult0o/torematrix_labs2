@@ -72,22 +72,29 @@ class EnhancedDragSelectLabel(QLabel):
     
     def is_manual_validation_active(self) -> bool:
         """Check if manual validation tab is currently active."""
+        print(f"🔵 TAB CHECK: Checking if manual validation tab is active")
+        
         if not self.main_window or not hasattr(self.main_window, 'tab_widget'):
+            print(f"🔴 TAB CHECK: No main window or tab widget, defaulting to True")
             return True  # Default to allow if we can't check
             
         try:
             current_index = self.main_window.tab_widget.currentIndex()
             current_widget = self.main_window.tab_widget.widget(current_index)
             
+            print(f"🔵 TAB CHECK: Current tab index: {current_index}")
+            
             # Check if current widget is manual validation widget
             if hasattr(self.main_window, 'manual_validation_widget'):
                 is_manual_validation = (current_widget == self.main_window.manual_validation_widget)
+                print(f"🔵 TAB CHECK: Is manual validation widget? {is_manual_validation}")
                 self.logger.debug(f"TAB CHECK: Is manual validation active? {is_manual_validation}")
                 return is_manual_validation
             
             # Fallback: check by tab text
             tab_text = self.main_window.tab_widget.tabText(current_index)
             is_manual_validation = "Manual Validation" in tab_text
+            print(f"🔵 TAB CHECK: Tab text '{tab_text}', is manual validation? {is_manual_validation}")
             self.logger.debug(f"TAB CHECK: Tab text '{tab_text}', is manual validation? {is_manual_validation}")
             return is_manual_validation
             
@@ -97,7 +104,9 @@ class EnhancedDragSelectLabel(QLabel):
     
     def enable_cutting(self, enabled: bool = True):
         """Enable or disable cutting tool."""
+        print(f"🔧 CUTTING: Setting cutting_enabled to {enabled}")
         self.cutting_enabled = enabled
+        print(f"🔧 CUTTING: Tool {'enabled' if enabled else 'disabled'}")
         self.logger.info(f"CUTTING: Tool {'enabled' if enabled else 'disabled'}")
         
     def load_persistent_areas(self, document_id: str, page: int):
@@ -204,19 +213,28 @@ class EnhancedDragSelectLabel(QLabel):
     
     def mousePressEvent(self, event: QMouseEvent):
         """Handle mouse press for selection, resize, or move."""
+        print(f"🔵 MOUSE PRESS: Event received at position {event.pos()}")
+        
         if event.button() == Qt.LeftButton:
             pos = event.pos()
+            print(f"🔵 MOUSE PRESS: Left button clicked at {pos}")
             
             # Check if cutting is enabled and we're in the right tab
             if not self.cutting_enabled:
+                print(f"🔴 MOUSE PRESS: Cutting disabled, ignoring mouse press")
                 self.logger.debug("CUTTING: Tool disabled, ignoring mouse press")
                 return
                 
+            print(f"🟢 MOUSE PRESS: Cutting enabled, processing event")
+                
             if not self.is_manual_validation_active():
+                print(f"🔴 MOUSE PRESS: Not in manual validation tab, cutting disabled")
                 self.logger.info("CUTTING: Not in manual validation tab, cutting disabled")
                 # Still allow area interaction (resize/move) but not new selections
                 # Fall through to check for existing area interaction
                 pass
+            else:
+                print(f"🟢 MOUSE PRESS: In manual validation tab, cutting enabled")
             
             # Check if clicking on existing area
             clicked_area = self._get_area_at_position(pos.x(), pos.y())
@@ -633,7 +651,10 @@ class EnhancedDragSelectLabel(QLabel):
             self.update()
             
             # Emit signal
+            print(f"🟢 AREA CREATION: About to emit area_selected signal")
+            print(f"🟢 AREA CREATION: Area data: {area.to_dict()}")
             self.area_selected.emit(area.to_dict())
+            print(f"🟢 AREA CREATION: Signal emitted successfully")
             self.logger.info(f"SUCCESS: Created area {area.id} of type {area_type.value} at {area.bbox}")
             
         else:
