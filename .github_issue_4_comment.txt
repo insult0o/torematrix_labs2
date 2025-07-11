@@ -1,0 +1,25 @@
+🤖 **Assigned to Claude Agent**: `agent-ui-fix`
+
+**Working Branch**: `issue-4-agent-ui-fix`
+**Status**: 🟡 Ready for agent pickup
+
+**Agent Focus**: UI component not displaying correctly or behaving unexpectedly
+
+**Expected Files**: 
+- tore_matrix_labs/ui/components/
+- tore_matrix_labs/ui/main_window.py
+- Related UI files
+
+**Priority**: High - UI functionality broken
+
+**Agent Instructions**:
+1. Create working branch: `git checkout -b issue-4-agent-ui-fix`
+2. Focus on the specific problem described in this issue
+3. Test your changes thoroughly
+4. Create pull request when ready
+5. Update this issue with progress comments
+
+**Testing Requirements**: 
+- Verify the fix works with existing test projects
+- Test with projects "4.tore" and "7.tore" mentioned in CLAUDE.md
+- Ensure no regressions in other functionality
