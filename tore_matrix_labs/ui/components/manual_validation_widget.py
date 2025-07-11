@@ -933,6 +933,7 @@ class ManualValidationWidget(QWidget):
         self.complete_btn = QPushButton("Complete Validation")
         self.complete_btn.clicked.connect(self._complete_validation)
         self.complete_btn.setEnabled(False)
+        print(f"🔧 BUTTON: Complete Validation button created and connected to _complete_validation")
         self.complete_btn.setStyleSheet("""
             QPushButton {
                 background-color: #27ae60;
@@ -1089,6 +1090,9 @@ class ManualValidationWidget(QWidget):
         if page not in self.all_selections:
             self.all_selections[page] = []
         self.all_selections[page].append(selection_data)
+        
+        print(f"🟢 MANUAL VALIDATION: Added area to selections - page {page}, total areas: {len(self.all_selections[page])}")
+        print(f"🟢 MANUAL VALIDATION: Total selections across all pages: {sum(len(selections) for selections in self.all_selections.values())}")
         
         # Update UI displays
         self._update_statistics()
@@ -1734,6 +1738,8 @@ class ManualValidationWidget(QWidget):
         """Complete the manual validation process."""
         print(f"🔵 VALIDATION: _complete_validation called!")
         print(f"🔵 VALIDATION: current_document exists: {self.current_document is not None}")
+        print(f"🔵 VALIDATION: self.all_selections = {self.all_selections}")
+        print(f"🔵 VALIDATION: Total selections: {sum(len(selections) for selections in self.all_selections.values())}")
         
         if not self.current_document:
             print(f"🔴 VALIDATION: No current document - cannot complete validation")
@@ -2267,6 +2273,34 @@ class ManualValidationWidget(QWidget):
                         'pages_with_selections': len(self.all_selections)
                     }
                     
+                    # CRITICAL FIX: Save visual areas to the project
+                    print(f"🔵 SAVE_VALIDATION_STATE: self.all_selections = {self.all_selections}")
+                    print(f"🔵 SAVE_VALIDATION_STATE: Total selections: {sum(len(selections) for selections in self.all_selections.values())}")
+                    
+                    if self.all_selections:
+                        # Convert area selections to the format expected by the project
+                        visual_areas = {}
+                        for page_num, selections in self.all_selections.items():
+                            print(f"🔵 SAVE_VALIDATION_STATE: Processing page {page_num} with {len(selections)} selections")
+                            for i, selection in enumerate(selections):
+                                area_id = f"page_{page_num}_area_{i}"
+                                visual_areas[area_id] = {
+                                    'page': page_num,
+                                    'bbox': selection.get('bbox', [0, 0, 0, 0]),
+                                    'text': selection.get('text', ''),
+                                    'selection_type': selection.get('type', 'manual'),
+                                    'created_at': datetime.now().isoformat()
+                                }
+                                print(f"🔵 SAVE_VALIDATION_STATE: Created area {area_id}: {visual_areas[area_id]}")
+                        
+                        # Save visual areas to document
+                        doc['visual_areas'] = visual_areas
+                        print(f"🟢 SAVE_VALIDATION_STATE: ✅ Saved {len(visual_areas)} visual areas to project")
+                        self.logger.info(f"SAVE_VALIDATION_STATE: ✅ Saved {len(visual_areas)} visual areas to project")
+                    else:
+                        print(f"🔴 SAVE_VALIDATION_STATE: ❌ No visual areas to save - self.all_selections is empty!")
+                        self.logger.warning("SAVE_VALIDATION_STATE: No visual areas to save")
+                    
                     # Auto-save project
                     if hasattr(main_window.project_widget, 'save_current_project'):
                         save_result = main_window.project_widget.save_current_project()
@@ -2359,30 +2393,127 @@ class ManualValidationWidget(QWidget):
             import traceback
             self.logger.error(f"REFRESH: Traceback: {traceback.format_exc()}")
     
+    def load_extracted_content_from_project(self):
+        """Load extracted content from project storage when document is loaded."""
+        try:
+            self.logger.info("LOAD EXTRACTED: Starting load_extracted_content_from_project")
+            
+            document_id = self._get_current_document_id()
+            self.logger.info(f"LOAD EXTRACTED: Retrieved document_id = {document_id}")
+            
+            if not document_id:
+                self.logger.warning("LOAD EXTRACTED: Cannot load content - missing document_id")
+                return
+            
+            # Get main window to access project data
+            main_window = self._get_main_window()
+            if not main_window:
+                self.logger.warning("LOAD EXTRACTED: Cannot load content - missing main_window")
+                return
+            
+            # Try to get project manager
+            if hasattr(main_window, 'project_widget') and main_window.project_widget:
+                project_manager = main_window.project_widget
+                
+                # Look for document in project
+                for document in project_manager.documents:
+                    if document.get('id') == document_id:
+                        extracted_content = document.get('extracted_content', {})
+                        if extracted_content:
+                            self.logger.info(f"LOAD EXTRACTED: Found extracted content with {len(extracted_content.get('text_elements', []))} text elements")
+                            
+                            # Display extracted content (this should be implemented in the UI)
+                            self._display_extracted_content(extracted_content)
+                            return
+                        else:
+                            self.logger.info("LOAD EXTRACTED: No extracted content found in document")
+                            return
+                
+                self.logger.warning("LOAD EXTRACTED: Document not found in project")
+            else:
+                self.logger.warning("LOAD EXTRACTED: Project manager not available")
+                
+        except Exception as e:
+            self.logger.error(f"LOAD EXTRACTED: Error loading extracted content: {e}")
+            import traceback
+            self.logger.error(f"LOAD EXTRACTED: Traceback: {traceback.format_exc()}")
+    
+    def load_extracted_content_directly(self, extracted_content):
+        """Load extracted content directly into this widget (called from main window)."""
+        try:
+            self.logger.info(f"LOAD EXTRACTED DIRECTLY: Loading {len(extracted_content)} content keys")
+            self._display_extracted_content(extracted_content)
+        except Exception as e:
+            self.logger.error(f"LOAD EXTRACTED DIRECTLY: Error: {e}")
+    
+    def _display_extracted_content(self, extracted_content):
+        """Display extracted content in the UI."""
+        try:
+            text_elements = extracted_content.get('text_elements', [])
+            self.logger.info(f"DISPLAY EXTRACTED: Displaying {len(text_elements)} text elements")
+            
+            # Get the main window to access PageValidationWidget
+            main_window = self._get_main_window()
+            if not main_window:
+                self.logger.warning("DISPLAY EXTRACTED: Cannot find main window")
+                return
+            
+            # Check if we have a PageValidationWidget (QA widget)
+            if hasattr(main_window, 'qa_widget') and main_window.qa_widget:
+                page_validation_widget = main_window.qa_widget
+                
+                # Load extracted content into PageValidationWidget
+                if hasattr(page_validation_widget, 'load_extracted_content'):
+                    page_validation_widget.load_extracted_content(extracted_content)
+                    self.logger.info("DISPLAY EXTRACTED: Loaded extracted content into PageValidationWidget")
+                else:
+                    self.logger.warning("DISPLAY EXTRACTED: PageValidationWidget doesn't have load_extracted_content method")
+            else:
+                self.logger.warning("DISPLAY EXTRACTED: No PageValidationWidget available")
+            
+        except Exception as e:
+            self.logger.error(f"DISPLAY EXTRACTED: Error displaying content: {e}")
+    
     def load_existing_areas_from_project(self):
         """Load existing areas from project storage when document is loaded."""
         try:
             self.logger.info("LOAD EXISTING: Starting load_existing_areas_from_project")
             
+            # Also load extracted content
+            self.load_extracted_content_from_project()
+            
             document_id = self._get_current_document_id()
             self.logger.info(f"LOAD EXISTING: Retrieved document_id = {document_id}")
-            
-            main_window = self._get_main_window()
-            self.logger.info(f"LOAD EXISTING: Retrieved main_window = {main_window is not None}")
             
             if not document_id:
                 self.logger.warning("LOAD EXISTING: Cannot load areas - missing document_id")
                 return
-                
-            if not main_window:
-                self.logger.warning("LOAD EXISTING: Cannot load areas - missing main_window")
-                return
-                
-            if not hasattr(main_window, 'area_storage_manager'):
-                self.logger.warning("LOAD EXISTING: Cannot load areas - missing area_storage_manager")
-                return
             
-            area_storage = main_window.area_storage_manager
+            # Try to get area storage manager - first check if it's set directly on this widget
+            area_storage = None
+            if hasattr(self, 'area_storage_manager') and self.area_storage_manager:
+                area_storage = self.area_storage_manager
+                self.logger.info("LOAD EXISTING: Found area_storage_manager on widget itself")
+            else:
+                # Fall back to finding it through main window
+                main_window = self._get_main_window()
+                self.logger.info(f"LOAD EXISTING: Retrieved main_window = {main_window is not None}")
+                
+                if not main_window:
+                    self.logger.warning("LOAD EXISTING: Cannot load areas - missing main_window")
+                    return
+                    
+                if not hasattr(main_window, 'area_storage_manager'):
+                    self.logger.warning("LOAD EXISTING: Cannot load areas - missing area_storage_manager")
+                    return
+                
+                area_storage = main_window.area_storage_manager
+                self.logger.info("LOAD EXISTING: Found area_storage_manager on main window")
+            
+            if not area_storage:
+                self.logger.warning("LOAD EXISTING: Cannot load areas - no area_storage_manager found")
+                return
+                
             self.logger.info(f"LOAD EXISTING: Got area_storage_manager = {area_storage is not None}")
             
             all_areas = area_storage.load_areas(document_id)

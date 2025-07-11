@@ -651,7 +651,28 @@ class MainWindow(QMainWindow):
                 print(f"🔵 MAIN WINDOW: Notifying manual validation widget...")
                 self._populate_manual_validation_from_project(project_documents)
                 
-                # Auto-load the first document with corrections into QA validation
+                # ✅ PRIORITY: Check for documents with visual areas FIRST (Manual Validation)
+                doc_with_areas = None
+                total_areas_found = 0
+                for doc_data in project_documents:
+                    # Count visual areas from all possible locations
+                    area_count = 0
+                    processing_data = doc_data.get('processing_data', {})
+                    
+                    # Check processing_data for visual_areas
+                    if 'visual_areas' in processing_data:
+                        area_count += len(processing_data['visual_areas'])
+                    
+                    # Check direct visual_areas field
+                    if 'visual_areas' in doc_data:
+                        area_count += len(doc_data['visual_areas'])
+                    
+                    if area_count > 0 and not doc_with_areas:
+                        doc_with_areas = doc_data
+                        total_areas_found = area_count
+                        break
+                
+                # Auto-load the first document with corrections into QA validation (secondary priority)
                 first_doc_with_corrections = None
                 for doc_data in project_documents:
                     processing_data = doc_data.get('processing_data', {})
@@ -660,7 +681,18 @@ class MainWindow(QMainWindow):
                         first_doc_with_corrections = doc_data
                         break
                 
-                if first_doc_with_corrections:
+                # Priority 1: Show Manual Validation if we have areas
+                if doc_with_areas:
+                    print(f"🟢 PROJECT LOAD: Found document with {total_areas_found} areas - switching to Manual Validation")
+                    # Manual validation loading is already handled in _populate_manual_validation_from_project
+                    for i in range(self.tab_widget.count()):
+                        if "Manual Validation" in self.tab_widget.tabText(i):
+                            self.tab_widget.setCurrentIndex(i)
+                            self._update_status(f"Auto-switched to Manual Validation - {total_areas_found} areas ready")
+                            break
+                
+                # Priority 2: Show QA Validation if we have corrections (and no areas)
+                elif first_doc_with_corrections:
                     self.logger.info(f"Auto-loading first document with corrections: {first_doc_with_corrections.get('name')}")
                     self._load_document_corrections_from_project_data(first_doc_with_corrections)
                     
@@ -825,6 +857,20 @@ class MainWindow(QMainWindow):
                     # Load document into manual validation widget
                     print(f"🔵 MANUAL VALIDATION: Loading document into widget...")
                     self.manual_validation_widget.load_document(document, doc_path)
+                    
+                    # ✅ CRITICAL FIX: Load extracted content into ManualValidationWidget
+                    extracted_content = first_doc_with_areas.get('extracted_content', {})
+                    if extracted_content:
+                        print(f"🔵 MANUAL VALIDATION: Loading extracted content with {len(extracted_content)} keys")
+                        # Load extracted content into ManualValidationWidget (NOT qa_widget)
+                        if hasattr(self.manual_validation_widget, 'load_extracted_content_directly'):
+                            self.manual_validation_widget.load_extracted_content_directly(extracted_content)
+                            print(f"🟢 MANUAL VALIDATION: Loaded extracted content into ManualValidationWidget")
+                        else:
+                            # Fallback: the widget should load it automatically via load_extracted_content_from_project
+                            print(f"🟡 MANUAL VALIDATION: Widget will load extracted content automatically")
+                    else:
+                        print(f"🟡 MANUAL VALIDATION: No extracted content found")
                     
                     # Also load the PDF into the main PDF viewer
                     if self.pdf_viewer:
@@ -1036,28 +1082,86 @@ class MainWindow(QMainWindow):
                 quality_score=0.0
             )
             
-            # ADD DOCUMENT TO PROJECT IMMEDIATELY (not waiting for validation completion)
-            print(f"🟢 PROCESSING: Adding document to project immediately...")
+            # PROCESS DOCUMENT TO EXTRACT CONTENT
+            print(f"🟢 PROCESSING: Processing document to extract content...")
             print(f"🔵 DEBUG: Document object created:")
             print(f"   ID: {document.id}")
             print(f"   File: {document.metadata.file_name}")
             print(f"   Path: {document.metadata.file_path}")
             
-            document_data = {
-                'id': document.id,
-                'file_path': document.metadata.file_path,
-                'file_name': document.metadata.file_name,
-                'file_size': document.metadata.file_size,
-                'file_type': document.metadata.file_type,
-                'page_count': document.metadata.page_count,
-                'processing_status': 'IN_VALIDATION',  # Status shows it's in progress
-                'quality_level': document.quality_level,
-                'quality_score': document.quality_score,
-                'document_type': document.document_type,
-                'validation_status': 'in_progress',
-                'added_at': datetime.now().isoformat(),
-                'last_modified': datetime.now().isoformat()
-            }
+            # Run document processing pipeline
+            from ..core.document_processor import DocumentProcessor
+            processor = DocumentProcessor(self.settings)
+            
+            try:
+                processing_result = processor.process_document(file_path)
+                print(f"🟢 PROCESSING: Document processed successfully")
+                print(f"   Processing status: {processing_result.get('processing_status', 'unknown')}")
+                
+                # Extract the processed document data
+                processed_document = processing_result.get('document')
+                if processed_document:
+                    # Use the processed document data - convert enums to strings for JSON serialization
+                    document_data = {
+                        'id': processed_document.id,
+                        'file_path': processed_document.metadata.file_path,
+                        'file_name': processed_document.metadata.file_name,
+                        'file_size': processed_document.metadata.file_size,
+                        'file_type': processed_document.metadata.file_type,
+                        'page_count': processed_document.metadata.page_count,
+                        'processing_status': 'IN_VALIDATION',  # Status shows it's in progress
+                        'quality_level': processed_document.quality_level.value if hasattr(processed_document.quality_level, 'value') else str(processed_document.quality_level),
+                        'quality_score': processed_document.quality_score,
+                        'document_type': processed_document.document_type.value if hasattr(processed_document.document_type, 'value') else str(processed_document.document_type),
+                        'validation_status': 'in_progress',
+                        'added_at': datetime.now().isoformat(),
+                        'last_modified': datetime.now().isoformat(),
+                        # SAVE THE EXTRACTED CONTENT
+                        'extracted_content': getattr(processed_document, 'extracted_content', {})
+                    }
+                    print(f"🟢 PROCESSING: Extracted content has {len(document_data['extracted_content'])} keys")
+                else:
+                    print(f"🔴 ERROR: No processed document returned from processing")
+                    # Fall back to original document data
+                    document_data = {
+                        'id': document.id,
+                        'file_path': document.metadata.file_path,
+                        'file_name': document.metadata.file_name,
+                        'file_size': document.metadata.file_size,
+                        'file_type': document.metadata.file_type,
+                        'page_count': document.metadata.page_count,
+                        'processing_status': 'IN_VALIDATION',
+                        'quality_level': document.quality_level,
+                        'quality_score': document.quality_score,
+                        'document_type': document.document_type,
+                        'validation_status': 'in_progress',
+                        'added_at': datetime.now().isoformat(),
+                        'last_modified': datetime.now().isoformat(),
+                        'extracted_content': {}
+                    }
+                    
+            except Exception as process_error:
+                print(f"🔴 ERROR: Document processing failed: {process_error}")
+                import traceback
+                print(f"🔴 ERROR: Traceback: {traceback.format_exc()}")
+                
+                # Fall back to original document data without extracted content
+                document_data = {
+                    'id': document.id,
+                    'file_path': document.metadata.file_path,
+                    'file_name': document.metadata.file_name,
+                    'file_size': document.metadata.file_size,
+                    'file_type': document.metadata.file_type,
+                    'page_count': document.metadata.page_count,
+                    'processing_status': 'IN_VALIDATION',
+                    'quality_level': document.quality_level,
+                    'quality_score': document.quality_score,
+                    'document_type': document.document_type,
+                    'validation_status': 'in_progress',
+                    'added_at': datetime.now().isoformat(),
+                    'last_modified': datetime.now().isoformat(),
+                    'extracted_content': {}
+                }
             
             print(f"🔵 DEBUG: About to call add_processed_document with data: {document_data}")
             
