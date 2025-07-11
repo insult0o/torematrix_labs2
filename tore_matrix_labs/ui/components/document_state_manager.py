@@ -28,6 +28,34 @@ class DocumentStateManager(QObject):
         
         logger.info("DocumentStateManager initialized")
     
+    def save_validation_result(self, document_id: str, validation_result: dict):
+        """Save validation result for a document."""
+        try:
+            if document_id in self.document_cache:
+                if 'validation_results' not in self.document_cache[document_id]:
+                    self.document_cache[document_id]['validation_results'] = {}
+                
+                self.document_cache[document_id]['validation_results']['manual_validation'] = validation_result
+                
+                logger.info(f"DOC_STATE_MANAGER: Saved validation result for document {document_id}")
+            else:
+                logger.warning(f"DOC_STATE_MANAGER: Document {document_id} not found in cache")
+                
+        except Exception as e:
+            logger.error(f"DOC_STATE_MANAGER: Error saving validation result: {e}")
+    
+    def get_validation_result(self, document_id: str) -> Optional[dict]:
+        """Get validation result for a document."""
+        try:
+            if document_id in self.document_cache:
+                validation_results = self.document_cache[document_id].get('validation_results', {})
+                return validation_results.get('manual_validation')
+            return None
+            
+        except Exception as e:
+            logger.error(f"DOC_STATE_MANAGER: Error getting validation result: {e}")
+            return None
+    
     def set_active_document(self, document_id: str, metadata: Dict[str, Any]):
         """Set the currently active document and notify all widgets."""
         if self.active_document_id != document_id:

@@ -26,6 +26,7 @@ class QAValidationWidget(QWidget):
         # Current state
         self.current_document: Optional[Document] = None
         self.post_processing_result = None
+        self.manual_validation_result = None
         
         self._init_ui()
         self.logger.info("QA validation widget initialized")
@@ -75,6 +76,9 @@ class QAValidationWidget(QWidget):
         self.current_document = document
         self.post_processing_result = post_processing_result
         
+        # Check if manual validation was already completed
+        self._check_manual_validation_state()
+        
         # Load into validation widget
         self.validation_widget.load_document(document, post_processing_result)
         
@@ -93,6 +97,47 @@ class QAValidationWidget(QWidget):
         
         self.status_message.emit(f"Document {document.metadata.file_name} loaded for validation")
         self.logger.info(f"Document loaded for validation: {document.id}")
+    
+    def _check_manual_validation_state(self):
+        """Check if manual validation was already completed for this document."""
+        try:
+            if not self.current_document:
+                return
+            
+            # Get main window to access document state manager
+            main_window = self.parent()
+            while main_window and not hasattr(main_window, 'document_state_manager'):
+                main_window = main_window.parent()
+            
+            if not main_window:
+                self.logger.warning("QA_VALIDATION_STATE: Cannot find main window")
+                return
+            
+            # Check if validation result exists
+            validation_result = main_window.document_state_manager.get_validation_result(self.current_document.id)
+            
+            if validation_result:
+                self.logger.info(f"QA_VALIDATION_STATE: Found existing validation result for {self.current_document.id}")
+                self.logger.info(f"QA_VALIDATION_STATE: Manual validation completed at {validation_result.get('completed_at')}")
+                
+                # Update status to show manual validation was completed
+                completed_at = validation_result.get('completed_at', 'unknown time')
+                total_selections = validation_result.get('total_selections', 0)
+                
+                self.status_label.setText(
+                    f"Manual validation completed at {completed_at[:19]} with {total_selections} selections"
+                )
+                
+                # Store the validation result for use by the validation widget
+                self.manual_validation_result = validation_result
+                
+            else:
+                self.logger.info(f"QA_VALIDATION_STATE: No existing validation result found for {self.current_document.id}")
+                self.manual_validation_result = None
+                
+        except Exception as e:
+            self.logger.error(f"QA_VALIDATION_STATE: Error checking manual validation state: {e}")
+            self.manual_validation_result = None
     
     def start_validation(self):
         """Start the validation process."""

@@ -1106,6 +1106,10 @@ class MainWindow(QMainWindow):
             self.logger.info(f"Manual validation completed for {document_id}")
             self.logger.info(f"Total selections: {validation_result['total_selections']}")
             
+            # IMPORTANT: Save the validation result for QA widget to use
+            print(f"🔵 MAIN WINDOW: Saving validation result for QA widget...")
+            self._save_validation_result_for_qa(validation_result)
+            
             # Manual validation completed - now process document excluding selected areas
             print(f"🔵 MAIN WINDOW: Calling _continue_processing_after_manual_validation...")
             self._continue_processing_after_manual_validation(validation_result)
@@ -1118,6 +1122,26 @@ class MainWindow(QMainWindow):
             print(f"🔴 MAIN WINDOW: Traceback: {traceback.format_exc()}")
             self._update_status(f"Error processing manual validation results: {e}")
             self.logger.error(f"Error processing validation results: {e}")
+    
+    def _save_validation_result_for_qa(self, validation_result: dict):
+        """Save the validation result for the QA widget to use."""
+        try:
+            document_id = validation_result['document_id']
+            
+            # Store the validation result at the main window level
+            if not hasattr(self, '_validation_results'):
+                self._validation_results = {}
+            
+            self._validation_results[document_id] = validation_result
+            
+            # Also save to document state manager
+            if hasattr(self, 'document_state_manager'):
+                self.document_state_manager.save_validation_result(document_id, validation_result)
+            
+            self.logger.info(f"QA_VALIDATION_STATE: Saved validation result for document {document_id}")
+            
+        except Exception as e:
+            self.logger.error(f"QA_VALIDATION_STATE: Error saving validation result: {e}")
     
     def _continue_processing_after_manual_validation(self, validation_result: dict):
         """Continue document processing after manual validation, excluding selected areas."""
