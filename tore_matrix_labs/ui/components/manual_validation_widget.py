@@ -998,6 +998,10 @@ class ManualValidationWidget(QWidget):
         print(f"🔵 DOCUMENT LOADED: About to load existing areas from project")
         self.load_existing_areas_from_project()
         
+        # Load validation state (if document was previously validated)
+        print(f"🔵 DOCUMENT LOADED: About to load validation state")
+        self._load_validation_state()
+        
         self.status_message.emit("Document loaded for manual validation")
         self.logger.info(f"Document successfully loaded for manual validation: {self.current_file_path}")
     
@@ -1751,6 +1755,10 @@ class ManualValidationWidget(QWidget):
         self.complete_btn.setEnabled(False)
         self.clear_page_btn.setEnabled(False)
         
+        # Save validation state to project (new functionality)
+        print(f"🔵 VALIDATION: Saving validation state to project...")
+        self._save_validation_state()
+        
         # Emit completion signal
         print(f"🔵 VALIDATION: Emitting validation_completed signal...")
         print(f"🔵 VALIDATION: Validation result: {validation_result}")
@@ -1772,6 +1780,10 @@ class ManualValidationWidget(QWidget):
             # Save current selections to persistence
             print(f"🔵 SAVE PROGRESS: Saving selections to persistence...")
             self._save_persistent_selections()
+            
+            # Save current validation state (including partial progress)
+            print(f"🔵 SAVE PROGRESS: Saving validation state...")
+            self._save_validation_state()
             
             # Emit signal to save project (this will trigger auto-save)
             self.status_message.emit("💾 Progress saved! You can safely close the application.")
@@ -2216,6 +2228,103 @@ class ManualValidationWidget(QWidget):
             
         except Exception as e:
             self.logger.error(f"ENSURE_ID: Error ensuring document ID consistency: {e}")
+    
+    def _save_validation_state(self):
+        """Save the current validation state to project storage."""
+        try:
+            document_id = self._get_current_document_id()
+            if not document_id:
+                self.logger.warning("SAVE_VALIDATION_STATE: Cannot save - missing document_id")
+                return
+            
+            main_window = self._get_main_window()
+            if not main_window or not hasattr(main_window, 'project_widget'):
+                self.logger.warning("SAVE_VALIDATION_STATE: Cannot save - missing project widget")
+                return
+            
+            # Get current project data
+            project_data = main_window.project_widget.get_current_project()
+            if not project_data:
+                self.logger.warning("SAVE_VALIDATION_STATE: Cannot save - no active project")
+                return
+            
+            # Find document in project
+            documents = project_data.get('documents', [])
+            for doc in documents:
+                if doc.get('id') == document_id:
+                    # Save validation state in the document
+                    if 'validation_state' not in doc:
+                        doc['validation_state'] = {}
+                    
+                    doc['validation_state'] = {
+                        'is_complete': self.validation_complete,
+                        'completed_at': datetime.now().isoformat() if self.validation_complete else None,
+                        'total_selections': sum(len(selections) for selections in self.all_selections.values()),
+                        'pages_with_selections': len(self.all_selections)
+                    }
+                    
+                    # Auto-save project
+                    if hasattr(main_window.project_widget, 'save_current_project'):
+                        save_result = main_window.project_widget.save_current_project()
+                        if save_result:
+                            self.logger.info(f"SAVE_VALIDATION_STATE: ✅ Saved validation state for document {document_id}")
+                        else:
+                            self.logger.error(f"SAVE_VALIDATION_STATE: ❌ Failed to save project with validation state")
+                    break
+            
+        except Exception as e:
+            self.logger.error(f"SAVE_VALIDATION_STATE: Error saving validation state: {e}")
+    
+    def _load_validation_state(self):
+        """Load the validation state from project storage."""
+        try:
+            document_id = self._get_current_document_id()
+            if not document_id:
+                self.logger.warning("LOAD_VALIDATION_STATE: Cannot load - missing document_id")
+                return
+            
+            main_window = self._get_main_window()
+            if not main_window or not hasattr(main_window, 'project_widget'):
+                self.logger.warning("LOAD_VALIDATION_STATE: Cannot load - missing project widget")
+                return
+            
+            # Get current project data
+            project_data = main_window.project_widget.get_current_project()
+            if not project_data:
+                self.logger.warning("LOAD_VALIDATION_STATE: Cannot load - no active project")
+                return
+            
+            # Find document in project
+            documents = project_data.get('documents', [])
+            for doc in documents:
+                if doc.get('id') == document_id:
+                    validation_state = doc.get('validation_state', {})
+                    
+                    if validation_state:
+                        is_complete = validation_state.get('is_complete', False)
+                        completed_at = validation_state.get('completed_at')
+                        
+                        self.logger.info(f"LOAD_VALIDATION_STATE: Found validation state - complete: {is_complete}, completed_at: {completed_at}")
+                        
+                        # Restore validation state
+                        self.validation_complete = is_complete
+                        
+                        # Update UI based on validation state
+                        if self.validation_complete:
+                            self.complete_btn.setEnabled(False)
+                            self.clear_page_btn.setEnabled(False)
+                            self.status_message.emit(f"Document validation already completed at {completed_at}")
+                            self.logger.info(f"LOAD_VALIDATION_STATE: ✅ Restored completed validation state for document {document_id}")
+                        else:
+                            self.complete_btn.setEnabled(True)
+                            self.clear_page_btn.setEnabled(True)
+                            self.logger.info(f"LOAD_VALIDATION_STATE: ✅ Restored incomplete validation state for document {document_id}")
+                    else:
+                        self.logger.info(f"LOAD_VALIDATION_STATE: No validation state found for document {document_id}")
+                    break
+            
+        except Exception as e:
+            self.logger.error(f"LOAD_VALIDATION_STATE: Error loading validation state: {e}")
     
     def _refresh_pdf_viewer_areas(self, page: int):
         """Force refresh of PDF viewer areas for a specific page."""
