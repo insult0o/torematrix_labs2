@@ -3089,7 +3089,7 @@ class PageValidationWidget(QWidget):
             self.issue_label.setText(f"Ready for highlighting ({len(text_elements)} text elements)")
             
             # Enable highlighting engine
-            if hasattr(self, 'highlighting_engine') and self.highlighting_engine:
+            if self.highlighting_engine:
                 self.highlighting_engine.set_text_widget(self.extracted_text)
                 self.logger.info("LOAD EXTRACTED: Highlighting engine connected to text widget")
             
