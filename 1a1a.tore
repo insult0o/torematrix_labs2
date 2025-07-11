@@ -2,7 +2,7 @@
   "name": "1a1a",
   "description": "",
   "created_at": "2025-07-11T01:49:56.124822",
-  "modified_at": "2025-07-11T01:51:02.509388",
+  "modified_at": "2025-07-11T02:20:25.036285",
   "version": "1.0.0",
   "documents": [
     {
@@ -20,8 +20,8 @@
       "quality_score": 0.0,
       "document_type": "ICAO",
       "validation_status": "in_progress",
-      "added_at": "2025-07-11T01:50:09.085206",
-      "last_modified": "2025-07-11T01:50:09.085207",
+      "added_at": "2025-07-11T02:20:25.036018",
+      "last_modified": "2025-07-11T02:20:25.036019",
       "processing_data": {
         "id": "5555_fd7d296c",
         "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
@@ -34,8 +34,8 @@
         "quality_score": 0.0,
         "document_type": "ICAO",
         "validation_status": "in_progress",
-        "added_at": "2025-07-11T01:50:09.085188",
-        "last_modified": "2025-07-11T01:50:09.085192"
+        "added_at": "2025-07-11T02:20:25.035998",
+        "last_modified": "2025-07-11T02:20:25.036002"
       },
       "visual_areas": {
         "area_b4c072b1": {
@@ -66,5 +66,6 @@
         }
       }
     }
-  ]
+  ],
+  "path": "/home/insulto/tore_matrix_labs/1a1a.tore"
 }

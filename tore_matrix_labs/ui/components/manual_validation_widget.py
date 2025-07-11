@@ -478,17 +478,50 @@ class DragSelectPDFViewer(QWidget):
         """Go to previous page."""
         if self.current_page > 1:
             self.current_page -= 1
-            self.current_selections = []  # Reset selections for new page
             self._load_current_page()
+            self._load_page_areas()  # Load persistent areas for this page
             self._update_navigation_buttons()
     
     def _next_page(self):
         """Go to next page."""
         if self.current_page < self.total_pages:
             self.current_page += 1
-            self.current_selections = []  # Reset selections for new page
             self._load_current_page()
+            self._load_page_areas()  # Load persistent areas for this page
             self._update_navigation_buttons()
+    
+    def _load_page_areas(self):
+        """Load persistent areas for the current page."""
+        try:
+            if hasattr(self, 'area_storage_manager') and self.area_storage_manager and hasattr(self, 'current_document_id'):
+                # Get areas for current page
+                page_areas = self.area_storage_manager.get_areas_for_page(self.current_document_id, self.current_page)
+                
+                # Convert to current_selections format
+                self.current_selections = []
+                for area_id, area_data in page_areas.items():
+                    # Convert area data to selection format
+                    selection = {
+                        'id': area_id,
+                        'bbox': area_data.get('bbox', {}),
+                        'page': self.current_page,
+                        'type': area_data.get('type', 'unknown'),
+                        'content': area_data.get('content', ''),
+                        'name': area_data.get('name', f'Area {area_id}')
+                    }
+                    self.current_selections.append(selection)
+                
+                self.logger.info(f"MANUAL VALIDATION: Loaded {len(self.current_selections)} areas for page {self.current_page}")
+                self._update_selection_info()
+            else:
+                # Clear selections if no storage manager or document
+                self.current_selections = []
+                self._update_selection_info()
+                
+        except Exception as e:
+            self.logger.error(f"Error loading page areas: {e}")
+            self.current_selections = []
+            self._update_selection_info()
     
     def _update_navigation_buttons(self):
         """Update navigation button states."""

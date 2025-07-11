@@ -149,19 +149,10 @@ class EnhancedDragSelectLabel(QLabel):
             self.logger.error(f"Traceback: {traceback.format_exc()}")
     
     def on_page_changed(self, page: int):
-        """Handle page change to reload areas."""
+        """Handle page change to reload areas atomically."""
         self.logger.info(f"PAGE CHANGE: Page changed to {page}")
         
-        # Clear current areas immediately
-        old_count = len(self.persistent_areas)
-        self.persistent_areas.clear()
-        self.active_area_id = None
-        self.logger.info(f"PAGE CHANGE: Cleared {old_count} areas from previous page")
-        
-        # Force immediate repaint to clear old areas
-        self.update()
-        
-        # Debug document ID and page info
+        # Get document information
         document_id = getattr(self.pdf_viewer, 'current_document_id', None)
         document_path = getattr(self.pdf_viewer, 'current_document_path', None)
         current_page_0based = getattr(self.pdf_viewer, 'current_page', -1)
@@ -171,11 +162,45 @@ class EnhancedDragSelectLabel(QLabel):
         self.logger.info(f"PAGE CHANGE: PDF viewer current_page (0-based): {current_page_0based}")
         self.logger.info(f"PAGE CHANGE: Page signal received (1-based): {page}")
         
+        old_count = len(self.persistent_areas)
+        
         if document_id:
-            self.logger.info(f"PAGE CHANGE: Loading areas for document '{document_id}', page {page}")
-            self.load_persistent_areas(document_id, page)
+            # Load new areas BEFORE clearing old ones (atomic replacement)
+            try:
+                new_areas = {}
+                if hasattr(self, 'area_storage_manager') and self.area_storage_manager:
+                    # Load areas for the specific page
+                    page_areas = self.area_storage_manager.get_areas_for_page(document_id, page)
+                    
+                    # Convert to the format expected by enhanced_drag_select
+                    for area_id, area_data in page_areas.items():
+                        new_areas[area_id] = area_data
+                    
+                    self.logger.info(f"PAGE CHANGE: Loaded {len(new_areas)} areas for page {page}")
+                else:
+                    self.logger.warning("PAGE CHANGE: No area_storage_manager available")
+                
+                # Atomic replacement - replace all areas at once
+                self.persistent_areas = new_areas
+                self.active_area_id = None
+                
+                # Update UI with new areas
+                self.update()
+                
+                self.logger.info(f"PAGE CHANGE: Successfully replaced {old_count} areas with {len(new_areas)} areas")
+                
+            except Exception as e:
+                self.logger.error(f"PAGE CHANGE: Error loading areas: {e}")
+                # On error, clear areas to prevent stale data
+                self.persistent_areas.clear()
+                self.active_area_id = None
+                self.update()
         else:
-            self.logger.warning("PAGE CHANGE: No document ID available - cannot load areas")
+            # No document ID - clear areas safely
+            self.logger.warning("PAGE CHANGE: No document ID available - clearing areas")
+            self.persistent_areas.clear()
+            self.active_area_id = None
+            self.update()
     
     def mousePressEvent(self, event: QMouseEvent):
         """Handle mouse press for selection, resize, or move."""

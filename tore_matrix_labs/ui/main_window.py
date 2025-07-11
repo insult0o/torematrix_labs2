@@ -168,6 +168,12 @@ class MainWindow(QMainWindow):
         # Initialize area storage manager with project widget
         self.area_storage_manager = AreaStorageManager(self.project_widget)
         
+        # Connect area storage manager to manual validation widget
+        if hasattr(self.manual_validation_widget, 'area_storage_manager'):
+            self.manual_validation_widget.area_storage_manager = self.area_storage_manager
+        else:
+            setattr(self.manual_validation_widget, 'area_storage_manager', self.area_storage_manager)
+        
         # Connect area storage manager to PDF viewer's enhanced drag select
         if hasattr(self.pdf_viewer, 'page_label') and hasattr(self.pdf_viewer.page_label, 'set_area_storage_manager'):
             self.pdf_viewer.page_label.set_area_storage_manager(self.area_storage_manager)
