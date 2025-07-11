@@ -2,7 +2,7 @@
   "name": "1a1a",
   "description": "",
   "created_at": "2025-07-11T01:49:56.124822",
-  "modified_at": "2025-07-11T03:19:01.227981",
+  "modified_at": "2025-07-11T04:16:38.422252",
   "version": "1.0.0",
   "documents": [
     {
@@ -20,8 +20,8 @@
       "quality_score": 0.0,
       "document_type": "ICAO",
       "validation_status": "in_progress",
-      "added_at": "2025-07-11T03:19:01.227808",
-      "last_modified": "2025-07-11T03:19:01.227809",
+      "added_at": "2025-07-11T04:16:32.007489",
+      "last_modified": "2025-07-11T04:16:32.007490",
       "processing_data": {
         "id": "5555_fd7d296c",
         "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
@@ -34,8 +34,8 @@
         "quality_score": 0.0,
         "document_type": "ICAO",
         "validation_status": "in_progress",
-        "added_at": "2025-07-11T03:19:01.227781",
-        "last_modified": "2025-07-11T03:19:01.227785"
+        "added_at": "2025-07-11T04:16:32.007463",
+        "last_modified": "2025-07-11T04:16:32.007467"
       },
       "visual_areas": {
         "area_b4c072b1": {
@@ -43,25 +43,25 @@
           "document_id": "5555_fd7d296c",
           "type": "IMAGE",
           "bbox": [
-            110.68613138686132,
+            86.36496350364963,
             71.47445255474453,
             511.73722627737226,
-            190.5985401459854
+            218.3941605839416
           ],
           "page": 1,
           "color": "#FF4444",
-          "status": "selected",
+          "status": "modified",
           "created_at": "2025-07-11T01:50:27.561733",
-          "modified_at": "2025-07-11T01:50:27.561821",
+          "modified_at": "2025-07-11T03:42:45.015126",
           "user_notes": "",
-          "border_width": 2,
+          "border_width": 2.0,
           "fill_opacity": 0.3,
           "border_glow": true,
           "widget_rect": [
-            223,
-            144,
-            808,
-            240
+            223.0,
+            144.0,
+            808.0,
+            240.0
           ]
         },
         "area_46d57ae2": {
@@ -93,10 +93,11 @@
       },
       "validation_state": {
         "is_complete": true,
-        "completed_at": "2025-07-11T03:18:19.744571",
+        "completed_at": "2025-07-11T04:16:38.422152",
         "total_selections": 2,
         "pages_with_selections": 1
-      }
+      },
+      "extracted_content": {}
     }
   ],
   "path": "/home/insulto/tore_matrix_labs/1a1a.tore"

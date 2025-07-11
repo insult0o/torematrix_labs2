@@ -116,12 +116,52 @@ The new PageValidationWidget successfully replaces the problematic coordinate-ba
 - **Performance optimized** - Reduced log spam and improved coordinate lookup efficiency
 
 ## Commands to Run
-```bash
-# Test corrections
-python test_improved_corrections.py
 
-# Test layout
-python test_final_vertical_layout.py
+### 🚀 Application Commands
+```bash
+# Run the application
+python3 -m tore_matrix_labs
+# or use project script
+./scripts/project_operations.sh run
+
+# Run all critical tests
+./scripts/project_operations.sh test all
+
+# Check project health
+./scripts/project_operations.sh status
+```
+
+### 📝 Git & GitHub Commands
+```bash
+# Check git status and recent commits
+./scripts/git_operations.sh status
+
+# Commit changes with message
+./scripts/git_operations.sh commit "Your commit message"
+
+# Push to GitHub
+./scripts/git_operations.sh push
+
+# Commit and push in one command
+./scripts/git_operations.sh sync "Your commit message"
+
+# Setup git configuration (if needed)
+./scripts/git_operations.sh full-setup
+```
+
+### 🔄 Session Recovery Commands
+```bash
+# Show current session state
+./scripts/session_recovery.sh state
+
+# Restore git configuration
+./scripts/session_recovery.sh restore
+
+# Quick health check
+./scripts/session_recovery.sh health
+
+# Show session summary
+./scripts/session_recovery.sh summary
 ```
 
 ## Notes
@@ -129,30 +169,82 @@ python test_final_vertical_layout.py
 - Documents stored in .tore format
 - PDF processing with quality validation
 
+## 🔄 Session Continuity Guide
+
+### **Quick Session Recovery (Start Here for New Sessions)**
+```bash
+# 1. Check current state
+./scripts/session_recovery.sh summary
+
+# 2. Restore configuration if needed
+./scripts/session_recovery.sh restore
+
+# 3. Check project health
+./scripts/session_recovery.sh health
+
+# 4. Show available operations
+./scripts/session_recovery.sh operations
+```
+
+### **🎯 Critical Information for Claude**
+
+**Project Status:** ✅ FULLY OPERATIONAL
+- **GitHub Repository:** https://github.com/insult0o/tore-matrix-labs
+- **All Critical Fixes:** Implemented and tested
+- **Git Integration:** Fully configured with credentials
+
+**Recent Major Achievements:**
+1. ✅ **Project Loading Fix** - No more reprocessing needed when opening projects
+2. ✅ **PDF Highlighting Fix** - QA validation issues highlight properly in PDF viewer
+3. ✅ **Area Display Fix** - Areas show correctly in list and preview sections
+4. ✅ **GitHub Integration** - Repository setup with automated scripts
+
+**Essential Scripts Created:**
+- `./scripts/git_operations.sh` - All git operations (commit, push, pull, etc.)
+- `./scripts/project_operations.sh` - Run app, tests, status checks
+- `./scripts/session_recovery.sh` - Quick session state recovery
+
+**Git Configuration:**
+- User: insult0o
+- Email: miguel.borges.cta@gmail.com
+- Remote: https://github.com/insult0o/tore-matrix-labs.git
+- Credentials: Stored with token authentication
+
+**Test Files Available:**
+- `test_project_loading_fix.py` - Tests project loading improvements
+- `test_pdf_highlighting_fix.py` - Tests PDF highlighting functionality
+- `test_area_list_display_fix.py` - Tests area display fixes
+
+### **🚀 Common Session Actions**
+
+**To continue development:**
+```bash
+# Check what needs to be done
+./scripts/git_operations.sh status
+
+# Make changes, then commit and push
+./scripts/git_operations.sh sync "Description of changes"
+
+# Test the application
+./scripts/project_operations.sh test all
+```
+
+**To run the application:**
+```bash
+./scripts/project_operations.sh run
+```
+
+**If git credentials are lost:**
+```bash
+./scripts/git_operations.sh full-setup
+# Then add Personal Access Token when prompted
+```
+
 ## Memory Log
-- Memory file updated
-- Added to project memory
-- add to memory
-- Added additional memory entry to log
-- to memorize
-- Added memorization instruction to memory log
-- to memorize
-- add to memory
-- Added new version 1.0
-- add to memory
-- Added area selection implementation to memory
-- ready 2 go txt mining
-- Added qa problems to memory log
-- add to memory extraction debugged?
-- Highlights problem added to memory log
-- add to memory first major step
-- recovery after surprise shutdown
-- found critical todos
-- trying to keep up
-- new look
-- going pro
-- sleep
-- after sleep debugging
-- afternoon work end
+- GitHub repository setup complete: https://github.com/insult0o/tore-matrix-labs
+- All critical fixes implemented and tested
+- Comprehensive automation scripts created for session continuity
+- Git integration working with token authentication
+- Project ready for continued development and collaboration
 - nadadenada
 - debbuging
