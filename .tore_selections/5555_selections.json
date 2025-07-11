@@ -1,0 +1,88 @@
+{
+  "document_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+  "document_name": "5555.pdf",
+  "last_modified": "2025-07-09T00:50:16.370848",
+  "total_selections": 3,
+  "selections": {
+    "0": [
+      {
+        "id": "area_163_781",
+        "name": "TABLE_1_01",
+        "type": "TABLE",
+        "bbox": [
+          78.92088607594935,
+          378.1424050632911,
+          473.04113924050625,
+          571.3291139240506
+        ],
+        "page": 0,
+        "selection_rect": [
+          163,
+          781,
+          814,
+          399
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page1_TABLE_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 1644,
+          "height": 806,
+          "format": "png"
+        },
+        "created_at": "2025-07-09T00:50:07.623812"
+      },
+      {
+        "id": "area_23_1415",
+        "name": "DIAGRAM_1_01",
+        "type": "DIAGRAM",
+        "bbox": [
+          11.136075949367088,
+          685.1107594936708,
+          567.4556962025316,
+          749.0221518987341
+        ],
+        "page": 0,
+        "selection_rect": [
+          23,
+          1415,
+          1149,
+          132
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page1_DIAGRAM_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 2319,
+          "height": 267,
+          "format": "png"
+        },
+        "created_at": "2025-07-09T00:50:11.321933"
+      },
+      {
+        "id": "area_33_148",
+        "name": "IMAGE_1_01",
+        "type": "IMAGE",
+        "bbox": [
+          15.97784810126582,
+          71.65822784810126,
+          561.6455696202531,
+          379.11075949367086
+        ],
+        "page": 0,
+        "selection_rect": [
+          33,
+          148,
+          1127,
+          635
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page1_IMAGE_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 2275,
+          "height": 1282,
+          "format": "png"
+        },
+        "created_at": "2025-07-09T00:50:16.370844"
+      }
+    ]
+  }
+}

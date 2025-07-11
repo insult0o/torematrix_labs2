@@ -1,0 +1,40 @@
+{
+  "document_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+  "document_name": "5555.pdf",
+  "project_name": "00",
+  "project_path": "/home/insulto/tore_matrix_labs/00.tore",
+  "project_id": "unknown",
+  "last_modified": "2025-07-09T03:25:33.795524",
+  "total_selections": 1,
+  "persistence_type": "project_specific",
+  "selections": {
+    "0": [
+      {
+        "id": "area_18_369",
+        "name": "IMAGE_1_01",
+        "type": "IMAGE",
+        "bbox": [
+          8.715189873417721,
+          178.66139240506328,
+          576.1708860759493,
+          374.2689873417721
+        ],
+        "page": 0,
+        "selection_rect": [
+          18,
+          369,
+          1172,
+          404
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page1_IMAGE_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 2365,
+          "height": 816,
+          "format": "png"
+        },
+        "created_at": "2025-07-09T03:25:30.407551"
+      }
+    ]
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "name": "101010",
+  "description": "",
+  "created_at": "2025-07-10T16:37:23.559227",
+  "modified_at": "2025-07-10T17:02:22.686391",
+  "version": "1.0.0",
+  "documents": [
+    {
+      "id": "5555_fd7d296c",
+      "path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "name": "5555.pdf",
+      "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "file_name": "5555.pdf",
+      "processing_status": "IN_VALIDATION",
+      "status": "IN_VALIDATION",
+      "file_size": 5337922,
+      "file_type": ".pdf",
+      "page_count": 0,
+      "quality_level": "GOOD",
+      "quality_score": 0.0,
+      "document_type": "ICAO",
+      "validation_status": "in_progress",
+      "added_at": "2025-07-10T16:49:42.913010",
+      "last_modified": "2025-07-10T16:49:42.913012",
+      "processing_data": {
+        "id": "5555_fd7d296c",
+        "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+        "file_name": "5555.pdf",
+        "file_size": 5337922,
+        "file_type": ".pdf",
+        "page_count": 0,
+        "processing_status": "IN_VALIDATION",
+        "quality_level": "GOOD",
+        "quality_score": 0.0,
+        "document_type": "ICAO",
+        "validation_status": "in_progress",
+        "added_at": "2025-07-10T16:49:42.912983",
+        "last_modified": "2025-07-10T16:49:42.912987"
+      },
+      "visual_areas": {
+        "area_99499961": {
+          "id": "area_99499961",
+          "document_id": "5555_fd7d296c",
+          "type": "IMAGE",
+          "bbox": [
+            110.22982885085575,
+            72.96350364963504,
+            457.6350364963504,
+            217.96577017114916
+          ],
+          "page": 1,
+          "color": "#FF4444",
+          "status": "modified",
+          "created_at": "2025-07-10T17:01:49.183017",
+          "modified_at": "2025-07-10T17:02:22.685954",
+          "user_notes": "",
+          "border_width": 2,
+          "fill_opacity": 0.3,
+          "border_glow": true,
+          "widget_rect": [
+            308,
+            147,
+            614,
+            224
+          ]
+        }
+      }
+    }
+  ],
+  "path": "/home/insulto/tore_matrix_labs/101010.tore"
+}

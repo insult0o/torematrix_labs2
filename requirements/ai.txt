@@ -1,0 +1,52 @@
+# AI/ML dependencies for TORE Matrix Labs
+-r base.txt
+
+# Advanced document processing
+unstructured[all-docs]>=0.10.0
+
+# Machine learning
+sentence-transformers>=2.2.0
+transformers>=4.30.0
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# AI integrations
+openai>=0.27.0
+huggingface-hub>=0.16.0
+
+# Vector databases
+faiss-cpu>=1.7.4
+qdrant-client>=1.3.0
+
+# Embeddings
+langchain>=0.0.300
+chromadb>=0.4.0
+
+# OCR
+pytesseract>=0.3.0
+easyocr>=1.7.0
+
+# NLP
+spacy>=3.6.0
+nltk>=3.8.0
+
+# Model serving
+ray[serve]>=2.6.0
+
+# Experiment tracking
+wandb>=0.15.0
+
+# Data processing
+scikit-learn>=1.3.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# GPU support (optional)
+accelerate>=0.21.0
+bitsandbytes>=0.41.0
+
+# Model optimization
+optimum>=1.12.0
+onnx>=1.14.0
+onnxruntime>=1.15.0

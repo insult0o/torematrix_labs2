@@ -1,0 +1,70 @@
+{
+  "name": "1a1a",
+  "description": "",
+  "created_at": "2025-07-11T01:49:56.124822",
+  "modified_at": "2025-07-11T01:51:02.509388",
+  "version": "1.0.0",
+  "documents": [
+    {
+      "id": "5555_fd7d296c",
+      "path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "name": "5555.pdf",
+      "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "file_name": "5555.pdf",
+      "processing_status": "IN_VALIDATION",
+      "status": "IN_VALIDATION",
+      "file_size": 5337922,
+      "file_type": ".pdf",
+      "page_count": 0,
+      "quality_level": "GOOD",
+      "quality_score": 0.0,
+      "document_type": "ICAO",
+      "validation_status": "in_progress",
+      "added_at": "2025-07-11T01:50:09.085206",
+      "last_modified": "2025-07-11T01:50:09.085207",
+      "processing_data": {
+        "id": "5555_fd7d296c",
+        "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+        "file_name": "5555.pdf",
+        "file_size": 5337922,
+        "file_type": ".pdf",
+        "page_count": 0,
+        "processing_status": "IN_VALIDATION",
+        "quality_level": "GOOD",
+        "quality_score": 0.0,
+        "document_type": "ICAO",
+        "validation_status": "in_progress",
+        "added_at": "2025-07-11T01:50:09.085188",
+        "last_modified": "2025-07-11T01:50:09.085192"
+      },
+      "visual_areas": {
+        "area_b4c072b1": {
+          "id": "area_b4c072b1",
+          "document_id": "5555_fd7d296c",
+          "type": "IMAGE",
+          "bbox": [
+            110.68613138686132,
+            71.47445255474453,
+            511.73722627737226,
+            190.5985401459854
+          ],
+          "page": 1,
+          "color": "#FF4444",
+          "status": "selected",
+          "created_at": "2025-07-11T01:50:27.561733",
+          "modified_at": "2025-07-11T01:50:27.561821",
+          "user_notes": "",
+          "border_width": 2,
+          "fill_opacity": 0.3,
+          "border_glow": true,
+          "widget_rect": [
+            223,
+            144,
+            808,
+            240
+          ]
+        }
+      }
+    }
+  ]
+}

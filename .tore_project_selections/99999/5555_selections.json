@@ -1,0 +1,146 @@
+{
+  "document_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+  "document_name": "5555.pdf",
+  "project_name": "99999",
+  "project_path": "",
+  "project_id": "unknown",
+  "last_modified": "2025-07-10T02:24:21.971293",
+  "total_selections": 5,
+  "persistence_type": "project_specific",
+  "selections": {
+    "1": [
+      {
+        "id": "area_152_114",
+        "name": "IMAGE_1_01",
+        "type": "IMAGE",
+        "bbox": [
+          75.44525547445255,
+          56.58394160583942,
+          506.77372262773724,
+          178.68613138686132
+        ],
+        "page": 1,
+        "selection_rect": [
+          152,
+          114,
+          869,
+          246
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page2_IMAGE_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 1798,
+          "height": 510,
+          "format": "png"
+        },
+        "created_at": "2025-07-10T02:22:52.746555"
+      },
+      {
+        "id": "area_484_735",
+        "name": "IMAGE_1_02",
+        "type": "IMAGE",
+        "bbox": [
+          272.0,
+          413.05785123966945,
+          363.0413223140496,
+          445.0909090909091
+        ],
+        "page": 1,
+        "selection_rect": [
+          484,
+          735,
+          162,
+          57
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page2_IMAGE_1_02.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 380,
+          "height": 134,
+          "format": "png"
+        },
+        "created_at": "2025-07-10T02:24:17.845742"
+      },
+      {
+        "id": "area_435_726",
+        "name": "IMAGE_1_03",
+        "type": "IMAGE",
+        "bbox": [
+          244.46280991735537,
+          408.0,
+          340.5619834710744,
+          444.52892561983475
+        ],
+        "page": 1,
+        "selection_rect": [
+          435,
+          726,
+          171,
+          65
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page2_IMAGE_1_03.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 402,
+          "height": 153,
+          "format": "png"
+        },
+        "created_at": "2025-07-10T02:24:21.971159"
+      }
+    ],
+    "2": [
+      {
+        "id": "area_390_304",
+        "name": "IMAGE_2_01",
+        "type": "IMAGE",
+        "bbox": [
+          203.47826086956522,
+          158.6086956521739,
+          426.78260869565213,
+          204.52173913043478
+        ],
+        "page": 2,
+        "selection_rect": [
+          390,
+          304,
+          428,
+          88
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page3_IMAGE_2_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 932,
+          "height": 193,
+          "format": "png"
+        },
+        "created_at": "2025-07-10T02:23:38.429155"
+      },
+      {
+        "id": "area_409_530",
+        "name": "IMAGE_2_02",
+        "type": "IMAGE",
+        "bbox": [
+          213.39130434782606,
+          276.52173913043475,
+          414.7826086956522,
+          323.4782608695652
+        ],
+        "page": 2,
+        "selection_rect": [
+          409,
+          530,
+          386,
+          90
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page3_IMAGE_2_02.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 840,
+          "height": 196,
+          "format": "png"
+        },
+        "created_at": "2025-07-10T02:23:50.187595"
+      }
+    ]
+  }
+}

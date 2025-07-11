@@ -1,0 +1,214 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tore-matrix-labs"
+version = "1.0.0"
+authors = [
+  {name = "TORE AI", email = "contact@tore-ai.com"},
+]
+description = "Ultimate AI Document Processing Pipeline for ICAO/ATC Documents"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: General",
+    "Topic :: Office/Business :: Office Suites",
+]
+keywords = [
+    "ai", "document-processing", "ocr", "pdf", "nlp", 
+    "aviation", "icao", "atc", "rag", "embedding",
+    "quality-assurance", "enterprise", "pipeline"
+]
+dependencies = [
+    "PyMuPDF>=1.23.0",
+    "pdfplumber>=0.9.0",
+    "pillow>=10.0.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "SQLAlchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "python-dotenv>=1.0.0",
+    "click>=8.0.0",
+    "tqdm>=4.65.0",
+    "pydantic>=2.0.0",
+    "textdistance>=4.5.0",
+    "python-Levenshtein>=0.21.0",
+    "structlog>=23.0.0",
+    "python-dateutil>=2.8.0",
+    "watchdog>=3.0.0",
+    "send2trash>=1.8.0",
+    "rich>=13.0.0",
+    "jsonschema>=4.17.0",
+    "opencv-python>=4.8.0",
+    "lz4>=4.3.0",
+    "zstandard>=0.21.0",
+]
+
+[project.optional-dependencies]
+gui = [
+    "PyQt5>=5.15.0",
+    "PyQt5-tools>=5.15.0",
+]
+pyside = [
+    "PySide6>=6.5.0",
+]
+ai = [
+    "unstructured[all-docs]>=0.10.0",
+    "sentence-transformers>=2.2.0",
+    "transformers>=4.30.0",
+    "torch>=2.0.0",
+    "openai>=0.27.0",
+    "faiss-cpu>=1.7.4",
+    "qdrant-client>=1.3.0",
+    "langchain>=0.0.300",
+    "chromadb>=0.4.0",
+    "pytesseract>=0.3.0",
+    "easyocr>=1.7.0",
+    "spacy>=3.6.0",
+    "nltk>=3.8.0",
+    "scikit-learn>=1.3.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-qt>=4.2.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    "pylint>=2.17.0",
+    "isort>=5.12.0",
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=1.3.0",
+    "pre-commit>=3.3.0",
+    "line-profiler>=4.0.0",
+    "memory-profiler>=0.61.0",
+    "bandit>=1.7.0",
+    "safety>=2.3.0",
+]
+cloud = [
+    "boto3>=1.28.0",
+    "azure-storage-blob>=12.17.0",
+    "google-cloud-storage>=2.10.0",
+]
+enterprise = [
+    "ldap3>=2.9.0",
+    "pyotp>=2.8.0",
+    "celery>=5.3.0",
+    "redis>=4.6.0",
+    "psycopg2-binary>=2.9.0",
+    "prometheus-client>=0.17.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/tore-ai/matrix-labs"
+Documentation = "https://docs.tore-ai.com/matrix-labs"
+Repository = "https://github.com/tore-ai/matrix-labs.git"
+"Bug Tracker" = "https://github.com/tore-ai/matrix-labs/issues"
+
+[project.scripts]
+tore-matrix = "tore_matrix_labs:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tore_matrix_labs*"]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-data]
+tore_matrix_labs = [
+    "resources/icons/*",
+    "resources/templates/*",
+    "resources/sample_data/*",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["tore_matrix_labs"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "setup.py",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", "build", "dist"]
+skips = ["B101", "B601"]

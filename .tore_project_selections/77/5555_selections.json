@@ -1,0 +1,92 @@
+{
+  "document_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+  "document_name": "5555.pdf",
+  "project_name": "77",
+  "project_path": "/home/insulto/tore_matrix_labs/77.tore",
+  "project_id": "unknown",
+  "last_modified": "2025-07-09T01:52:40.294955",
+  "total_selections": 3,
+  "persistence_type": "project_specific",
+  "selections": {
+    "0": [
+      {
+        "id": "area_97_163",
+        "name": "IMAGE_1_01",
+        "type": "IMAGE",
+        "bbox": [
+          46.965189873417714,
+          78.92088607594935,
+          570.3607594936708,
+          377.17405063291136
+        ],
+        "page": 0,
+        "selection_rect": [
+          97,
+          163,
+          1081,
+          616
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page1_IMAGE_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 2182,
+          "height": 1244,
+          "format": "png"
+        },
+        "created_at": "2025-07-09T01:51:56.912535"
+      },
+      {
+        "id": "area_239_769",
+        "name": "TABLE_1_01",
+        "type": "TABLE",
+        "bbox": [
+          115.71835443037973,
+          372.3322784810126,
+          501.12341772151893,
+          439.14873417721515
+        ],
+        "page": 0,
+        "selection_rect": [
+          239,
+          769,
+          796,
+          138
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page1_TABLE_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 1607,
+          "height": 279,
+          "format": "png"
+        },
+        "created_at": "2025-07-09T01:52:31.455359"
+      },
+      {
+        "id": "area_96_897",
+        "name": "DIAGRAM_1_01",
+        "type": "DIAGRAM",
+        "bbox": [
+          46.48101265822784,
+          434.3069620253164,
+          450.7689873417721,
+          571.8132911392404
+        ],
+        "page": 0,
+        "selection_rect": [
+          96,
+          897,
+          835,
+          284
+        ],
+        "saved_file_path": "output/extracted_areas/5555_page1_DIAGRAM_1_01.png",
+        "original_resolution": {
+          "dpi": 300,
+          "width": 1686,
+          "height": 574,
+          "format": "png"
+        },
+        "created_at": "2025-07-09T01:52:37.400818"
+      }
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Test Project with Document",
+  "description": "Test project containing processed document with corrections",
+  "created_at": "2025-07-08T04:38:40.450559",
+  "modified_at": "2025-07-08T04:38:40.450567",
+  "version": "1.0.0",
+  "documents": [
+    {
+      "id": "doc_20250708_040740_5555",
+      "path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "name": "5555.pdf",
+      "added_at": "2025-07-08T04:38:40.450568",
+      "status": "processed",
+      "processing_data": {
+        "file_size": 5337922,
+        "page_count": 0,
+        "corrections_count": 184,
+        "quality_score": 0.3370186066854685,
+        "quality_level": "unacceptable"
+      }
+    }
+  ]
+}

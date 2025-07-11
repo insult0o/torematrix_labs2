@@ -1,0 +1,235 @@
+{
+  "name": "00000",
+  "description": "",
+  "created_at": "2025-07-09T04:45:03.027022",
+  "modified_at": "2025-07-09T04:49:59.042210",
+  "version": "1.0.0",
+  "documents": [
+    {
+      "id": "0a6a615c-ad92-4dd0-b1fe-9479ef1838d6",
+      "path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "name": "5555.pdf",
+      "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "file_name": "5555.pdf",
+      "processing_status": "IN_VALIDATION",
+      "status": "IN_VALIDATION",
+      "file_size": 5337922,
+      "file_type": ".pdf",
+      "page_count": 0,
+      "quality_level": "GOOD",
+      "quality_score": 0.0,
+      "document_type": "ICAO",
+      "validation_status": "in_progress",
+      "added_at": "2025-07-09T04:45:16.655293",
+      "last_modified": "2025-07-09T04:45:16.655295",
+      "processing_data": {
+        "id": "0a6a615c-ad92-4dd0-b1fe-9479ef1838d6",
+        "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+        "file_name": "5555.pdf",
+        "file_size": 5337922,
+        "file_type": ".pdf",
+        "page_count": 0,
+        "processing_status": "IN_VALIDATION",
+        "quality_level": "GOOD",
+        "quality_score": 0.0,
+        "document_type": "ICAO",
+        "validation_status": "in_progress",
+        "added_at": "2025-07-09T04:45:16.655145",
+        "last_modified": "2025-07-09T04:45:16.655149"
+      }
+    },
+    {
+      "id": "fe7e8576-06df-4c7c-93a2-9284adba2ba2",
+      "path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "name": "5555.pdf",
+      "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "file_name": "5555.pdf",
+      "processing_status": "VALIDATED",
+      "status": "VALIDATED",
+      "file_size": 5337922,
+      "file_type": ".pdf",
+      "page_count": 55,
+      "quality_level": "GOOD",
+      "quality_score": 0.85,
+      "document_type": "ICAO",
+      "validation_status": "completed",
+      "added_at": "2025-07-09T04:45:31.060436",
+      "last_modified": "2025-07-09T04:45:31.060437",
+      "processing_data": {
+        "id": "fe7e8576-06df-4c7c-93a2-9284adba2ba2",
+        "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+        "file_name": "5555.pdf",
+        "file_size": 5337922,
+        "file_type": ".pdf",
+        "page_count": 55,
+        "processing_status": "VALIDATED",
+        "quality_level": "GOOD",
+        "quality_score": 0.85,
+        "document_type": "ICAO",
+        "validation_status": "completed",
+        "exclusion_zones": [
+          {
+            "page": 0,
+            "type": "IMAGE",
+            "bbox": [
+              167.52531645569618,
+              73.11075949367088,
+              209.1645569620253,
+              101.19303797468353
+            ],
+            "name": "IMAGE_1_01"
+          },
+          {
+            "page": 0,
+            "type": "TABLE",
+            "bbox": [
+              265.8132911392405,
+              71.65822784810126,
+              309.3892405063291,
+              99.74050632911391
+            ],
+            "name": "TABLE_1_01"
+          },
+          {
+            "page": 0,
+            "type": "DIAGRAM",
+            "bbox": [
+              366.52215189873414,
+              72.14240506329114,
+              422.68670886075944,
+              121.04430379746834
+            ],
+            "name": "DIAGRAM_1_01"
+          }
+        ],
+        "corrections_count": 1,
+        "corrections": [
+          {
+            "id": "text_issue_1",
+            "type": "ocr_correction",
+            "description": "OCR may have misread \"procedural\" as \"proccdural\" - please verify spelling",
+            "original_text": "proccdural guidance",
+            "suggested_fix": "procedural guidance",
+            "confidence": 0.8,
+            "reasoning": "Text processing found potential OCR spelling errors in non-excluded areas",
+            "status": "suggested",
+            "location": {
+              "page": 1,
+              "paragraph": 1,
+              "bbox": [
+                100,
+                200,
+                400,
+                220
+              ],
+              "text_position": {
+                "start": 0,
+                "end": 17
+              }
+            },
+            "severity": "medium"
+          }
+        ],
+        "validated_at": "2025-07-09T04:45:31.060425",
+        "last_modified": "2025-07-09T04:45:31.060429"
+      }
+    },
+    {
+      "id": "c0e4a622-b8e5-47bc-bc5e-bd70adfae2cc",
+      "path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "name": "5555.pdf",
+      "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+      "file_name": "5555.pdf",
+      "processing_status": "VALIDATED",
+      "status": "VALIDATED",
+      "file_size": 5337922,
+      "file_type": ".pdf",
+      "page_count": 55,
+      "quality_level": "GOOD",
+      "quality_score": 0.85,
+      "document_type": "ICAO",
+      "validation_status": "completed",
+      "added_at": "2025-07-09T04:49:59.042041",
+      "last_modified": "2025-07-09T04:49:59.042042",
+      "processing_data": {
+        "id": "c0e4a622-b8e5-47bc-bc5e-bd70adfae2cc",
+        "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
+        "file_name": "5555.pdf",
+        "file_size": 5337922,
+        "file_type": ".pdf",
+        "page_count": 55,
+        "processing_status": "VALIDATED",
+        "quality_level": "GOOD",
+        "quality_score": 0.85,
+        "document_type": "ICAO",
+        "validation_status": "completed",
+        "exclusion_zones": [
+          {
+            "page": 0,
+            "type": "IMAGE",
+            "bbox": [
+              167.52531645569618,
+              73.11075949367088,
+              209.1645569620253,
+              101.19303797468353
+            ],
+            "name": "IMAGE_1_01"
+          },
+          {
+            "page": 0,
+            "type": "TABLE",
+            "bbox": [
+              265.8132911392405,
+              71.65822784810126,
+              309.3892405063291,
+              99.74050632911391
+            ],
+            "name": "TABLE_1_01"
+          },
+          {
+            "page": 0,
+            "type": "DIAGRAM",
+            "bbox": [
+              366.52215189873414,
+              72.14240506329114,
+              422.68670886075944,
+              121.04430379746834
+            ],
+            "name": "DIAGRAM_1_01"
+          }
+        ],
+        "corrections_count": 1,
+        "corrections": [
+          {
+            "id": "text_issue_1",
+            "type": "ocr_correction",
+            "description": "OCR may have misread \"procedural\" as \"proccdural\" - please verify spelling",
+            "original_text": "proccdural guidance",
+            "suggested_fix": "procedural guidance",
+            "confidence": 0.8,
+            "reasoning": "Text processing found potential OCR spelling errors in non-excluded areas",
+            "status": "suggested",
+            "location": {
+              "page": 1,
+              "paragraph": 1,
+              "bbox": [
+                100,
+                200,
+                400,
+                220
+              ],
+              "text_position": {
+                "start": 0,
+                "end": 17
+              }
+            },
+            "severity": "medium"
+          }
+        ],
+        "validated_at": "2025-07-09T04:49:59.042030",
+        "last_modified": "2025-07-09T04:49:59.042035"
+      }
+    }
+  ],
+  "path": "/home/insulto/tore_matrix_labs/00000.tore"
+}
