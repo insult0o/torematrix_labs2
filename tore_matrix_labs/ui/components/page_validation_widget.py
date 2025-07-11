@@ -66,12 +66,13 @@ class PageValidationWidget(QWidget):
         self.use_ocr = OCR_DEPENDENCIES_AVAILABLE and not UNSTRUCTURED_AVAILABLE  # Good: Visual recognition
         self.use_enhanced = True  # Fallback: Advanced PyMuPDF
         
-        # Initialize highlighting engine
-        self.highlighting_engine = HighlightingEngine()
+        # Initialize highlighting components (will use PDF viewer's engine when available)
+        self.highlighting_engine = None
         self.highlight_style = HighlightStyle()
         
         self._init_ui()
         self.logger.info("Page validation widget initialized with highlighting engine")
+    
     
     def handle_page_change(self, page_number: int):
         """Handle page change from external source (e.g., document viewer)."""
@@ -208,13 +209,72 @@ class PageValidationWidget(QWidget):
         self.extracted_text.cursorPositionChanged.connect(self._on_cursor_position_changed)
         self.extracted_text.selectionChanged.connect(self._on_text_selection_changed)
         
-        # Connect highlighting engine to text widget
-        self.highlighting_engine.set_text_widget(self.extracted_text)
-        self.logger.info("Highlighting engine connected to text widget")
+        # Note: highlighting engine connection will be set up in set_pdf_viewer()
+        # when the PDF viewer's highlighting engine becomes available
+        self.logger.info("Text widget ready for highlighting engine connection")
+        
+        # Store PDF document reference for coordinate mapping
+        self.pdf_document = None
+        self.pdf_viewer = None
         
         # Enable mouse interaction - use event filter instead of direct override
         self.extracted_text.setMouseTracking(True)
         self.extracted_text.installEventFilter(self)
+    
+    def set_pdf_viewer(self, pdf_viewer):
+        """Set the PDF viewer and use its highlighting engine for synchronized highlighting."""
+        try:
+            self.pdf_viewer = pdf_viewer
+            
+            # Use the PDF viewer's highlighting engine for perfect synchronization
+            if hasattr(pdf_viewer, 'highlighting_engine') and pdf_viewer.highlighting_engine:
+                self.highlighting_engine = pdf_viewer.highlighting_engine
+                self.logger.info("✅ Using PDF viewer's highlighting engine for synchronized highlighting")
+                
+                # Connect the text widget to the shared highlighting engine
+                if self.extracted_text:
+                    self.highlighting_engine.set_text_widget(self.extracted_text)
+                    self.logger.info("✅ Connected text widget to shared highlighting engine")
+            else:
+                # Fallback: create our own engine and connect it to the PDF viewer
+                self.highlighting_engine = HighlightingEngine()
+                self.highlighting_engine.set_pdf_viewer(pdf_viewer)
+                if self.extracted_text:
+                    self.highlighting_engine.set_text_widget(self.extracted_text)
+                self.logger.warning("⚠️ Created fallback highlighting engine")
+            
+            # Set up coordinate mapping when PDF document is available
+            if hasattr(pdf_viewer, 'current_document') and pdf_viewer.current_document:
+                self._setup_coordinate_mapping(pdf_viewer.current_document)
+                
+                # If we have a document loaded, rebuild coordinate maps
+                if self.highlighting_engine:
+                    try:
+                        if hasattr(self.highlighting_engine, 'coordinate_mapper') and self.highlighting_engine.coordinate_mapper:
+                            self.highlighting_engine.coordinate_mapper.rebuild_maps()
+                            self.logger.info("Coordinate maps rebuilt for highlighting engine")
+                    except Exception as e:
+                        self.logger.error(f"Failed to rebuild coordinate maps: {e}")
+            
+            self.logger.info("PDF viewer connected to PageValidationWidget")
+            
+        except Exception as e:
+            self.logger.error(f"Error setting PDF viewer: {e}")
+    
+    def _setup_coordinate_mapping(self, pdf_document):
+        """Set up coordinate mapping for the PDF document."""
+        try:
+            self.pdf_document = pdf_document
+            
+            # Set PDF document in the coordinate mapper
+            if self.highlighting_engine and hasattr(self.highlighting_engine, 'coordinate_mapper') and self.highlighting_engine.coordinate_mapper:
+                self.highlighting_engine.coordinate_mapper.pdf_document = pdf_document
+                # Rebuild coordinate maps for the new document
+                self.highlighting_engine.coordinate_mapper._build_coordinate_maps()
+                self.logger.info("Built coordinate maps for PDF document")
+            
+        except Exception as e:
+            self.logger.error(f"Error setting up coordinate mapping: {e}")
         
         layout.addWidget(self.extracted_text)
         
@@ -855,23 +915,34 @@ class PageValidationWidget(QWidget):
                 end_pos = cursor.selectionEnd()
                 selected_text = cursor.selectedText()
                 
-                # Use the new highlighting engine
-                highlight_id = self.highlighting_engine.highlight_text_range(
-                    text_start=start_pos,
-                    text_end=end_pos,
-                    highlight_type='active_highlight',
-                    page=self.current_page
-                )
-                
-                if highlight_id:
-                    self.log_message.emit(f"✅ Highlighted '{selected_text}' at {start_pos}-{end_pos} (ID: {highlight_id})")
+                # Use the shared highlighting engine if available
+                if self.highlighting_engine:
+                    highlight_id = self.highlighting_engine.highlight_text_range(
+                        text_start=start_pos,
+                        text_end=end_pos,
+                        highlight_type='active_highlight',
+                        page=self.current_page
+                    )
+                    
+                    if highlight_id:
+                        self.log_message.emit(f"✅ Synchronized highlight: '{selected_text}' at {start_pos}-{end_pos} (ID: {highlight_id})")
+                        return  # Success with shared engine, no need for fallback
+                    else:
+                        self.log_message.emit(f"🔄 Shared highlighting engine failed, using legacy method for '{selected_text}'")
                 else:
-                    # Fall back to old method if highlighting engine fails
-                    pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
-                    if pdf_selection:
-                        page, bbox = pdf_selection
-                        self.highlight_pdf_text_selection.emit(page, bbox)
-                        self.log_message.emit(f"Selected '{selected_text}' at {start_pos}-{end_pos} → PDF page {page}, bbox {bbox}")
+                    self.log_message.emit(f"⚠️ No highlighting engine available, using legacy method for '{selected_text}'")
+                
+                # Fall back to signal-based method
+                pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
+                if pdf_selection:
+                    page, bbox = pdf_selection
+                    self.highlight_pdf_text_selection.emit(page, bbox)
+                    self.log_message.emit(f"✅ Legacy highlight: '{selected_text}' at {start_pos}-{end_pos} → PDF page {page}, bbox {bbox}")
+                else:
+                    self.log_message.emit(f"❌ All highlighting methods failed for '{selected_text}' at {start_pos}-{end_pos}")
+                    # Try to provide debug information
+                    self.log_message.emit(f"Debug: text_to_pdf_mapping has {len(self.text_to_pdf_mapping) if hasattr(self, 'text_to_pdf_mapping') else 0} entries")
+                    self.log_message.emit(f"Debug: current_page={self.current_page}, use_unstructured={self.use_unstructured}, use_ocr={self.use_ocr}")
             
         except Exception as e:
             self.logger.error(f"Error handling text selection change: {str(e)}")
@@ -1221,6 +1292,10 @@ class PageValidationWidget(QWidget):
                 
                 self.extracted_text.setPlainText(page_text)
                 
+                # Update highlighting engine with new text content
+                if self.highlighting_engine:
+                    self.highlighting_engine.update_text_content(page_number)
+                
                 # Log perfect OCR mapping
                 self.log_message.emit(f"OCR page {page_number}: {len(page_chars)} characters with 100% coordinate accuracy")
                 
@@ -1360,6 +1435,10 @@ class PageValidationWidget(QWidget):
                         continue
                 
                 self.extracted_text.setPlainText(page_text)
+                
+                # Update highlighting engine with new text content
+                if self.highlighting_engine:
+                    self.highlighting_engine.update_text_content(page_number)
                 
                 coverage = len(self.text_to_pdf_mapping) / len(page_text) * 100 if page_text else 0
                 self.log_message.emit(f"Enhanced page {page_number}: {len(page_text)} chars, {coverage:.1f}% coordinate coverage")

@@ -98,6 +98,34 @@ class HighlightingEngine:
         self._setup_event_connections()
         self.logger.info("HIGHLIGHTING_ENGINE: Text widget set")
     
+    def update_text_content(self, page: int = None):
+        """Update coordinate mapping when text content changes."""
+        try:
+            if not self.coordinate_mapper:
+                self.logger.warning("HIGHLIGHTING_ENGINE: No coordinate mapper available")
+                return
+            
+            # Use current page if not specified
+            if page is None:
+                page = self.current_page
+            
+            self.logger.info(f"HIGHLIGHTING_ENGINE: Updating coordinate mapping for page {page}")
+            
+            # Rebuild coordinate maps for the new text content
+            self.coordinate_mapper.rebuild_maps()
+            
+            # Clear any existing highlights that might be invalid
+            page_highlights = [hid for hid, hinfo in self.active_highlights.items() 
+                             if hinfo['page'] == page and hinfo.get('type') == 'active_highlight']
+            
+            for highlight_id in page_highlights:
+                self.clear_highlight(highlight_id)
+            
+            self.logger.info(f"HIGHLIGHTING_ENGINE: Text content updated for page {page}, cleared {len(page_highlights)} text highlights")
+            
+        except Exception as e:
+            self.logger.error(f"HIGHLIGHTING_ENGINE: Error updating text content: {e}")
+    
     def highlight_text_range(self, text_start: int, text_end: int, 
                            highlight_type: str = 'active_highlight',
                            page: int = None) -> str:
