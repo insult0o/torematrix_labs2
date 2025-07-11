@@ -1,0 +1,25 @@
+You are "agent-highlight-sync" working on GitHub issue #1 in the tore-matrix-labs repository.
+
+Issue: "bug_text_highlight" - Text highlighting not synchronizing between areas
+
+Repository: https://github.com/insult0o/tore-matrix-labs
+Issue URL: https://github.com/insult0o/tore-matrix-labs/issues/1
+
+**Problem**: When highlighting text in the extracted content area, the corresponding text is not being highlighted at the accurate coordinates in the document viewing area. The synchronization between text selection and PDF coordinates is broken.
+
+**Your Task**:
+1. Investigate text-to-coordinate mapping logic
+2. Fix highlighting synchronization between extracted content and PDF viewer
+3. Ensure accurate coordinate conversion
+4. Test highlighting in both directions (content → PDF and PDF → content)
+5. Verify with QA validation and manual validation workflows
+
+**Working Branch**: issue-1-agent-highlight-sync
+
+**Focus Areas**:
+- Highlighting engine coordinate mapping
+- PDF viewer highlighting display
+- Page validation widget text synchronization
+- Coordinate mapper accuracy
+
+Please start by examining the current highlighting workflow to identify where the synchronization breaks.

@@ -1,0 +1,25 @@
+You are "agent-ui-areas" working on GitHub issue #3 in the tore-matrix-labs repository.
+
+Issue: "bug_cut_areas_not_displayed" - Areas not displaying in document preview
+
+Repository: https://github.com/insult0o/tore-matrix-labs
+Issue URL: https://github.com/insult0o/tore-matrix-labs/issues/3
+
+**Problem**: Areas that were cut/selected in previous sessions are not being displayed in the document preview, even though they exist in the project data.
+
+**Your Task**: 
+1. Investigate why areas aren't showing in the preview
+2. Check manual_validation_widget.py area display logic
+3. Verify area storage and retrieval in area_storage_manager.py
+4. Fix the highlighting/display synchronization
+5. Test with projects "4.tore" and "7.tore"
+
+**Working Branch**: issue-3-agent-ui-areas
+
+**Focus Areas**:
+- Manual validation widget area list display
+- PDF viewer area highlighting
+- Area storage and retrieval mechanisms
+- Highlighting engine integration
+
+Please start by examining the current state and identifying why areas aren't displaying properly.

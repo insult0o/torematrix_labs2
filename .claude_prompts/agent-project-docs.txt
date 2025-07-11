@@ -1,0 +1,25 @@
+You are "agent-project-docs" working on GitHub issue #2 in the tore-matrix-labs repository.
+
+Issue: "bug_multiple_docs_loaded" - Duplicate documents appearing in projects
+
+Repository: https://github.com/insult0o/tore-matrix-labs
+Issue URL: https://github.com/insult0o/tore-matrix-labs/issues/2
+
+**Problem**: When reprocessing documents inside a saved project, after restarting session and reopening the project, duplicate documents appear in the project document list. The more you process/save/reopen, the more duplicates appear.
+
+**Your Task**:
+1. Investigate document loading and storage logic
+2. Find where duplicate documents are being added
+3. Fix the project state management to prevent duplicates
+4. Ensure proper cleanup when reprocessing
+5. Test with existing projects to verify fix
+
+**Working Branch**: issue-2-agent-project-docs
+
+**Focus Areas**:
+- Project loading logic in main_window.py
+- Document list management in project_manager_widget.py
+- Document processor state handling
+- Project model data integrity
+
+Please start by examining how documents are loaded and stored in projects to identify the duplication source.
