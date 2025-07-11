@@ -74,8 +74,8 @@ test_*.py.backup
 .tore_matrix_labs_enhanced/
 /tmp/tore_test/
 
-# noVNC (keep for now as it might be needed)
-# noVNC/
+# noVNC (external dependency with its own git repo)
+noVNC/
 
 # Keep important documentation and configs
 !requirements/
