@@ -978,7 +978,10 @@ class ManualValidationWidget(QWidget):
         
         # Update UI
         self.progress_label.setText(f"Document loaded: {Path(self.current_file_path).name}")
+        
+        # Set default UI state
         if hasattr(self, 'complete_btn'):
+            self.complete_btn.setText("Complete Validation")  # Reset to default text
             self.complete_btn.setEnabled(True)
         if hasattr(self, 'clear_page_btn'):
             self.clear_page_btn.setEnabled(True)
@@ -1752,8 +1755,9 @@ class ManualValidationWidget(QWidget):
         
         # Update state
         self.validation_complete = True
-        self.complete_btn.setEnabled(False)
-        self.clear_page_btn.setEnabled(False)
+        self.complete_btn.setText("✅ Re-validate")
+        self.complete_btn.setEnabled(True)  # Keep enabled for re-validation
+        self.clear_page_btn.setEnabled(True)  # Keep enabled for modifications
         
         # Save validation state to project (new functionality)
         print(f"🔵 VALIDATION: Saving validation state to project...")
@@ -2311,11 +2315,15 @@ class ManualValidationWidget(QWidget):
                         
                         # Update UI based on validation state
                         if self.validation_complete:
-                            self.complete_btn.setEnabled(False)
-                            self.clear_page_btn.setEnabled(False)
-                            self.status_message.emit(f"Document validation already completed at {completed_at}")
+                            # Keep UI functional but show completion status
+                            self.complete_btn.setText("✅ Re-validate")
+                            self.complete_btn.setEnabled(True)  # Allow re-validation
+                            self.clear_page_btn.setEnabled(True)  # Allow clearing
+                            self.status_message.emit(f"Document validation completed at {completed_at} - Areas loaded and ready")
                             self.logger.info(f"LOAD_VALIDATION_STATE: ✅ Restored completed validation state for document {document_id}")
                         else:
+                            # Standard validation UI
+                            self.complete_btn.setText("Complete Validation")
                             self.complete_btn.setEnabled(True)
                             self.clear_page_btn.setEnabled(True)
                             self.logger.info(f"LOAD_VALIDATION_STATE: ✅ Restored incomplete validation state for document {document_id}")
@@ -2439,9 +2447,18 @@ class ManualValidationWidget(QWidget):
             self._update_statistics()
             self._update_navigation_buttons()
             
+            # Auto-select first area if available and show preview
+            if self.selection_list.count() > 0:
+                print(f"🔵 LOAD EXISTING: Auto-selecting first area for preview...")
+                first_item = self.selection_list.item(0)
+                self.selection_list.setCurrentItem(first_item)
+                self._update_area_preview()
+                self._highlight_current_area()
+                print(f"🟢 LOAD EXISTING: First area selected and highlighted")
+            
             total_loaded = sum(len(selections) for selections in self.all_selections.values())
-            self.status_message.emit(f"Loaded {total_loaded} existing areas from project")
-            self.logger.info(f"LOAD EXISTING: Successfully loaded {total_loaded} areas with proper naming")
+            self.status_message.emit(f"Loaded {total_loaded} existing areas from project - ready for validation")
+            self.logger.info(f"LOAD EXISTING: Successfully loaded {total_loaded} areas with proper naming and UI updates")
             
         except Exception as e:
             self.logger.error(f"LOAD EXISTING: Error loading existing areas: {e}")
