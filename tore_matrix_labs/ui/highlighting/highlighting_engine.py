@@ -91,6 +91,23 @@ class HighlightingEngine:
         self.coordinate_mapper.set_pdf_viewer(pdf_viewer)
         self.logger.info("HIGHLIGHTING_ENGINE: PDF viewer set")
     
+    def update_document(self, pdf_document=None):
+        """Update PDF document and rebuild coordinate maps."""
+        try:
+            if self.coordinate_mapper:
+                result = self.coordinate_mapper.update_document(pdf_document)
+                if result:
+                    self.logger.info("HIGHLIGHTING_ENGINE: Document updated successfully")
+                else:
+                    self.logger.warning("HIGHLIGHTING_ENGINE: Failed to update document")
+                return result
+            else:
+                self.logger.warning("HIGHLIGHTING_ENGINE: No coordinate mapper available")
+                return False
+        except Exception as e:
+            self.logger.error(f"HIGHLIGHTING_ENGINE: Error updating document: {e}")
+            return False
+    
     def set_text_widget(self, text_widget):
         """Set the text widget for highlighting."""
         self.text_widget = text_widget
@@ -111,8 +128,8 @@ class HighlightingEngine:
             
             self.logger.info(f"HIGHLIGHTING_ENGINE: Updating coordinate mapping for page {page}")
             
-            # Rebuild coordinate maps for the new text content
-            self.coordinate_mapper.rebuild_maps()
+            # Update coordinate maps for the new text content
+            self.coordinate_mapper.update_document()
             
             # Clear any existing highlights that might be invalid
             page_highlights = [hid for hid, hinfo in self.active_highlights.items() 

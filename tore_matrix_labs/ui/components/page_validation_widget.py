@@ -1237,6 +1237,11 @@ class PageValidationWidget(QWidget):
                 self.logger.info(f"Selected extraction engine: Enhanced PyMuPDF")
                 self._load_page_text_with_enhanced_extraction(page_number, pdf_file_path)
             
+            # Update highlighting engine after text is loaded
+            if hasattr(self, 'highlighting_engine') and self.highlighting_engine:
+                self.highlighting_engine.update_text_content(page_number)
+                self.logger.info(f"Updated highlighting engine for page {page_number}")
+            
         except Exception as e:
             error_msg = f"Failed to load page {page_number} text: {str(e)}"
             self.extracted_text.setPlainText(error_msg)

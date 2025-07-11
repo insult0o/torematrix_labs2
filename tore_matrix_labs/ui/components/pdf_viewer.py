@@ -403,6 +403,11 @@ class PDFViewer(QWidget):
             # Display first page
             self._display_current_page()
             
+            # Update highlighting engine with new document
+            if hasattr(self, 'highlighting_engine') and self.highlighting_engine:
+                self.highlighting_engine.update_document(self.current_document)
+                self.logger.info("Updated highlighting engine with new document")
+            
             self.logger.info(f"Loaded document: {file_path} ({self.total_pages} pages)")
             
         except Exception as e:

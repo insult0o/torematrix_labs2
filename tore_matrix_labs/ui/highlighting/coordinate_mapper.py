@@ -38,10 +38,17 @@ class CoordinateMapper:
         """Set the PDF viewer for coordinate mapping."""
         self.pdf_viewer = pdf_viewer
         
-        # Extract PDF document if available
-        if hasattr(pdf_viewer, 'document') and pdf_viewer.document:
+        # Extract PDF document if available - check both document and current_document
+        if hasattr(pdf_viewer, 'current_document') and pdf_viewer.current_document:
+            self.pdf_document = pdf_viewer.current_document
+            self._build_coordinate_maps()
+            self.logger.info("COORDINATE_MAPPER: PDF document found and coordinate maps built")
+        elif hasattr(pdf_viewer, 'document') and pdf_viewer.document:
             self.pdf_document = pdf_viewer.document
             self._build_coordinate_maps()
+            self.logger.info("COORDINATE_MAPPER: PDF document found and coordinate maps built")
+        else:
+            self.logger.warning("COORDINATE_MAPPER: No PDF document available yet")
         
         self.logger.info("COORDINATE_MAPPER: PDF viewer set")
     
@@ -341,13 +348,29 @@ class CoordinateMapper:
         self.word_boundaries.clear()
         self.line_boundaries.clear()
         self.page_text_offsets.clear()
-        self.logger.info("COORDINATE_MAPPER: Cache cleared")
     
-    def rebuild_maps(self):
-        """Rebuild coordinate maps."""
-        self.clear_cache()
-        self._build_coordinate_maps()
-        self.logger.info("COORDINATE_MAPPER: Maps rebuilt")
+    def update_document(self, pdf_document=None):
+        """Update PDF document and rebuild coordinate maps."""
+        try:
+            if pdf_document:
+                self.pdf_document = pdf_document
+            elif self.pdf_viewer and hasattr(self.pdf_viewer, 'current_document') and self.pdf_viewer.current_document:
+                self.pdf_document = self.pdf_viewer.current_document
+            elif self.pdf_viewer and hasattr(self.pdf_viewer, 'document') and self.pdf_viewer.document:
+                self.pdf_document = self.pdf_viewer.document
+            
+            if self.pdf_document:
+                self.clear_cache()
+                self._build_coordinate_maps()
+                self.logger.info("COORDINATE_MAPPER: Document updated and coordinate maps rebuilt")
+                return True
+            else:
+                self.logger.warning("COORDINATE_MAPPER: No PDF document available for update")
+                return False
+                
+        except Exception as e:
+            self.logger.error(f"COORDINATE_MAPPER: Error updating document: {e}")
+            return False
     
     def get_statistics(self) -> Dict[str, Any]:
         """Get coordinate mapper statistics."""
