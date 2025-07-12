@@ -496,6 +496,9 @@ class DragSelectPDFViewer(QWidget):
             # Ensure document ID is still set (in case it was cleared)
             if self.current_file_path:
                 self._set_pdf_viewer_document_id(self.current_file_path)
+            
+            # CRITICAL FIX for Issue #47: Force area refresh after page change
+            self._refresh_pdf_viewer_areas(self.current_page)
     
     def _next_page(self):
         """Go to next page."""
@@ -511,6 +514,9 @@ class DragSelectPDFViewer(QWidget):
             # Ensure document ID is still set (in case it was cleared)
             if self.current_file_path:
                 self._set_pdf_viewer_document_id(self.current_file_path)
+            
+            # CRITICAL FIX for Issue #47: Force area refresh after page change
+            self._refresh_pdf_viewer_areas(self.current_page)
     
     def _load_page_areas(self):
         """Load persistent areas for the current page."""
@@ -1851,6 +1857,9 @@ class ManualValidationWidget(QWidget):
         print(f"🔵 VALIDATION: self.all_selections = {self.all_selections}")
         print(f"🔵 VALIDATION: Total selections: {sum(len(selections) for selections in self.all_selections.values())}")
         
+        # CRITICAL FIX for Issue #47: Log area state before validation
+        self._log_area_state("BEFORE VALIDATION")
+        
         if not self.current_document:
             print(f"🔴 VALIDATION: No current document - cannot complete validation")
             return
@@ -1887,6 +1896,12 @@ class ManualValidationWidget(QWidget):
         
         self.status_message.emit("Manual validation completed successfully")
         self.logger.info(f"Manual validation completed for {self.current_file_path}")
+        
+        # CRITICAL FIX for Issue #47: Log area state after validation
+        self._log_area_state("AFTER VALIDATION")
+        
+        # CRITICAL FIX for Issue #47: Force area refresh after validation
+        self._refresh_pdf_viewer_areas(self.current_page)
     
     def _save_progress(self):
         """Save current validation progress without completing validation."""
@@ -2984,3 +2999,18 @@ class ManualValidationWidget(QWidget):
         except Exception as e:
             self.logger.error(f"ALT_RECOVER: Error in alternative document recovery: {e}")
             return False
+    
+    def _log_area_state(self, context: str):
+        """Log current area state for debugging Issue #47."""
+        try:
+            main_window = self._get_main_window()
+            if main_window and hasattr(main_window, 'pdf_viewer'):
+                pdf_viewer = main_window.pdf_viewer
+                if hasattr(pdf_viewer, 'page_label'):
+                    page_label = pdf_viewer.page_label
+                    area_count = len(getattr(page_label, 'persistent_areas', {}))
+                    doc_id = getattr(pdf_viewer, 'current_document_id', 'None')
+                    self.logger.info(f"AREA STATE [{context}]: {area_count} areas, doc_id={doc_id}")
+                    print(f"🔍 AREA STATE [{context}]: {area_count} areas in PDF viewer, doc_id={doc_id}")
+        except Exception as e:
+            self.logger.error(f"Error logging area state: {e}")
