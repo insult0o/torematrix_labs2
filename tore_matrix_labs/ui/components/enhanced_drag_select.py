@@ -272,10 +272,13 @@ class EnhancedDragSelectLabel(QLabel):
                 
                 # Check if we can start new selection (manual validation tab only)
                 if self.is_manual_validation_active():
+                    print("🔵 MOUSE: In manual validation tab - checking workflow requirements...")
                     # WORKFLOW SAFEGUARD: Check project and document requirements
                     if not self._check_workflow_requirements():
                         self.logger.warning("WORKFLOW: Cannot create areas - requirements not met")
+                        print("🔴 MOUSE: Workflow requirements failed - area creation blocked!")
                         return
+                    print("🟢 MOUSE: Workflow requirements passed - proceeding with area creation")
                     
                     # Start new selection
                     self.interaction_mode = "select"
@@ -1158,18 +1161,23 @@ class EnhancedDragSelectLabel(QLabel):
         super().keyPressEvent(event)
     def _check_workflow_requirements(self) -> bool:
         """Check if essential requirements are met for area creation."""
-        self.logger.info("WORKFLOW CHECK: Verifying essential requirements")
+        self.logger.info("🔍 WORKFLOW CHECK: Verifying essential requirements for area creation")
         
         # Check 1: Area storage manager available (essential for saving)
+        self.logger.info(f"🔍 CHECK 1: Area storage manager = {self.area_storage_manager is not None}")
         if not self.area_storage_manager:
             self.logger.error("WORKFLOW: ❌ No area storage manager - technical issue")
+            print("🔴 WORKFLOW FAILURE: No area storage manager available!")
             self._show_workflow_error("Technical Issue", 
                 "Area storage system not available. Please restart the application.")
             return False
         
         # Check 2: Project manager available (essential for saving)
-        if not hasattr(self.area_storage_manager, 'project_manager') or not self.area_storage_manager.project_manager:
+        has_project_manager = hasattr(self.area_storage_manager, 'project_manager') and self.area_storage_manager.project_manager
+        self.logger.info(f"🔍 CHECK 2: Project manager = {has_project_manager}")
+        if not has_project_manager:
             self.logger.error("WORKFLOW: ❌ No project manager - technical issue")
+            print("🔴 WORKFLOW FAILURE: No project manager available!")
             self._show_workflow_error("Technical Issue",
                 "Project management system not available. Please restart the application.")
             return False
@@ -1177,20 +1185,29 @@ class EnhancedDragSelectLabel(QLabel):
         # Check 3: Current project loaded (needed for saving areas)
         try:
             current_project = self.area_storage_manager.project_manager.get_current_project()
+            self.logger.info(f"🔍 CHECK 3: Current project = {current_project is not None}")
+            if current_project:
+                documents = current_project.get('documents', [])
+                self.logger.info(f"🔍 CHECK 3: Project has {len(documents)} documents")
+                print(f"🟢 WORKFLOW: Project loaded with {len(documents)} documents")
+            
             if not current_project:
                 self.logger.error("WORKFLOW: ❌ No project loaded")
+                print("🔴 WORKFLOW FAILURE: No project is currently loaded!")
                 self._show_workflow_error("No Project Loaded", 
                     "Please open a project before creating areas.\n\n" +
                     "Go to Project Management tab and open an existing project.")
                 return False
         except Exception as e:
             self.logger.error(f"WORKFLOW: ❌ Error checking project: {e}")
+            print(f"🔴 WORKFLOW FAILURE: Error checking project: {e}")
             return False
         
         # That's it! User can cut on whatever document is displayed
         # Document selection is just for navigation, not permission control
-        self.logger.info("WORKFLOW: ✅ Essential requirements met - ready to create areas")
-        self.logger.info("WORKFLOW: User can cut on whatever document is currently displayed")
+        self.logger.info("🟢 WORKFLOW: ✅ Essential requirements met - ready to create areas")
+        self.logger.info("🟢 WORKFLOW: User can cut on whatever document is currently displayed")
+        print("🟢 WORKFLOW SUCCESS: All checks passed - areas can be created!")
         return True
     
     def _show_workflow_error(self, title: str, message: str):
