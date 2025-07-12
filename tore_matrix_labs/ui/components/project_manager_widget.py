@@ -293,6 +293,11 @@ class ProjectManagerWidget(QWidget):
         )
         
         if ok and doc_path.strip():
+            # Check for duplicates before adding
+            if any(doc.get('path') == doc_path.strip() for doc in self.documents):
+                self.status_label.setText(f"Document already exists: {Path(doc_path.strip()).name}")
+                return
+                
             doc_info = {
                 'id': f"doc_{len(self.documents)}",
                 'path': doc_path.strip(),
@@ -418,12 +423,15 @@ class ProjectManagerWidget(QWidget):
             'extracted_content': document_data.get('extracted_content', {})
         }
         
-        # Check if document already exists
-        existing_doc = next((d for d in self.documents if d['id'] == doc_info['id']), None)
+        # Check if document already exists by ID or path (prevent duplicates)
+        existing_doc = next((d for d in self.documents 
+                           if d['id'] == doc_info['id'] or d.get('path') == doc_info.get('path')), None)
         if existing_doc:
             existing_doc.update(doc_info)
+            print(f"🔧 PROJECT: Updated existing document {existing_doc['id']}")
         else:
             self.documents.append(doc_info)
+            print(f"✅ PROJECT: Added new document {doc_info['id']}")
         
         self._update_documents_list()
         self._mark_changed()
