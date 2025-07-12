@@ -774,6 +774,9 @@ class DragSelectPDFViewer(QWidget):
             # Emit signal
             self.area_selected.emit(selection_data)
             
+            # CRITICAL FIX: Also save to area storage manager for proper persistence
+            self._save_area_to_storage_manager(selection_data)
+            
             self.logger.info(f"Enhanced area classified as {dialog.selected_type} on page {self.current_page}")
             if dialog.processing_options.get('special_notes'):
                 self.logger.info(f"Special notes: {dialog.processing_options['special_notes']}")
@@ -833,6 +836,8 @@ class ManualValidationWidget(QWidget):
         # State
         self.current_document: Optional[Document] = None
         self.current_file_path: Optional[str] = None
+        self.current_page = 1  # Initialize current page
+        self.total_pages = 0   # Initialize total pages
         self.all_selections: Dict[int, List[Dict]] = {}  # Page -> selections mapping
         self.validation_complete = False
         
@@ -3024,3 +3029,61 @@ class ManualValidationWidget(QWidget):
                     print(f"🔍 AREA STATE [{context}]: {area_count} areas in PDF viewer, doc_id={doc_id}")
         except Exception as e:
             self.logger.error(f"Error logging area state: {e}")
+    
+    def _save_area_to_storage_manager(self, selection_data: dict):
+        """Save area to the area storage manager for proper persistence."""
+        try:
+            self.logger.info("🔍 MANUAL_VAL_SAVE: Starting area save to storage manager")
+            
+            # Check if area storage manager is available
+            main_window = self._get_main_window()
+            if not main_window or not hasattr(main_window, 'area_storage_manager'):
+                self.logger.error("MANUAL_VAL_SAVE: No area storage manager available")
+                return
+            
+            area_storage_manager = main_window.area_storage_manager
+            if not area_storage_manager:
+                self.logger.error("MANUAL_VAL_SAVE: Area storage manager is None")
+                return
+            
+            # Get document ID
+            document_id = self._get_current_document_id()
+            if not document_id:
+                self.logger.error("MANUAL_VAL_SAVE: No document ID available")
+                return
+            
+            self.logger.info(f"MANUAL_VAL_SAVE: Using document ID: {document_id}")
+            
+            # Convert selection_data to VisualArea format
+            from ...models.visual_area_models import VisualArea, AreaType
+            
+            area_data = {
+                'id': selection_data['id'],
+                'document_id': document_id,
+                'type': selection_data['type'],
+                'bbox': selection_data['bbox'],
+                'page': selection_data['page'],
+                'selection_rect': [],
+                'created_at': selection_data.get('timestamp', datetime.now().isoformat()),
+                'status': 'selected'
+            }
+            
+            visual_area = VisualArea.from_area_data(area_data)
+            self.logger.info(f"MANUAL_VAL_SAVE: Created VisualArea: {visual_area.id}")
+            
+            # Save to area storage manager
+            save_success = area_storage_manager.save_area(document_id, visual_area)
+            self.logger.info(f"MANUAL_VAL_SAVE: Save result: {save_success}")
+            
+            if save_success:
+                self.logger.info("🟢 MANUAL_VAL_SAVE: Successfully saved area to storage manager")
+                print(f"🟢 MANUAL_VAL_SAVE: Area {visual_area.id} saved to project storage!")
+            else:
+                self.logger.error("🔴 MANUAL_VAL_SAVE: Failed to save area to storage manager")
+                print(f"🔴 MANUAL_VAL_SAVE: Failed to save area to project storage!")
+            
+        except Exception as e:
+            self.logger.error(f"MANUAL_VAL_SAVE: Error saving area to storage manager: {e}")
+            import traceback
+            self.logger.error(f"MANUAL_VAL_SAVE: Traceback: {traceback.format_exc()}")
+            print(f"🔴 MANUAL_VAL_SAVE: Exception: {e}")
