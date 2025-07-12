@@ -12,7 +12,7 @@ from .qt_compat import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
     QTabWidget, QStatusBar, QMenuBar, QAction, QToolBar,
     QDockWidget, QTreeWidget, QTreeWidgetItem, QTextEdit,
-    QLabel, QPushButton, QProgressBar, QMessageBox, QFileDialog,
+    QLabel, QPushButton, QProgressBar, QMessageBox, QFileDialog, QDialog,
     Qt, QTimer, pyqtSignal, QThread, QIcon, QKeySequence, QPixmap, QFont
 )
 
