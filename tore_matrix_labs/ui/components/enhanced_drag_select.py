@@ -174,63 +174,52 @@ class EnhancedDragSelectLabel(QLabel):
         
         old_count = len(self.persistent_areas)
         
-        if document_id and hasattr(self, 'area_storage_manager') and self.area_storage_manager:
-            # We have proper storage - load areas from storage for this page
+        if document_id:
+            # Load new areas BEFORE clearing old ones (atomic replacement)
             try:
                 new_areas = {}
-                # Load areas for the specific page from storage
-                page_areas = self.area_storage_manager.get_areas_for_page(document_id, page)
+                if hasattr(self, 'area_storage_manager') and self.area_storage_manager:
+                    # Load areas for the specific page
+                    page_areas = self.area_storage_manager.get_areas_for_page(document_id, page)
+                    
+                    # Convert to the format expected by enhanced_drag_select
+                    for area_id, area_data in page_areas.items():
+                        new_areas[area_id] = area_data
+                    
+                    self.logger.info(f"PAGE CHANGE: Loaded {len(new_areas)} areas for page {page}")
+                else:
+                    self.logger.warning("PAGE CHANGE: No area_storage_manager available")
                 
-                # Convert to the format expected by enhanced_drag_select
-                for area_id, area_data in page_areas.items():
-                    new_areas[area_id] = area_data
-                
-                self.logger.info(f"PAGE CHANGE: Loaded {len(new_areas)} areas from storage for page {page}")
-                
-                # Atomic replacement - replace all areas at once
-                self.persistent_areas = new_areas
-                self.active_area_id = None
-                
-                # Update UI with new areas
-                self.update()
-                
-                self.logger.info(f"PAGE CHANGE: Successfully replaced {old_count} areas with {len(new_areas)} areas from storage")
+                # More robust area replacement to prevent disappearing
+                if new_areas or len(self.persistent_areas) == 0:
+                    # Only replace if we have new areas or current areas are empty
+                    self.persistent_areas = new_areas
+                    self.active_area_id = None
+                    
+                    # Update UI with new areas
+                    self.update()
+                    
+                    self.logger.info(f"PAGE CHANGE: Successfully replaced {old_count} areas with {len(new_areas)} areas")
+                else:
+                    # Keep existing areas if new_areas is empty and we had areas before
+                    self.logger.warning(f"PAGE CHANGE: No new areas loaded, keeping {old_count} existing areas to prevent disappearing")
                 
             except Exception as e:
-                self.logger.error(f"PAGE CHANGE: Error loading areas from storage: {e}")
-                # On storage error, filter existing areas by page instead of clearing all
-                self._filter_areas_by_page(page)
+                self.logger.error(f"PAGE CHANGE: Error loading areas: {e}")
+                # On error, keep existing areas rather than clearing to prevent disappearing
+                # Only clear if we have no areas at all
+                if len(self.persistent_areas) == 0:
+                    self.persistent_areas.clear()
+                    self.active_area_id = None
+                    self.update()
+                else:
+                    self.logger.warning(f"PAGE CHANGE: Keeping {len(self.persistent_areas)} existing areas due to load error")
         else:
-            # No storage manager or document ID - filter existing areas by page
-            # This preserves areas created in memory without clearing them inappropriately
-            self.logger.info(f"PAGE CHANGE: No storage manager available - filtering existing areas by page {page}")
-            self._filter_areas_by_page(page)
-    
-    def _filter_areas_by_page(self, page: int):
-        """Filter persistent areas to show only those for the current page."""
-        # Store all areas in a temporary backup
-        if not hasattr(self, '_all_areas_backup'):
-            self._all_areas_backup = {}
-        
-        # Add current areas to backup before filtering
-        for area_id, area in self.persistent_areas.items():
-            self._all_areas_backup[area_id] = area
-        
-        # Filter to show only areas for the current page
-        page_specific_areas = {}
-        for area_id, area in self._all_areas_backup.items():
-            if area.page == page:
-                page_specific_areas[area_id] = area
-        
-        old_count = len(self.persistent_areas)
-        self.persistent_areas = page_specific_areas
-        self.active_area_id = None
-        
-        # Update UI
-        self.update()
-        
-        self.logger.info(f"PAGE CHANGE: Filtered areas for page {page}: {old_count} -> {len(page_specific_areas)}")
-        self.logger.info(f"PAGE CHANGE: Total areas in backup: {len(self._all_areas_backup)}")
+            # No document ID - clear areas safely
+            self.logger.warning("PAGE CHANGE: No document ID available - clearing areas")
+            self.persistent_areas.clear()
+            self.active_area_id = None
+            self.update()
     
     def mousePressEvent(self, event: QMouseEvent):
         """Handle mouse press for selection, resize, or move."""
@@ -411,9 +400,9 @@ class EnhancedDragSelectLabel(QLabel):
         try:
             # Draw all persistent areas
             if self.persistent_areas:
-                self.logger.info(f"PAINT: Drawing {len(self.persistent_areas)} persistent areas")
+                self.logger.debug(f"PAINT: Drawing {len(self.persistent_areas)} persistent areas")
                 for area_id, area in self.persistent_areas.items():
-                    self.logger.info(f"PAINT: Drawing area {area_id} at {area.bbox}")
+                    self.logger.debug(f"PAINT: Drawing area {area_id} at {area.bbox}")
                     self._draw_persistent_area(painter, area)
             else:
                 self.logger.debug("PAINT: No persistent areas to draw")
@@ -431,18 +420,27 @@ class EnhancedDragSelectLabel(QLabel):
     def _draw_persistent_area(self, painter: QPainter, area: VisualArea):
         """Draw a persistent area with type-specific styling."""
         try:
-            self.logger.info(f"DRAW: Converting coordinates for area {area.id} from PDF {area.bbox}")
+            self.logger.debug(f"DRAW: Converting coordinates for area {area.id} from PDF {area.bbox}")
             
             # Convert PDF coordinates to widget coordinates for display
             widget_rect = self._pdf_to_widget_coordinates(area.bbox)
             if not widget_rect:
-                self.logger.warning(f"DRAW: Failed to convert coordinates for area {area.id}")
-                return
+                self.logger.warning(f"DRAW: Failed to convert coordinates for area {area.id}, attempting fallback")
+                # Fallback: try to draw with raw coordinates scaled to widget size
+                try:
+                    scale_x = self.width() / 612.0  # Standard PDF width
+                    scale_y = self.height() / 792.0  # Standard PDF height
+                    x1, y1, x2, y2 = area.bbox
+                    widget_rect = [x1 * scale_x, y1 * scale_y, x2 * scale_x, y2 * scale_y]
+                    self.logger.debug(f"DRAW: Using fallback coordinates for area {area.id}: {widget_rect}")
+                except:
+                    self.logger.error(f"DRAW: Fallback coordinates also failed for area {area.id}")
+                    return
                 
             x1, y1, x2, y2 = widget_rect
             rect = QRectF(x1, y1, x2 - x1, y2 - y1)
             
-            self.logger.info(f"DRAW: Drawing area {area.id} at widget coords {widget_rect}, rect: {rect}")
+            self.logger.debug(f"DRAW: Drawing area {area.id} at widget coords {widget_rect}, rect: {rect}")
             
             color = QColor(area.color)
             is_active = (area.id == self.active_area_id)
@@ -654,14 +652,7 @@ class EnhancedDragSelectLabel(QLabel):
             # Add to persistent areas
             self.persistent_areas[area.id] = area
             self.active_area_id = area.id
-            
-            # Also add to backup for page navigation persistence
-            if not hasattr(self, '_all_areas_backup'):
-                self._all_areas_backup = {}
-            self._all_areas_backup[area.id] = area
-            
             self.logger.info(f"Area added to persistent areas. Total: {len(self.persistent_areas)}")
-            self.logger.info(f"Area added to backup. Total in backup: {len(self._all_areas_backup)}")
             
             # Save to storage
             if self.area_storage_manager:
@@ -709,14 +700,7 @@ class EnhancedDragSelectLabel(QLabel):
                         # Add to persistent areas
                         self.persistent_areas[area.id] = area
                         self.active_area_id = area.id
-                        
-                        # Also add to backup for page navigation persistence
-                        if not hasattr(self, '_all_areas_backup'):
-                            self._all_areas_backup = {}
-                        self._all_areas_backup[area.id] = area
-                        
                         self.logger.info(f"Area added to persistent areas. Total: {len(self.persistent_areas)}")
-                        self.logger.info(f"Area added to backup. Total in backup: {len(self._all_areas_backup)}")
                         
                         # Save to storage
                         if self.area_storage_manager:
@@ -1070,11 +1054,6 @@ class EnhancedDragSelectLabel(QLabel):
         if area:
             # Remove from persistent areas
             del self.persistent_areas[self.active_area_id]
-            
-            # Remove from backup as well
-            if hasattr(self, '_all_areas_backup') and self.active_area_id in self._all_areas_backup:
-                del self._all_areas_backup[self.active_area_id]
-                self.logger.info(f"Removed area {self.active_area_id} from backup")
             
             # Delete from storage
             if self.area_storage_manager:

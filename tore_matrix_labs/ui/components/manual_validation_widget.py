@@ -515,7 +515,8 @@ class DragSelectPDFViewer(QWidget):
                 self._update_selection_info()
                 
                 # CRITICAL FIX: Refresh PDF viewer to display the loaded areas
-                self._refresh_pdf_viewer_areas()
+                current_page = getattr(self, 'current_page', 1)
+                self._refresh_pdf_viewer_areas(current_page)
             else:
                 # Clear selections if no storage manager or document
                 self.current_selections = []
