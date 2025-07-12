@@ -822,7 +822,7 @@ class ManualValidationWidget(QWidget):
         
         area_controls_layout.addStretch()
         
-        self.clear_all_btn = QPushButton("Clear All Areas")
+        self.clear_all_btn = QPushButton("Clear All Special Areas")
         self.clear_all_btn.setEnabled(False)
         self.clear_all_btn.clicked.connect(self._clear_all_areas)
         area_controls_layout.addWidget(self.clear_all_btn)
@@ -2110,7 +2110,7 @@ class ManualValidationWidget(QWidget):
             # Confirm with user
             reply = QMessageBox.question(
                 self, 
-                "Clear All Areas",
+                "Clear All Special Areas",
                 f"Are you sure you want to delete all {sum(len(selections) for selections in self.all_selections.values())} selected areas?",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
@@ -2162,7 +2162,7 @@ class ManualValidationWidget(QWidget):
         if has_items:
             self.area_info_label.setText(f"Area {current_row + 1} of {self.selection_list.count()}")
         else:
-            self.area_info_label.setText("0 areas selected")
+            self.area_info_label.setText("0 Special Areas selected")
     
     def _generate_area_name(self, area_type: str, page_num: int, area_id: str) -> str:
         """Generate system-appropriate area name with 1-based page numbering."""
