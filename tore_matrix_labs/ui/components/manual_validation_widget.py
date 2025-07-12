@@ -605,8 +605,18 @@ class DragSelectPDFViewer(QWidget):
                 
                 # Fallback to filename-based ID if not found in project
                 if not document_id:
-                    document_id = Path(file_path).stem
-                    self.logger.info(f"SYNC_PDF: Using fallback document ID: {document_id}")
+                    # Use the actual document ID from the project instead of filename
+                    if current_project:
+                        documents = current_project.get('documents', [])
+                        if documents:
+                            # Use the first document's ID (most common case)
+                            document_id = documents[0].get('id')
+                            self.logger.info(f"SYNC_PDF: Using project document ID: {document_id}")
+                    
+                    # Final fallback to filename if no project documents
+                    if not document_id:
+                        document_id = Path(file_path).stem
+                        self.logger.info(f"SYNC_PDF: Using filename fallback document ID: {document_id}")
                 
                 # Set the document ID in PDF viewer
                 pdf_viewer.current_document_id = document_id

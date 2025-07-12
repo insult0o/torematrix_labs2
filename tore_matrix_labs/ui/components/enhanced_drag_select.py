@@ -632,15 +632,36 @@ class EnhancedDragSelectLabel(QLabel):
                 except Exception as e:
                     self.logger.error(f"AREA_CREATE: Error finding document ID: {e}")
             
-            # If still no document ID found, create a simple fallback based on displayed document
+            # If still no document ID found, try to get it from current project documents
             if not document_id:
-                if document_path:
-                    filename = Path(document_path).stem  # filename without extension
-                    document_id = f"doc_{filename}"
-                    self.logger.info(f"AREA_CREATE: Using fallback document ID based on filename: '{document_id}'")
-                else:
-                    document_id = "doc_current"
-                    self.logger.warning("AREA_CREATE: Using generic fallback document ID: 'doc_current'")
+                try:
+                    current_project = self.area_storage_manager.project_manager.get_current_project()
+                    if current_project:
+                        documents = current_project.get('documents', [])
+                        if documents:
+                            # Use the first document's ID (most common single-document case)
+                            document_id = documents[0].get('id')
+                            self.logger.info(f"AREA_CREATE: Using project document ID: '{document_id}'")
+                        
+                        # If multiple documents, try to find by path
+                        if len(documents) > 1 and document_path:
+                            for doc in documents:
+                                if doc.get('file_path') == document_path:
+                                    document_id = doc.get('id')
+                                    self.logger.info(f"AREA_CREATE: Found matching document ID by path: '{document_id}'")
+                                    break
+                except Exception as e:
+                    self.logger.error(f"AREA_CREATE: Error getting project document ID: {e}")
+                
+                # Final fallback to filename if nothing else works
+                if not document_id:
+                    if document_path:
+                        filename = Path(document_path).stem  # filename without extension
+                        document_id = f"doc_{filename}"
+                        self.logger.warning(f"AREA_CREATE: Using filename fallback document ID: '{document_id}'")
+                    else:
+                        document_id = "doc_current"
+                        self.logger.error("AREA_CREATE: Using generic fallback document ID: 'doc_current'")
         
         self.logger.info(f"AREA_CREATE: Using document ID: '{document_id}' for the currently displayed document")
         

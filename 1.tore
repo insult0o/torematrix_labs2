@@ -1,12 +1,12 @@
 {
   "name": "1",
   "description": "",
-  "created_at": "2025-07-12T18:43:44.229067",
-  "modified_at": "2025-07-12T18:44:13.553371",
+  "created_at": "2025-07-12T18:49:00.214369",
+  "modified_at": "2025-07-12T18:49:24.881391",
   "version": "1.0.0",
   "documents": [
     {
-      "id": "doc_20250712_184356_5555",
+      "id": "doc_20250712_184910_5555",
       "path": "/home/insulto/tore_matrix_labs/5555.pdf",
       "name": "5555.pdf",
       "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
@@ -20,10 +20,10 @@
       "quality_score": 0.3370186066854685,
       "document_type": "icao",
       "validation_status": "in_progress",
-      "added_at": "2025-07-12T18:44:03.508273",
-      "last_modified": "2025-07-12T18:44:03.508282",
+      "added_at": "2025-07-12T18:49:17.274666",
+      "last_modified": "2025-07-12T18:49:17.274674",
       "processing_data": {
-        "id": "doc_20250712_184356_5555",
+        "id": "doc_20250712_184910_5555",
         "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
         "file_name": "5555.pdf",
         "file_size": 5337922,
@@ -34,13 +34,13 @@
         "quality_score": 0.3370186066854685,
         "document_type": "icao",
         "validation_status": "in_progress",
-        "added_at": "2025-07-12T18:44:03.495401",
-        "last_modified": "2025-07-12T18:44:03.495405",
+        "added_at": "2025-07-12T18:49:17.260285",
+        "last_modified": "2025-07-12T18:49:17.260288",
         "extracted_content": {
           "text_elements_count": 2229,
           "tables_count": 40,
           "images_count": 0,
-          "extraction_time": 6.831986427307129,
+          "extraction_time": 6.832012414932251,
           "initial_quality_score": 0.5035677877370824,
           "text_elements": [
             {
@@ -41385,7 +41385,7 @@
           "images": [],
           "metadata": {
             "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
-            "extraction_timestamp": 1752345843.4353337,
+            "extraction_timestamp": 1752346157.1944556,
             "text_elements_count": 2229,
             "tables_count": 40,
             "images_count": 0,
@@ -41401,7 +41401,7 @@
         "text_elements_count": 2229,
         "tables_count": 40,
         "images_count": 0,
-        "extraction_time": 6.831986427307129,
+        "extraction_time": 6.832012414932251,
         "initial_quality_score": 0.5035677877370824,
         "text_elements": [
           {
@@ -82746,7 +82746,7 @@
         "images": [],
         "metadata": {
           "file_path": "/home/insulto/tore_matrix_labs/5555.pdf",
-          "extraction_timestamp": 1752345843.4353337,
+          "extraction_timestamp": 1752346157.1944556,
           "text_elements_count": 2229,
           "tables_count": 40,
           "images_count": 0,
