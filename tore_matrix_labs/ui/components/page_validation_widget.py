@@ -860,20 +860,13 @@ class PageValidationWidget(QWidget):
         self.logger.warning(f"Failed to highlight text issue: {issue.get('description', '')}")
     
     def _clear_text_highlights(self):
-        """Clear all existing highlights in the text area."""
-        cursor = self.extracted_text.textCursor()
-        cursor.select(QTextCursor.Document)
-        
-        # Create default format
-        default_format = QTextCharFormat()
-        cursor.setCharFormat(default_format)
-        
-        # Clear selection
-        cursor.clearSelection()
-        self.extracted_text.setTextCursor(cursor)
+        """Clear all existing highlights in the text area using temporary highlighting."""
+        # Clear all extra selections (temporary highlights)
+        self.extracted_text.setExtraSelections([])
     
     def _apply_text_highlight(self, start_pos, end_pos, issue):
-        """Apply highlighting to text at given positions."""
+        """Apply temporary highlighting to text at given positions using ExtraSelections."""
+        # Create selection for highlighting
         cursor = self.extracted_text.textCursor()
         cursor.setPosition(start_pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
@@ -896,9 +889,20 @@ class PageValidationWidget(QWidget):
             highlight_format.setForeground(QColor("#2e7d32"))  # Green
         
         highlight_format.setFontWeight(700)  # Bold
-        cursor.setCharFormat(highlight_format)
+        
+        # Create extra selection for temporary highlighting
+        extra_selection = QTextEdit.ExtraSelection()
+        extra_selection.cursor = cursor
+        extra_selection.format = highlight_format
+        
+        # Get existing selections and add the new one
+        current_selections = self.extracted_text.extraSelections()
+        current_selections.append(extra_selection)
+        self.extracted_text.setExtraSelections(current_selections)
         
         # Move cursor to highlight position and ensure visibility
+        cursor.clearSelection()  # Clear selection but keep highlight
+        cursor.setPosition(start_pos)  # Position cursor at start of highlight
         self.extracted_text.setTextCursor(cursor)
         self.extracted_text.ensureCursorVisible()
         
@@ -940,7 +944,7 @@ class PageValidationWidget(QWidget):
             self.logger.error(f"Error handling cursor position change: {str(e)}")
     
     def _on_text_selection_changed(self):
-        """Handle text selection changes to highlight in PDF using new highlighting engine."""
+        """Handle text selection changes to highlight in PDF with improved synchronization."""
         try:
             cursor = self.extracted_text.textCursor()
             
@@ -949,37 +953,149 @@ class PageValidationWidget(QWidget):
                 end_pos = cursor.selectionEnd()
                 selected_text = cursor.selectedText()
                 
-                # Use the shared highlighting engine if available
-                if self.highlighting_engine:
+                # Clear any existing user selection highlights first (but preserve issue highlights)
+                self._clear_user_selection_highlights()
+                
+                # Create temporary highlight for user selection
+                self._create_user_selection_highlight(start_pos, end_pos)
+                
+                # Attempt PDF synchronization with multiple strategies
+                pdf_highlight_success = self._sync_text_selection_to_pdf(start_pos, end_pos, selected_text)
+                
+                if pdf_highlight_success:
+                    self.log_message.emit(f"✅ Text selection synchronized: '{selected_text[:50]}...' at {start_pos}-{end_pos}")
+                else:
+                    self.log_message.emit(f"⚠️ PDF sync failed for selection: '{selected_text[:50]}...' at {start_pos}-{end_pos}")
+            else:
+                # Clear user selection highlights when no text is selected
+                self._clear_user_selection_highlights()
+                
+        except Exception as e:
+            self.logger.error(f"Error handling text selection change: {str(e)}")
+    
+    def _clear_user_selection_highlights(self):
+        """Clear only user selection highlights, preserving issue highlights."""
+        try:
+            # Get current selections and filter out user selection highlights
+            current_selections = self.extracted_text.extraSelections()
+            
+            # Keep only issue highlights (those with specific formats we use for issues)
+            preserved_selections = []
+            for selection in current_selections:
+                # Check if this is an issue highlight by examining the format
+                format_bg = selection.format.background().color()
+                # User selections use a different color than issue highlights
+                if format_bg != QColor("#add8e6"):  # Light blue for user selections
+                    preserved_selections.append(selection)
+            
+            self.extracted_text.setExtraSelections(preserved_selections)
+        except Exception as e:
+            self.logger.warning(f"Error clearing user selection highlights: {e}")
+    
+    def _create_user_selection_highlight(self, start_pos, end_pos):
+        """Create a temporary highlight for user text selection."""
+        try:
+            cursor = self.extracted_text.textCursor()
+            cursor.setPosition(start_pos)
+            cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+            
+            # Create user selection format (light blue)
+            selection_format = QTextCharFormat()
+            selection_format.setBackground(QColor("#add8e6"))  # Light blue
+            selection_format.setForeground(QColor("#000080"))  # Navy blue
+            
+            # Create extra selection
+            extra_selection = QTextEdit.ExtraSelection()
+            extra_selection.cursor = cursor
+            extra_selection.format = selection_format
+            
+            # Add to existing selections
+            current_selections = self.extracted_text.extraSelections()
+            current_selections.append(extra_selection)
+            self.extracted_text.setExtraSelections(current_selections)
+            
+        except Exception as e:
+            self.logger.warning(f"Error creating user selection highlight: {e}")
+    
+    def _sync_text_selection_to_pdf(self, start_pos, end_pos, selected_text):
+        """Synchronize text selection to PDF using multiple strategies."""
+        try:
+            # Strategy 1: Use highlighting engine if available
+            if self.highlighting_engine and hasattr(self.highlighting_engine, 'highlight_text_range'):
+                try:
                     highlight_id = self.highlighting_engine.highlight_text_range(
                         text_start=start_pos,
                         text_end=end_pos,
-                        highlight_type='active_highlight',
+                        highlight_type='user_selection',
                         page=self.current_page
                     )
-                    
                     if highlight_id:
-                        self.log_message.emit(f"✅ Synchronized highlight: '{selected_text}' at {start_pos}-{end_pos} (ID: {highlight_id})")
-                        return  # Success with shared engine, no need for fallback
-                    else:
-                        self.log_message.emit(f"🔄 Shared highlighting engine failed, using legacy method for '{selected_text}'")
-                else:
-                    self.log_message.emit(f"⚠️ No highlighting engine available, using legacy method for '{selected_text}'")
-                
-                # Fall back to signal-based method
-                pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
-                if pdf_selection:
-                    page, bbox = pdf_selection
+                        return True
+                except Exception as e:
+                    self.logger.warning(f"Highlighting engine failed: {e}")
+            
+            # Strategy 2: Use signal-based fallback
+            pdf_selection = self._map_text_range_to_pdf(start_pos, end_pos)
+            if pdf_selection:
+                page, bbox = pdf_selection
+                self.highlight_pdf_text_selection.emit(page, bbox)
+                return True
+            
+            # Strategy 3: Try approximate mapping using known coordinates
+            if hasattr(self, 'text_to_pdf_mapping') and self.text_to_pdf_mapping:
+                # Find the closest mapped positions
+                best_match = self._find_approximate_pdf_coordinates(start_pos, end_pos)
+                if best_match:
+                    page, bbox = best_match
                     self.highlight_pdf_text_selection.emit(page, bbox)
-                    self.log_message.emit(f"✅ Legacy highlight: '{selected_text}' at {start_pos}-{end_pos} → PDF page {page}, bbox {bbox}")
-                else:
-                    self.log_message.emit(f"❌ All highlighting methods failed for '{selected_text}' at {start_pos}-{end_pos}")
-                    # Try to provide debug information
-                    self.log_message.emit(f"Debug: text_to_pdf_mapping has {len(self.text_to_pdf_mapping) if hasattr(self, 'text_to_pdf_mapping') else 0} entries")
-                    self.log_message.emit(f"Debug: current_page={self.current_page}, use_unstructured={self.use_unstructured}, use_ocr={self.use_ocr}")
+                    return True
+            
+            return False
             
         except Exception as e:
-            self.logger.error(f"Error handling text selection change: {str(e)}")
+            self.logger.error(f"Error syncing text selection to PDF: {e}")
+            return False
+    
+    def _find_approximate_pdf_coordinates(self, start_pos, end_pos):
+        """Find approximate PDF coordinates for text range."""
+        try:
+            if not hasattr(self, 'text_to_pdf_mapping') or not self.text_to_pdf_mapping:
+                return None
+            
+            # Find mapped positions near our target range
+            mapped_positions = sorted(self.text_to_pdf_mapping.keys())
+            
+            # Find positions that bracket our range
+            start_candidates = [pos for pos in mapped_positions if pos <= start_pos]
+            end_candidates = [pos for pos in mapped_positions if pos >= end_pos]
+            
+            if start_candidates and end_candidates:
+                closest_start = max(start_candidates)
+                closest_end = min(end_candidates)
+                
+                start_info = self.text_to_pdf_mapping[closest_start]
+                end_info = self.text_to_pdf_mapping[closest_end]
+                
+                if start_info[0] == end_info[0]:  # Same page
+                    # Create combined bbox
+                    page = start_info[0]
+                    start_bbox = start_info[1]
+                    end_bbox = end_info[1]
+                    
+                    combined_bbox = [
+                        min(start_bbox[0], end_bbox[0]),  # min x
+                        min(start_bbox[1], end_bbox[1]),  # min y
+                        max(start_bbox[2], end_bbox[2]),  # max x
+                        max(start_bbox[3], end_bbox[3])   # max y
+                    ]
+                    
+                    return page, combined_bbox
+            
+            return None
+            
+        except Exception as e:
+            self.logger.warning(f"Error finding approximate PDF coordinates: {e}")
+            return None
     
     def _map_text_position_to_pdf(self, text_position):
         """Map text position to PDF coordinates using advanced extraction methods."""
@@ -1784,7 +1900,8 @@ class PageValidationWidget(QWidget):
             self.highlight_pdf_location.emit(page, bbox, description, highlight_type)
     
     def _apply_text_highlight_for_issue(self, start_pos, end_pos, issue, is_active=False):
-        """Apply highlighting to text for a specific issue."""
+        """Apply temporary highlighting to text for a specific issue using ExtraSelections."""
+        # Create selection for highlighting
         cursor = self.extracted_text.textCursor()
         cursor.setPosition(start_pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
@@ -1816,10 +1933,20 @@ class PageValidationWidget(QWidget):
             
             highlight_format.setFontWeight(400)  # Normal weight
         
-        cursor.setCharFormat(highlight_format)
+        # Create extra selection for temporary highlighting
+        extra_selection = QTextEdit.ExtraSelection()
+        extra_selection.cursor = cursor
+        extra_selection.format = highlight_format
         
-        # If this is the active issue, ensure it's visible
+        # Get existing selections and add the new one
+        current_selections = self.extracted_text.extraSelections()
+        current_selections.append(extra_selection)
+        self.extracted_text.setExtraSelections(current_selections)
+        
+        # If this is the active issue, position cursor and ensure visibility
         if is_active:
+            cursor.clearSelection()  # Clear selection but keep highlight
+            cursor.setPosition(start_pos)  # Position cursor at start of highlight
             self.extracted_text.setTextCursor(cursor)
             self.extracted_text.ensureCursorVisible()
     
