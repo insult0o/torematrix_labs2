@@ -174,52 +174,36 @@ class EnhancedDragSelectLabel(QLabel):
         
         old_count = len(self.persistent_areas)
         
-        if document_id:
-            # Load new areas BEFORE clearing old ones (atomic replacement)
+        # Always clear areas first to ensure proper page filtering
+        self.persistent_areas.clear()
+        self.active_area_id = None
+        
+        if document_id and self.area_storage_manager:
+            # Load areas for the new page
             try:
-                new_areas = {}
-                if hasattr(self, 'area_storage_manager') and self.area_storage_manager:
-                    # Load areas for the specific page
-                    page_areas = self.area_storage_manager.get_areas_for_page(document_id, page)
-                    
-                    # Convert to the format expected by enhanced_drag_select
-                    for area_id, area_data in page_areas.items():
-                        new_areas[area_id] = area_data
-                    
-                    self.logger.info(f"PAGE CHANGE: Loaded {len(new_areas)} areas for page {page}")
-                else:
-                    self.logger.warning("PAGE CHANGE: No area_storage_manager available")
+                page_areas = self.area_storage_manager.get_areas_for_page(document_id, page)
+                self.persistent_areas = page_areas
                 
-                # More robust area replacement to prevent disappearing
-                if new_areas or len(self.persistent_areas) == 0:
-                    # Only replace if we have new areas or current areas are empty
-                    self.persistent_areas = new_areas
-                    self.active_area_id = None
-                    
-                    # Update UI with new areas
-                    self.update()
-                    
-                    self.logger.info(f"PAGE CHANGE: Successfully replaced {old_count} areas with {len(new_areas)} areas")
-                else:
-                    # Keep existing areas if new_areas is empty and we had areas before
-                    self.logger.warning(f"PAGE CHANGE: No new areas loaded, keeping {old_count} existing areas to prevent disappearing")
+                self.logger.info(f"PAGE CHANGE: Loaded {len(page_areas)} areas for page {page} (was {old_count})")
+                
+                if page_areas:
+                    for area_id, area in page_areas.items():
+                        self.logger.debug(f"PAGE CHANGE: - Area {area_id} at {area.bbox} on page {area.page}")
                 
             except Exception as e:
-                self.logger.error(f"PAGE CHANGE: Error loading areas: {e}")
-                # On error, keep existing areas rather than clearing to prevent disappearing
-                # Only clear if we have no areas at all
-                if len(self.persistent_areas) == 0:
-                    self.persistent_areas.clear()
-                    self.active_area_id = None
-                    self.update()
-                else:
-                    self.logger.warning(f"PAGE CHANGE: Keeping {len(self.persistent_areas)} existing areas due to load error")
+                self.logger.error(f"PAGE CHANGE: Error loading areas for page {page}: {e}")
+                # On error, leave areas empty to prevent showing wrong-page areas
+                self.persistent_areas = {}
         else:
-            # No document ID - clear areas safely
-            self.logger.warning("PAGE CHANGE: No document ID available - clearing areas")
-            self.persistent_areas.clear()
-            self.active_area_id = None
-            self.update()
+            # No document ID or storage manager - keep areas empty
+            if not document_id:
+                self.logger.warning("PAGE CHANGE: No document ID available")
+            if not self.area_storage_manager:
+                self.logger.warning("PAGE CHANGE: No area_storage_manager available")
+            self.persistent_areas = {}
+        
+        # Always update UI to reflect page change
+        self.update()
     
     def mousePressEvent(self, event: QMouseEvent):
         """Handle mouse press for selection, resize, or move."""
@@ -398,12 +382,38 @@ class EnhancedDragSelectLabel(QLabel):
         painter.setRenderHint(QPainter.Antialiasing)
         
         try:
-            # Draw all persistent areas
+            # Get current page from PDF viewer
+            current_page = getattr(self.pdf_viewer, 'current_page', None)
+            if current_page is None:
+                self.logger.debug("PAINT: No current page information available")
+                current_page = 0  # Default to page 0
+            else:
+                # Convert 0-based to 1-based for area comparison
+                current_page = current_page + 1
+            
+            # Draw persistent areas filtered by current page
             if self.persistent_areas:
-                self.logger.debug(f"PAINT: Drawing {len(self.persistent_areas)} persistent areas")
+                page_areas = []
+                other_page_areas = []
+                
                 for area_id, area in self.persistent_areas.items():
-                    self.logger.debug(f"PAINT: Drawing area {area_id} at {area.bbox}")
+                    if area.page == current_page:
+                        page_areas.append((area_id, area))
+                    else:
+                        other_page_areas.append((area_id, area))
+                
+                self.logger.debug(f"PAINT: Page {current_page} has {len(page_areas)} areas, {len(other_page_areas)} areas on other pages")
+                
+                # Only draw areas for the current page
+                for area_id, area in page_areas:
+                    self.logger.debug(f"PAINT: Drawing area {area_id} at {area.bbox} on page {area.page}")
                     self._draw_persistent_area(painter, area)
+                
+                # Log areas being filtered out for debugging
+                if other_page_areas:
+                    self.logger.debug(f"PAINT: Filtering out {len(other_page_areas)} areas from other pages")
+                    for area_id, area in other_page_areas:
+                        self.logger.debug(f"PAINT: - Filtered area {area_id} from page {area.page}")
             else:
                 self.logger.debug("PAINT: No persistent areas to draw")
             

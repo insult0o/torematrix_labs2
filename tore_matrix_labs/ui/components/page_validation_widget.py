@@ -220,6 +220,35 @@ class PageValidationWidget(QWidget):
         # Enable mouse interaction - use event filter instead of direct override
         self.extracted_text.setMouseTracking(True)
         self.extracted_text.installEventFilter(self)
+        
+        layout.addWidget(self.extracted_text)
+        
+        # Correction controls
+        correction_layout = QHBoxLayout()
+        
+        self.approve_correction_btn = QPushButton("✓ Approve Correction")
+        self.approve_correction_btn.setStyleSheet("background-color: #28a745; color: white; font-weight: bold; padding: 8px;")
+        self.approve_correction_btn.clicked.connect(self._approve_current_correction)
+        self.approve_correction_btn.setEnabled(False)
+        correction_layout.addWidget(self.approve_correction_btn)
+        
+        self.reject_correction_btn = QPushButton("✗ Reject Correction")
+        self.reject_correction_btn.setStyleSheet("background-color: #dc3545; color: white; font-weight: bold; padding: 8px;")
+        self.reject_correction_btn.clicked.connect(self._reject_current_correction)
+        self.reject_correction_btn.setEnabled(False)
+        correction_layout.addWidget(self.reject_correction_btn)
+        
+        correction_layout.addStretch()
+        
+        self.save_all_btn = QPushButton("💾 Save All Changes")
+        self.save_all_btn.setStyleSheet("background-color: #007bff; color: white; font-weight: bold; padding: 8px;")
+        self.save_all_btn.clicked.connect(self._save_all_changes)
+        self.save_all_btn.setEnabled(False)
+        correction_layout.addWidget(self.save_all_btn)
+        
+        layout.addLayout(correction_layout)
+        
+        self.setLayout(layout)
     
     def set_pdf_viewer(self, pdf_viewer):
         """Set the PDF viewer and use its highlighting engine for synchronized highlighting."""
@@ -275,35 +304,6 @@ class PageValidationWidget(QWidget):
             
         except Exception as e:
             self.logger.error(f"Error setting up coordinate mapping: {e}")
-        
-        layout.addWidget(self.extracted_text)
-        
-        # Correction controls
-        correction_layout = QHBoxLayout()
-        
-        self.approve_correction_btn = QPushButton("✓ Approve Correction")
-        self.approve_correction_btn.setStyleSheet("background-color: #28a745; color: white; font-weight: bold; padding: 8px;")
-        self.approve_correction_btn.clicked.connect(self._approve_current_correction)
-        self.approve_correction_btn.setEnabled(False)
-        correction_layout.addWidget(self.approve_correction_btn)
-        
-        self.reject_correction_btn = QPushButton("✗ Reject Correction")
-        self.reject_correction_btn.setStyleSheet("background-color: #dc3545; color: white; font-weight: bold; padding: 8px;")
-        self.reject_correction_btn.clicked.connect(self._reject_current_correction)
-        self.reject_correction_btn.setEnabled(False)
-        correction_layout.addWidget(self.reject_correction_btn)
-        
-        correction_layout.addStretch()
-        
-        self.save_all_btn = QPushButton("💾 Save All Changes")
-        self.save_all_btn.setStyleSheet("background-color: #007bff; color: white; font-weight: bold; padding: 8px;")
-        self.save_all_btn.clicked.connect(self._save_all_changes)
-        self.save_all_btn.setEnabled(False)
-        correction_layout.addWidget(self.save_all_btn)
-        
-        layout.addLayout(correction_layout)
-        
-        self.setLayout(layout)
     
     def _create_qa_validation_controls(self, layout):
         """Create enhanced QA validation controls - NEW CLEAN IMPLEMENTATION."""
