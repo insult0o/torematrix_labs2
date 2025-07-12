@@ -472,6 +472,19 @@ class PageValidationWidget(QWidget):
         self.logger.info(f"Loading document for validation: {document.metadata.file_name}")
         self.logger.info(f"Post-processing result provided: {post_processing_result is not None}")
         
+        # CRITICAL FIX: Preserve state when reloading same document (Issue #24)
+        preserve_state = (
+            self.current_document is not None and 
+            self.current_document.id == document.id
+        )
+        
+        if preserve_state:
+            # Save current state before reload
+            saved_page = self.current_page
+            saved_issue_index = self.current_issue_index
+            saved_corrections_by_page = self.corrections_by_page.copy()
+            self.logger.info(f"STATE_PRESERVATION: Saving state - page {saved_page}, issue {saved_issue_index}")
+        
         self.current_document = document
         self.post_processing_result = post_processing_result
         
@@ -533,21 +546,30 @@ class PageValidationWidget(QWidget):
         self.extracted_text.setVisible(True)
         self.log_message.emit(f"QA_VALIDATION: Widget visibility set to True")
         
-        # Load first page (start with page 1 if no corrections, or first correction page)
-        if self.corrections_by_page:
-            first_page = min(self.corrections_by_page.keys())
-            # Ensure first_page is valid (>= 1)
-            if first_page <= 0:
-                self.logger.error(f"Invalid first page: {first_page}, correcting to 1")
-                first_page = 1
-            self.current_page = first_page
-            self.current_page_issues = self.corrections_by_page[first_page]
-            self.current_issue_index = 0
+        # CRITICAL FIX: Restore preserved state if reloading same document
+        if preserve_state:
+            # Restore saved state
+            self.current_page = saved_page
+            self.current_issue_index = saved_issue_index
+            self.current_page_issues = self.corrections_by_page.get(saved_page, [])
+            self.logger.info(f"STATE_PRESERVATION: Restored state - page {saved_page}, issue {saved_issue_index}")
+            self.log_message.emit(f"🔄 Preserved QA state: page {saved_page}, issue {saved_issue_index + 1}")
         else:
-            # No corrections, start on page 1
-            self.current_page = 1
-            self.current_page_issues = []
-            self.current_issue_index = 0
+            # Load first page (start with page 1 if no corrections, or first correction page)
+            if self.corrections_by_page:
+                first_page = min(self.corrections_by_page.keys())
+                # Ensure first_page is valid (>= 1)
+                if first_page <= 0:
+                    self.logger.error(f"Invalid first page: {first_page}, correcting to 1")
+                    first_page = 1
+                self.current_page = first_page
+                self.current_page_issues = self.corrections_by_page[first_page]
+                self.current_issue_index = 0
+            else:
+                # No corrections, start on page 1
+                self.current_page = 1
+                self.current_page_issues = []
+                self.current_issue_index = 0
         
         # Load page text and update display
         self._load_page_text(self.current_page)
@@ -1876,7 +1898,9 @@ class PageValidationWidget(QWidget):
             self.log_message.emit(f"Saved all changes: {approved_count} approved, {rejected_count} rejected corrections")
             self.save_all_btn.setEnabled(False)
             
-            # Emit validation completed signal
+            # Emit validation completed signal - preserve state
+            self.logger.info("VALIDATION_COMPLETED: Emitting completion signal - state will be preserved")
+            self.log_message.emit("✅ Validation completed - continuing on current page/issue")
             self.validation_completed.emit(self.current_document.id, True)
             
         except Exception as e:
