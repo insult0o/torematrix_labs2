@@ -2456,6 +2456,45 @@ class ManualValidationWidget(QWidget):
             import traceback
             self.logger.error(f"REFRESH: Traceback: {traceback.format_exc()}")
     
+    def handle_page_change(self, page: int):
+        """Handle page change signals from PDF viewer to sync manual validation widget."""
+        try:
+            self.logger.info(f"PAGE_CHANGE_SYNC: Received page change signal for page {page}")
+            
+            # Only sync if we have a valid document loaded
+            document_id = self._get_current_document_id()
+            if not document_id:
+                self.logger.warning("PAGE_CHANGE_SYNC: No document loaded, ignoring page change")
+                return
+            
+            # Update internal page state to match PDF viewer
+            old_page = self.current_page
+            self.current_page = page
+            
+            self.logger.info(f"PAGE_CHANGE_SYNC: Syncing from page {old_page} to page {page}")
+            
+            # Reload areas for the new page
+            self._load_page_areas()
+            
+            # Update navigation buttons
+            self._update_navigation_buttons()
+            
+            # Refresh the area list display
+            self._update_selection_list()
+            
+            # Force refresh of PDF viewer areas
+            self._refresh_pdf_viewer_areas(page)
+            
+            # Update page number display
+            self.page_label.setText(f"Page {self.current_page} of {self.total_pages}")
+            
+            self.logger.info(f"PAGE_CHANGE_SYNC: Successfully synced to page {page}")
+            
+        except Exception as e:
+            self.logger.error(f"PAGE_CHANGE_SYNC: Error handling page change to {page}: {e}")
+            import traceback
+            self.logger.error(f"PAGE_CHANGE_SYNC: Traceback: {traceback.format_exc()}")
+    
     def load_extracted_content_from_project(self):
         """Load extracted content from project storage when document is loaded."""
         try:
@@ -2578,6 +2617,8 @@ class ManualValidationWidget(QWidget):
             
             if not area_storage:
                 self.logger.warning("LOAD EXISTING: Cannot load areas - no area_storage_manager found")
+                # Schedule a retry in case area storage manager becomes available later
+                self._schedule_area_loading_retry()
                 return
                 
             self.logger.info(f"LOAD EXISTING: Got area_storage_manager = {area_storage is not None}")
@@ -2640,9 +2681,18 @@ class ManualValidationWidget(QWidget):
                     self.all_selections[page].append(area_dict)
             
             # Update UI to show loaded areas
+            print(f"🔵 LOAD EXISTING: About to update UI - self.all_selections has {len(self.all_selections)} pages")
+            for page, selections in self.all_selections.items():
+                print(f"🔵 LOAD EXISTING: Page {page} has {len(selections)} selections")
+            
             self._update_selection_list()
             self._update_statistics()
             self._update_navigation_buttons()
+            
+            # Force UI refresh to ensure areas are displayed
+            if hasattr(self, 'selection_list'):
+                print(f"🔵 LOAD EXISTING: After _update_selection_list, selection_list has {self.selection_list.count()} items")
+                self.selection_list.repaint()  # Force UI repaint
             
             # Auto-select first area if available and show preview
             if self.selection_list.count() > 0:
@@ -2661,6 +2711,23 @@ class ManualValidationWidget(QWidget):
             self.logger.error(f"LOAD EXISTING: Error loading existing areas: {e}")
             import traceback
             self.logger.error(f"LOAD EXISTING: Traceback: {traceback.format_exc()}")
+    
+    def _schedule_area_loading_retry(self):
+        """Schedule a retry for area loading after a short delay."""
+        try:
+            print(f"🟡 LOAD EXISTING: Scheduling retry for area loading...")
+            from ..qt_compat import QTimer
+            QTimer.singleShot(2000, self._retry_area_loading)  # Retry after 2 seconds
+        except Exception as e:
+            self.logger.error(f"Error scheduling area loading retry: {e}")
+    
+    def _retry_area_loading(self):
+        """Retry loading areas from project if area storage manager is now available."""
+        try:
+            print(f"🔄 LOAD EXISTING: Retrying area loading...")
+            self.load_existing_areas_from_project()
+        except Exception as e:
+            self.logger.error(f"Error retrying area loading: {e}")
     
     def _try_recover_document_context(self) -> bool:
         """Try to recover document context from main window/PDF viewer."""

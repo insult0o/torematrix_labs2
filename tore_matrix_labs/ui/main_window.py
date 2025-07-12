@@ -189,6 +189,12 @@ class MainWindow(QMainWindow):
             # Connect page change signal to reload areas
             if hasattr(self.pdf_viewer, 'page_changed'):
                 self.pdf_viewer.page_changed.connect(self.pdf_viewer.page_label.on_page_changed)
+        
+        # Connect PDF viewer page change signal to Manual Validation widget
+        if hasattr(self.pdf_viewer, 'page_changed') and hasattr(self.manual_validation_widget, 'handle_page_change'):
+            self.pdf_viewer.page_changed.connect(self.manual_validation_widget.handle_page_change)
+            self.logger.info("SIGNAL_CONNECTION: Connected PDF viewer page_changed to manual validation widget")
+        
         # Project Management tab removed per Issue #12 requirements
         # self.tab_widget.addTab(self.project_widget, "Project Management")
     
@@ -862,6 +868,11 @@ class MainWindow(QMainWindow):
                     # Load document into manual validation widget
                     print(f"🔵 MANUAL VALIDATION: Loading document into widget...")
                     self.manual_validation_widget.load_document(document, doc_path)
+                    
+                    # CRITICAL FIX: Ensure area loading is triggered after document is loaded
+                    print(f"🔵 MANUAL VALIDATION: Forcing area loading after document load...")
+                    if hasattr(self.manual_validation_widget, 'load_existing_areas_from_project'):
+                        self.manual_validation_widget.load_existing_areas_from_project()
                     
                     # ✅ CRITICAL FIX: Load extracted content into ManualValidationWidget
                     extracted_content = first_doc_with_areas.get('extracted_content', {})
