@@ -988,10 +988,23 @@ class MainWindow(QMainWindow):
             self._update_status(f"Error: {e}")
     
     def _on_validation_completed(self, document_id: str, approved: bool):
-        """Handle validation completed signal."""
+        """Handle validation completed signal - preserve QA widget state."""
         status = "approved" if approved else "rejected"
         self._update_status(f"Document {document_id} {status}")
-        # TODO: Update project tree
+        
+        # CRITICAL FIX: Don't reload document in QA widget - preserve current state
+        # The original issue was that completing validation would reload the document
+        # which reset current page, issue index, and view state causing data loss
+        
+        self.logger.info(f"VALIDATION_COMPLETED: Document {document_id} {status}")
+        self.logger.info("VALIDATION_COMPLETED: Preserving QA widget state - no document reload")
+        
+        # Only update project status without affecting QA widget state
+        if hasattr(self.project_widget, 'update_document_validation_status'):
+            self.project_widget.update_document_validation_status(document_id, approved)
+        
+        # Update status but preserve all QA widget state (page, issue index, corrections)
+        # No document reloading - user can continue reviewing on same page/issue
     
     # Menu action handlers
     def _new_project(self):
