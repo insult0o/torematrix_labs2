@@ -659,11 +659,53 @@ class EnhancedDragSelectLabel(QLabel):
             self.active_area_id = area.id
             self.logger.info(f"Area added to persistent areas. Total: {len(self.persistent_areas)}")
             
-            # Save to storage
+            # Save to storage with enhanced debugging
             if self.area_storage_manager:
-                self.logger.info("Saving area to storage...")
+                self.logger.info("=== CRITICAL SAVE OPERATION ===")
+                self.logger.info(f"Saving area {area.id} to storage for document '{document_id}'")
+                
+                # Debug project state before save
+                project_data = self.area_storage_manager.project_manager.get_current_project()
+                if project_data:
+                    docs = project_data.get('documents', [])
+                    self.logger.info(f"Project has {len(docs)} documents before save")
+                    for doc in docs:
+                        if doc.get('id') == document_id:
+                            existing_areas = doc.get('visual_areas', {})
+                            self.logger.info(f"Document '{document_id}' has {len(existing_areas)} existing areas")
+                            break
+                else:
+                    self.logger.error("No current project available for save!")
+                
+                # Attempt save
                 save_success = self.area_storage_manager.save_area(document_id, area)
                 self.logger.info(f"Area save result: {save_success}")
+                
+                # Debug project state after save
+                if save_success:
+                    project_data = self.area_storage_manager.project_manager.get_current_project()
+                    if project_data:
+                        docs = project_data.get('documents', [])
+                        for doc in docs:
+                            if doc.get('id') == document_id:
+                                new_areas = doc.get('visual_areas', {})
+                                self.logger.info(f"Document '{document_id}' now has {len(new_areas)} areas after save")
+                                if area.id in new_areas:
+                                    self.logger.info(f"✅ Area {area.id} successfully added to project data")
+                                else:
+                                    self.logger.error(f"❌ Area {area.id} NOT found in project data after save")
+                                break
+                
+                # Force project save to disk
+                if hasattr(self.area_storage_manager.project_manager, 'save_current_project'):
+                    self.logger.info("Force saving project to disk...")
+                    disk_save_result = self.area_storage_manager.project_manager.save_current_project()
+                    self.logger.info(f"Project disk save result: {disk_save_result}")
+                    
+                    if not disk_save_result:
+                        self.logger.error("❌ CRITICAL: Project failed to save to disk - areas will be lost!")
+                
+                self.logger.info("=== SAVE OPERATION COMPLETE ===")
             else:
                 self.logger.warning("No area storage manager available")
             
@@ -707,11 +749,24 @@ class EnhancedDragSelectLabel(QLabel):
                         self.active_area_id = area.id
                         self.logger.info(f"Area added to persistent areas. Total: {len(self.persistent_areas)}")
                         
-                        # Save to storage
+                        # Save to storage with enhanced debugging
                         if self.area_storage_manager:
-                            self.logger.info("Saving area to storage...")
+                            self.logger.info("=== CRITICAL SAVE OPERATION (DIALOG) ===")
+                            self.logger.info(f"Saving area {area.id} to storage for document '{document_id}'")
+                            
                             save_success = self.area_storage_manager.save_area(document_id, area)
                             self.logger.info(f"Area save result: {save_success}")
+                            
+                            # Force project save to disk
+                            if hasattr(self.area_storage_manager.project_manager, 'save_current_project'):
+                                self.logger.info("Force saving project to disk...")
+                                disk_save_result = self.area_storage_manager.project_manager.save_current_project()
+                                self.logger.info(f"Project disk save result: {disk_save_result}")
+                                
+                                if not disk_save_result:
+                                    self.logger.error("❌ CRITICAL: Project failed to save to disk - areas will be lost!")
+                            
+                            self.logger.info("=== SAVE OPERATION COMPLETE (DIALOG) ===")
                         else:
                             self.logger.warning("No area storage manager available")
                         
