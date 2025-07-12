@@ -782,7 +782,7 @@ class ManualValidationWidget(QWidget):
         self.prev_area_btn.setEnabled(False)
         nav_layout.addWidget(self.prev_area_btn)
         
-        self.area_info_label = QLabel("0 areas selected")
+        self.area_info_label = QLabel("0 Special Areas selected")
         self.area_info_label.setAlignment(Qt.AlignCenter)
         self.area_info_label.setStyleSheet("font-weight: bold; color: #2c3e50;")
         nav_layout.addWidget(self.area_info_label)
