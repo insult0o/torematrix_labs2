@@ -186,9 +186,8 @@ class MainWindow(QMainWindow):
             if hasattr(self.pdf_viewer.page_label, 'set_main_window'):
                 self.pdf_viewer.page_label.set_main_window(self)
             
-            # Connect page change signal to reload areas
-            if hasattr(self.pdf_viewer, 'page_changed'):
-                self.pdf_viewer.page_changed.connect(self.pdf_viewer.page_label.on_page_changed)
+            # NOTE: Page change signal connection removed to prevent double loading
+            # Areas are now loaded directly in pdf_viewer._display_current_page() for Issue #47
         
         # Connect PDF viewer page change signal to Manual Validation widget
         if hasattr(self.pdf_viewer, 'page_changed') and hasattr(self.manual_validation_widget, 'handle_page_change'):

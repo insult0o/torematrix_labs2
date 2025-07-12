@@ -481,6 +481,22 @@ class PDFViewer(QWidget):
             # Update page info
             self.page_info_label.setText(f"Page {self.current_page + 1} of {self.total_pages}")
             
+            # CRITICAL FIX for Issue #47: Load persistent areas for the current page
+            # This ensures Image areas are re-rendered when returning to a page
+            if hasattr(self, 'page_label') and self.page_label and hasattr(self.page_label, 'load_persistent_areas'):
+                document_id = getattr(self, 'current_document_id', None)
+                if not document_id and self.current_file_path:
+                    # Generate document ID from filename if not set
+                    document_id = Path(self.current_file_path).stem
+                    self.current_document_id = document_id
+                
+                if document_id:
+                    current_page_1based = self.current_page + 1  # Convert 0-based to 1-based
+                    self.logger.info(f"Re-loading persistent areas for document '{document_id}', page {current_page_1based}")
+                    self.page_label.load_persistent_areas(document_id, current_page_1based)
+                    # Force a repaint to ensure areas are drawn
+                    self.page_label.update()
+            
             print(f"📄 PDF Display: zoom={zoom_factor:.2f}, page_rect={page.rect}, pixmap_size={qpixmap.size()}")
             
         except Exception as e:
