@@ -819,7 +819,7 @@ class ManualValidationWidget(QWidget):
         
         area_controls_layout.addStretch()
         
-        self.clear_all_btn = QPushButton("Clear All Areas")
+        self.clear_all_btn = QPushButton("Clear All Special Areas")
         self.clear_all_btn.setEnabled(False)
         self.clear_all_btn.clicked.connect(self._clear_all_areas)
         area_controls_layout.addWidget(self.clear_all_btn)
@@ -1126,18 +1126,21 @@ class ManualValidationWidget(QWidget):
     def _show_preview_image(self, area_data):
         """Show preview image for area data (both temporary and permanent)."""
         try:
+            # Always try to recover document context first for area previews
             if not self.current_document or not self.current_file_path:
-                self.logger.error(f"Cannot show preview: current_document={self.current_document}, current_file_path={self.current_file_path}")
+                self.logger.info(f"Missing document context, attempting recovery...")
                 
                 # Try to recover document context from main window
                 if self._try_recover_document_context():
-                    self.logger.info("Successfully recovered document context, retrying preview")
-                    # Retry the preview now that context is recovered
-                    self._show_preview_image(area_data)
-                    return
+                    self.logger.info("✅ Successfully recovered document context, proceeding with preview")
                 else:
-                    self.area_preview_label.setText(f"No document loaded\n\nPlease load a document in the Manual Validation tab\nto view area previews.")
-                    return
+                    # Try alternative recovery methods
+                    if self._try_alternative_document_recovery():
+                        self.logger.info("✅ Successfully recovered document via alternative method")
+                    else:
+                        self.logger.warning("❌ Could not recover document context for area preview")
+                        self.area_preview_label.setText(f"📄 No document loaded\n\nPlease load a document to view area previews.\n\nTip: Switch to the Project tab and\nopen a document first.")
+                        return
             
             self.logger.info(f"Showing preview for area: {area_data}")
             
@@ -2104,7 +2107,7 @@ class ManualValidationWidget(QWidget):
             # Confirm with user
             reply = QMessageBox.question(
                 self, 
-                "Clear All Areas",
+                "Clear All Special Areas",
                 f"Are you sure you want to delete all {sum(len(selections) for selections in self.all_selections.values())} selected areas?",
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
@@ -2156,7 +2159,7 @@ class ManualValidationWidget(QWidget):
         if has_items:
             self.area_info_label.setText(f"Area {current_row + 1} of {self.selection_list.count()}")
         else:
-            self.area_info_label.setText("0 areas selected")
+            self.area_info_label.setText("0 Special Areas selected")
     
     def _generate_area_name(self, area_type: str, page_num: int, area_id: str) -> str:
         """Generate system-appropriate area name with 1-based page numbering."""
@@ -2730,4 +2733,74 @@ class ManualValidationWidget(QWidget):
             
         except Exception as e:
             self.logger.error(f"RECOVER: Error recovering document context: {e}")
+            return False
+    
+    def _try_alternative_document_recovery(self) -> bool:
+        """Try alternative methods to recover document context for area preview."""
+        try:
+            # Method 1: Try to find document files in current directory
+            current_dir = Path.cwd()
+            for pdf_file in current_dir.glob("*.pdf"):
+                self.logger.info(f"ALT_RECOVER: Found PDF file: {pdf_file}")
+                
+                # Check if this PDF might be related to our current project
+                document_id = self._get_current_document_id()
+                if document_id and pdf_file.stem == document_id:
+                    self.logger.info(f"ALT_RECOVER: PDF matches document ID: {document_id}")
+                    self.current_file_path = str(pdf_file)
+                    
+                    # Create minimal document object for preview purposes
+                    self.current_document = type('MockDocument', (), {
+                        'id': document_id,
+                        'file_path': str(pdf_file)
+                    })()
+                    
+                    return True
+            
+            # Method 2: Try to find .tore files and look for associated PDFs
+            for tore_file in current_dir.glob("*.tore"):
+                pdf_file = tore_file.with_suffix('.pdf')
+                if pdf_file.exists():
+                    self.logger.info(f"ALT_RECOVER: Found associated PDF for {tore_file.name}: {pdf_file}")
+                    self.current_file_path = str(pdf_file)
+                    
+                    # Create minimal document object
+                    self.current_document = type('MockDocument', (), {
+                        'id': tore_file.stem,
+                        'file_path': str(pdf_file)
+                    })()
+                    
+                    return True
+            
+            # Method 3: Check if we can get document path from project data
+            try:
+                main_window = self._get_main_window()
+                if main_window and hasattr(main_window, 'project_widget'):
+                    project_widget = main_window.project_widget
+                    if hasattr(project_widget, 'current_project') and project_widget.current_project:
+                        project_path = getattr(project_widget, 'project_file_path', None)
+                        if project_path:
+                            project_dir = Path(project_path).parent
+                            project_stem = Path(project_path).stem
+                            
+                            # Look for PDF with same name as project
+                            pdf_file = project_dir / f"{project_stem}.pdf"
+                            if pdf_file.exists():
+                                self.logger.info(f"ALT_RECOVER: Found project PDF: {pdf_file}")
+                                self.current_file_path = str(pdf_file)
+                                
+                                self.current_document = type('MockDocument', (), {
+                                    'id': project_stem,
+                                    'file_path': str(pdf_file)
+                                })()
+                                
+                                return True
+            except Exception as e:
+                self.logger.debug(f"ALT_RECOVER: Project method failed: {e}")
+            
+            self.logger.warning("ALT_RECOVER: All alternative recovery methods failed")
+            return False
+            
+        except Exception as e:
+            self.logger.error(f"ALT_RECOVER: Error in alternative document recovery: {e}")
             return False
