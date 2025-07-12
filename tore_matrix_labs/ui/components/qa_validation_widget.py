@@ -17,6 +17,7 @@ class QAValidationWidget(QWidget):
     validation_completed = pyqtSignal(str, bool)
     status_message = pyqtSignal(str)
     highlight_pdf_location = pyqtSignal(int, object, str)  # Forward signal for PDF highlighting with search text
+    log_message = pyqtSignal(str)  # Signal for log messages to avoid popup interruptions
     
     def __init__(self, settings: Settings):
         super().__init__()
@@ -186,20 +187,13 @@ class QAValidationWidget(QWidget):
             self.status_label.setText(f"Quick validation complete: {auto_approved} corrections auto-approved")
             self.status_message.emit(f"Quick validation completed for {self.current_document.metadata.file_name}")
             
+            # FIXED Issue #38: Remove popup interruption - use status messages instead
             if success:
-                QMessageBox.information(
-                    self, 
-                    "Quick Validation Complete",
-                    f"Auto-approved {auto_approved} high-confidence corrections.\n"
-                    "Review remaining corrections manually if needed."
-                )
+                self.status_label.setText(f"✅ Quick validation complete: {auto_approved} corrections auto-approved. Review remaining manually.")
+                self.status_message.emit(f"Quick validation completed: {auto_approved} corrections auto-approved")
             else:
-                QMessageBox.information(
-                    self, 
-                    "Quick Validation Complete",
-                    "No high-confidence corrections found for auto-approval.\n"
-                    "Manual review recommended."
-                )
+                self.status_label.setText("⚠️ Quick validation complete: No high-confidence corrections found. Manual review recommended.")
+                self.status_message.emit("Quick validation completed: Manual review recommended")
                 
         except Exception as e:
             error_msg = f"Quick validation failed: {str(e)}"
@@ -237,10 +231,16 @@ class QAValidationWidget(QWidget):
             
             report_text = "\n".join(report_lines)
             
-            # For now, show in message box (could be extended to save to file)
-            QMessageBox.information(self, "Validation Report", report_text)
+            # FIXED Issue #38: Route report content to QA tab instead of popup
+            # Add report to log area and update status instead of showing popup
+            self.status_label.setText("✅ Validation report generated - check log area for details")
+            self.status_message.emit("Validation report generated and displayed in log area")
             
-            self.status_message.emit("Validation report generated")
+            # Emit log message to be captured by main window's log widget
+            self.log_message.emit(report_text)
+            
+            # Store report for further processing if needed
+            self._last_validation_report = report_text
             
         except Exception as e:
             error_msg = f"Failed to generate report: {str(e)}"
