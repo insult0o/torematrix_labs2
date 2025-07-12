@@ -1489,7 +1489,14 @@ class MainWindow(QMainWindow):
             post_processing_result = MockPostProcessingResult(document, exclusion_zones)
             
             # Load into QA validation widget
+            self.logger.info(f"QA_VALIDATION: Loading document into QA widget: {document.metadata.file_name}")
+            self.logger.info(f"QA_VALIDATION: Document ID: {document.id}")
+            self.logger.info(f"QA_VALIDATION: Document file path: {document.metadata.file_path}")
+            self.logger.info(f"QA_VALIDATION: Mock corrections count: {len(mock_corrections)}")
+            
             self.qa_widget.load_document_for_validation(document, post_processing_result)
+            
+            self.logger.info(f"QA_VALIDATION: Document loaded into QA widget successfully")
             
             # UPDATE EXISTING DOCUMENT IN PROJECT (validation completed)
             print(f"🟢 PROCESSING: Updating document in project with validation results...")
@@ -1517,10 +1524,20 @@ class MainWindow(QMainWindow):
             print(f"🟢 PROCESSING: Document validation completed and saved!")
             
             # Switch to QA validation tab
+            self.logger.info(f"QA_VALIDATION: Switching to QA Validation tab...")
+            qa_tab_found = False
             for i in range(self.tab_widget.count()):
-                if self.tab_widget.tabText(i) == "QA Validation":
+                tab_text = self.tab_widget.tabText(i)
+                self.logger.info(f"QA_VALIDATION: Tab {i}: '{tab_text}'")
+                if tab_text == "QA Validation":
                     self.tab_widget.setCurrentIndex(i)
+                    qa_tab_found = True
+                    self.logger.info(f"QA_VALIDATION: Switched to QA Validation tab (index {i})")
                     break
+            
+            if not qa_tab_found:
+                self.logger.error(f"QA_VALIDATION: QA Validation tab not found!")
+                self._update_status("Error: Could not find QA Validation tab")
             
             self._update_status(f"Processing complete! {len(exclusion_zones)} special areas excluded from text processing")
             self.logger.info(f"Document loaded into QA validation with {len(exclusion_zones)} exclusions")
