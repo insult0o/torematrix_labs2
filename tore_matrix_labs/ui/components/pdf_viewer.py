@@ -403,6 +403,20 @@ class PDFViewer(QWidget):
             # Display first page
             self._display_current_page()
             
+            # Load persistent areas for the first page if cutting tool is available
+            if hasattr(self, 'page_label') and self.page_label and hasattr(self.page_label, 'load_persistent_areas'):
+                # Get document ID for area loading
+                document_id = getattr(self, 'current_document_id', None)
+                if not document_id:
+                    # Generate document ID from filename if not set
+                    document_id = Path(file_path).stem
+                    self.current_document_id = document_id
+                
+                self.logger.info(f"Loading persistent areas for document '{document_id}', page 1")
+                self.page_label.load_persistent_areas(document_id, 1)  # Load areas for page 1 (1-based)
+            else:
+                self.logger.warning("Cannot load persistent areas - cutting tool not available")
+            
             self.logger.info(f"Loaded document: {file_path} ({self.total_pages} pages)")
             
         except Exception as e:

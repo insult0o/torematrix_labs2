@@ -91,8 +91,8 @@ class AreaStorageManager:
                 
             project_data = self.project_manager.get_current_project()
             if not project_data:
-                self.logger.warning("LOAD: No active project")
-                return {}
+                self.logger.warning("LOAD: No active project - attempting to load from document file directly")
+                return self._load_areas_from_document_file(document_id)
             
             self.logger.debug(f"LOAD: Current project has {len(project_data.get('documents', []))} documents")
             
@@ -132,6 +132,74 @@ class AreaStorageManager:
             import traceback
             self.logger.error(f"LOAD: Traceback: {traceback.format_exc()}")
             return {}
+    
+    def _load_areas_from_document_file(self, document_id: str) -> Dict[str, VisualArea]:
+        """Load areas directly from document file when no active project."""
+        try:
+            # Try to find the document file
+            possible_paths = [
+                f"{document_id}.tore",
+                f"/home/insulto/{document_id}.tore", 
+                f"/home/insulto/tore_matrix_labs/{document_id}.tore"
+            ]
+            
+            document_file = None
+            for path in possible_paths:
+                if Path(path).exists():
+                    document_file = path
+                    self.logger.info(f"DIRECT LOAD: Found document file at {path}")
+                    break
+            
+            if not document_file:
+                self.logger.warning(f"DIRECT LOAD: Could not find document file for '{document_id}'")
+                return {}
+            
+            # Load the document file
+            with open(document_file, 'r') as f:
+                project_data = json.load(f)
+            
+            # Check if this file has documents
+            documents = project_data.get("documents", [])
+            if not documents:
+                self.logger.info(f"DIRECT LOAD: Document file '{document_file}' has no documents - checking for direct areas")
+                # Check for areas directly in the project file (legacy format)
+                visual_areas_data = project_data.get("visual_areas", {})
+                return self._convert_areas_data_to_objects(visual_areas_data, document_id)
+            
+            # Find the matching document
+            for doc in documents:
+                if doc.get("id") == document_id:
+                    self.logger.info(f"DIRECT LOAD: Found document '{document_id}' in file")
+                    visual_areas_data = doc.get("visual_areas", {})
+                    return self._convert_areas_data_to_objects(visual_areas_data, document_id)
+            
+            self.logger.warning(f"DIRECT LOAD: Document '{document_id}' not found in file '{document_file}'")
+            return {}
+            
+        except Exception as e:
+            self.logger.error(f"DIRECT LOAD: Error loading areas from document file: {e}")
+            import traceback
+            self.logger.error(f"DIRECT LOAD: Traceback: {traceback.format_exc()}")
+            return {}
+    
+    def _convert_areas_data_to_objects(self, visual_areas_data: dict, document_id: str) -> Dict[str, VisualArea]:
+        """Convert areas data dictionary to VisualArea objects."""
+        areas = {}
+        self.logger.info(f"CONVERT: Processing {len(visual_areas_data)} stored visual areas")
+        
+        for area_id, area_data in visual_areas_data.items():
+            try:
+                # Use existing conversion method
+                area = self._dict_to_visual_area(area_data)
+                areas[area_id] = area
+                self.logger.debug(f"CONVERT: Converted area {area_id} on page {area.page}")
+                
+            except Exception as e:
+                self.logger.error(f"CONVERT: Error converting area {area_id}: {e}")
+                continue
+        
+        self.logger.info(f"CONVERT: Successfully converted {len(areas)} areas")
+        return areas
     
     def _dict_to_visual_area(self, area_data: Dict[str, Any]) -> VisualArea:
         """Convert dictionary to VisualArea object with robust error handling."""
