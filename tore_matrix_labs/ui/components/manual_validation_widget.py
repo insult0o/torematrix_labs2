@@ -2149,6 +2149,31 @@ class ManualValidationWidget(QWidget):
                 self.status_message.emit("Cleared all selected areas")
                 self._update_navigation_buttons()
     
+    def _clear_all_areas_silent(self):
+        """Clear all selected areas without user confirmation - used for project switching."""
+        if not self.all_selections:
+            return  # Nothing to clear
+            
+        self.logger.info(f"CLEAR SILENT: Clearing {sum(len(selections) for selections in self.all_selections.values())} areas for project switch")
+        
+        # Get all pages that had areas for refresh
+        pages_to_refresh = list(self.all_selections.keys())
+        
+        # Clear all selections from memory
+        self.all_selections.clear()
+        
+        # Force refresh PDF viewer for all affected pages
+        for page in pages_to_refresh:
+            self._refresh_pdf_viewer_areas(page)
+        
+        # Update UI
+        self.selection_list.clear()
+        self._update_statistics()
+        self._clear_area_preview()
+        self._update_navigation_buttons()
+        
+        self.logger.info("CLEAR SILENT: Completed silent area clearing for project switch")
+    
     def _update_navigation_buttons(self):
         """Update navigation button states."""
         has_items = self.selection_list.count() > 0
