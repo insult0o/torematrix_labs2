@@ -133,6 +133,74 @@ class AreaStorageManager:
             self.logger.error(f"LOAD: Traceback: {traceback.format_exc()}")
             return {}
     
+    def _load_areas_from_document_file(self, document_id: str) -> Dict[str, VisualArea]:
+        """Load areas directly from document file when no active project."""
+        try:
+            # Try to find the document file
+            possible_paths = [
+                f"{document_id}.tore",
+                f"/home/insulto/{document_id}.tore", 
+                f"/home/insulto/tore_matrix_labs/{document_id}.tore"
+            ]
+            
+            document_file = None
+            for path in possible_paths:
+                if Path(path).exists():
+                    document_file = path
+                    self.logger.info(f"DIRECT LOAD: Found document file at {path}")
+                    break
+            
+            if not document_file:
+                self.logger.warning(f"DIRECT LOAD: Could not find document file for '{document_id}'")
+                return {}
+            
+            # Load the document file
+            with open(document_file, 'r') as f:
+                project_data = json.load(f)
+            
+            # Check if this file has documents
+            documents = project_data.get("documents", [])
+            if not documents:
+                self.logger.info(f"DIRECT LOAD: Document file '{document_file}' has no documents - checking for direct areas")
+                # Check for areas directly in the project file (legacy format)
+                visual_areas_data = project_data.get("visual_areas", {})
+                return self._convert_areas_data_to_objects(visual_areas_data, document_id)
+            
+            # Find the matching document
+            for doc in documents:
+                if doc.get("id") == document_id:
+                    self.logger.info(f"DIRECT LOAD: Found document '{document_id}' in file")
+                    visual_areas_data = doc.get("visual_areas", {})
+                    return self._convert_areas_data_to_objects(visual_areas_data, document_id)
+            
+            self.logger.warning(f"DIRECT LOAD: Document '{document_id}' not found in file '{document_file}'")
+            return {}
+            
+        except Exception as e:
+            self.logger.error(f"DIRECT LOAD: Error loading areas from document file: {e}")
+            import traceback
+            self.logger.error(f"DIRECT LOAD: Traceback: {traceback.format_exc()}")
+            return {}
+    
+    def _convert_areas_data_to_objects(self, visual_areas_data: dict, document_id: str) -> Dict[str, VisualArea]:
+        """Convert areas data dictionary to VisualArea objects."""
+        areas = {}
+        self.logger.info(f"CONVERT: Processing {len(visual_areas_data)} stored visual areas")
+        
+        for area_id, area_data in visual_areas_data.items():
+            try:
+                # Use existing conversion method
+                area = self._dict_to_visual_area(area_data)
+                areas[area_id] = area
+                self.logger.debug(f"CONVERT: Converted area {area_id} on page {area.page}")
+                
+            except Exception as e:
+                self.logger.error(f"CONVERT: Error converting area {area_id}: {e}")
+                continue
+        
+        self.logger.info(f"CONVERT: Successfully converted {len(areas)} areas")
+        return areas
+    
     def _dict_to_visual_area(self, area_data: Dict[str, Any]) -> VisualArea:
         """Convert dictionary to VisualArea object with robust error handling."""
         try:
@@ -376,3 +444,126 @@ class AreaStorageManager:
         except Exception as e:
             self.logger.error(f"Error exporting areas: {e}")
             return False
+    
+    def _load_areas_from_document_file(self, document_id: str) -> Dict[str, VisualArea]:
+        """Load areas directly from .tore project files when no project manager is available."""
+        try:
+            from pathlib import Path
+            import json
+            
+            self.logger.info(f"LOAD_FROM_FILE: Loading areas for document '{document_id}' from .tore files")
+            
+            # Find all .tore files in current directory
+            tore_files = list(Path('.').glob('*.tore'))
+            self.logger.debug(f"LOAD_FROM_FILE: Found {len(tore_files)} .tore files to search")
+            
+            areas = {}
+            
+            for tore_file in tore_files:
+                try:
+                    with open(tore_file, 'r') as f:
+                        project_data = json.load(f)
+                    
+                    self.logger.debug(f"LOAD_FROM_FILE: Checking {tore_file.name}")
+                    
+                    # Strategy 1: Check project-level visual_areas (like 4.tore format)
+                    if 'visual_areas' in project_data:
+                        project_areas = project_data['visual_areas']
+                        if project_areas:
+                            self.logger.info(f"LOAD_FROM_FILE: Found {len(project_areas)} project-level areas in {tore_file.name}")
+                            
+                            for area_id, area_data in project_areas.items():
+                                try:
+                                    # Convert field names to match VisualArea model
+                                    converted_data = self._convert_tore_area_to_visual_area_format(area_data)
+                                    converted_data['document_id'] = document_id  # Set document ID
+                                    
+                                    visual_area = self._dict_to_visual_area(converted_data)
+                                    areas[area_id] = visual_area
+                                    self.logger.debug(f"LOAD_FROM_FILE: Loaded project-level area {area_id}")
+                                except Exception as e:
+                                    self.logger.error(f"LOAD_FROM_FILE: Error loading project area {area_id}: {e}")
+                    
+                    # Strategy 2: Check document-level visual_areas
+                    documents = project_data.get('documents', [])
+                    for doc in documents:
+                        # Match by document ID or file path
+                        doc_id = doc.get('id', '')
+                        doc_path = doc.get('file_path', doc.get('path', ''))
+                        
+                        if doc_id == document_id or Path(doc_path).stem == document_id:
+                            doc_areas = doc.get('visual_areas', {})
+                            if doc_areas:
+                                self.logger.info(f"LOAD_FROM_FILE: Found {len(doc_areas)} document-level areas in {tore_file.name}")
+                                
+                                for area_id, area_data in doc_areas.items():
+                                    try:
+                                        converted_data = self._convert_tore_area_to_visual_area_format(area_data)
+                                        converted_data['document_id'] = document_id
+                                        
+                                        visual_area = self._dict_to_visual_area(converted_data)
+                                        areas[area_id] = visual_area
+                                        self.logger.debug(f"LOAD_FROM_FILE: Loaded document-level area {area_id}")
+                                    except Exception as e:
+                                        self.logger.error(f"LOAD_FROM_FILE: Error loading document area {area_id}: {e}")
+                
+                except Exception as e:
+                    self.logger.debug(f"LOAD_FROM_FILE: Could not read {tore_file.name}: {e}")
+                    continue
+            
+            self.logger.info(f"LOAD_FROM_FILE: ✅ Successfully loaded {len(areas)} areas from .tore files")
+            return areas
+            
+        except Exception as e:
+            self.logger.error(f"LOAD_FROM_FILE: ❌ Error loading areas from files: {e}")
+            import traceback
+            self.logger.error(f"LOAD_FROM_FILE: Traceback: {traceback.format_exc()}")
+            return {}
+    
+    def _convert_tore_area_to_visual_area_format(self, area_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert .tore file area format to VisualArea model format."""
+        converted = area_data.copy()
+        
+        # Map field names to match VisualArea model expectations
+        field_mappings = {
+            'area_type': 'type',
+            'selection_type': 'type', 
+            'updated_at': 'modified_at',
+            'text': 'user_notes'
+        }
+        
+        for old_field, new_field in field_mappings.items():
+            if old_field in converted:
+                converted[new_field] = converted.pop(old_field)
+        
+        # Ensure required fields have defaults
+        defaults = {
+            'type': 'TEXT',
+            'status': 'saved',
+            'color': '#FF4444',
+            'border_width': 2,
+            'fill_opacity': 0.3,
+            'border_glow': True,
+            'user_notes': '',
+            'widget_rect': None
+        }
+        
+        for field, default_value in defaults.items():
+            if field not in converted:
+                converted[field] = default_value
+        
+        # Convert area_type values to match AreaType enum
+        if 'type' in converted:
+            type_mappings = {
+                'text': 'TEXT',
+                'image': 'IMAGE', 
+                'table': 'TABLE',
+                'diagram': 'DIAGRAM'
+            }
+            area_type = str(converted['type']).lower()
+            if area_type in type_mappings:
+                converted['type'] = type_mappings[area_type]
+            else:
+                converted['type'] = str(converted['type']).upper()
+        
+        return converted

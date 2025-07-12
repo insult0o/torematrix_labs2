@@ -423,15 +423,49 @@ class ProjectManagerWidget(QWidget):
             'extracted_content': document_data.get('extracted_content', {})
         }
         
-        # Check if document already exists by ID or path (prevent duplicates)
-        existing_doc = next((d for d in self.documents 
-                           if d['id'] == doc_info['id'] or d.get('path') == doc_info.get('path')), None)
+        # Check if document already exists - PRIORITY: Check by file path first to prevent duplicates
+        file_path = doc_info.get('file_path', '')
+        existing_doc = None
+        
+        # Strategy 1: Check by file path (most reliable for duplicate detection)
+        if file_path:
+            existing_doc = next((d for d in self.documents 
+                               if d.get('file_path') == file_path or d.get('path') == file_path), None)
+            if existing_doc:
+                print(f"🟡 PROJECT: Found existing document by path: {file_path}")
+        
+        # Strategy 2: Check by ID (fallback for compatibility)
+        if not existing_doc:
+            doc_id = doc_info.get('id', '')
+            if doc_id:
+                existing_doc = next((d for d in self.documents if d.get('id') == doc_id), None)
+                if existing_doc:
+                    print(f"🟡 PROJECT: Found existing document by ID: {doc_id}")
+        
+        # Update existing or add new document
         if existing_doc:
+            # Preserve important data from existing document
+            preserved_id = existing_doc.get('id')
+            preserved_areas = existing_doc.get('visual_areas', {})
+            
+            # Update with new data
             existing_doc.update(doc_info)
-            print(f"🔧 PROJECT: Updated existing document {existing_doc['id']}")
+            
+            # Restore preserved data if new data doesn't have it
+            if not doc_info.get('visual_areas') and preserved_areas:
+                existing_doc['visual_areas'] = preserved_areas
+                print(f"🟢 PROJECT: Preserved {len(preserved_areas)} visual areas from existing document")
+            
+            # Keep consistent ID (prevent ID changes on reprocessing)
+            if preserved_id and not doc_info.get('id'):
+                existing_doc['id'] = preserved_id
+                
+            existing_doc['last_modified'] = datetime.now().isoformat()
+            print(f"🟢 PROJECT: Updated existing document: {existing_doc.get('file_name', 'Unknown')}")
         else:
+            # Add as new document
             self.documents.append(doc_info)
-            print(f"✅ PROJECT: Added new document {doc_info['id']}")
+            print(f"🟢 PROJECT: Added new document: {doc_info.get('file_name', 'Unknown')}")
         
         self._update_documents_list()
         self._mark_changed()

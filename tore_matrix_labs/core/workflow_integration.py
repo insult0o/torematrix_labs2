@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
 import uuid
+import hashlib
 from datetime import datetime
 
 from ..config.settings import Settings
@@ -26,6 +27,25 @@ class WorkflowIntegrationManager:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.logger = logging.getLogger(__name__)
+
+
+def generate_stable_document_id(file_path: str) -> str:
+    """Generate a stable document ID based on file path.
+    
+    This ensures the same document gets the same ID across sessions,
+    preventing duplicates when documents are reprocessed.
+    """
+    # Use the absolute file path to generate a consistent hash
+    abs_path = str(Path(file_path).resolve())
+    
+    # Create MD5 hash of the path for a stable ID
+    path_hash = hashlib.md5(abs_path.encode('utf-8')).hexdigest()
+    
+    # Create a shorter, more readable ID
+    stable_id = f"doc_{path_hash[:12]}"
+    
+    logger.debug(f"Generated stable ID '{stable_id}' for path '{abs_path}'")
+    return stable_id
         
         # Initialize processors
         self.document_processor = EnhancedDocumentProcessor(settings)
@@ -371,7 +391,8 @@ def create_project_with_manual_validation(project_name: str,
     
     # Add documents
     for doc_path in document_paths:
-        doc_id = str(uuid.uuid4())
+        # Use stable ID based on file path to prevent duplicates
+        doc_id = generate_stable_document_id(doc_path)
         document_entry = {
             'id': doc_id,
             'path': doc_path,
