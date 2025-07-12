@@ -1095,7 +1095,7 @@ class ValidationWidget(QWidget):
         try:
             # Save validation state to document
             self.summary_label.setText("Validation session saved")
-            QMessageBox.information(self, "Session Saved", "Validation session saved successfully.")
+            # REMOVED: Session saved popup for seamless workflow - related to Issue #31 fix
             
         except Exception as e:
             QMessageBox.critical(self, "Save Error", f"Failed to save session: {str(e)}")
@@ -1124,7 +1124,8 @@ class ValidationWidget(QWidget):
             # Finalize validation
             self.doc_status_label.setText("Status: Validation Finalized")
             self.summary_label.setText("Validation completed and finalized")
-            QMessageBox.information(self, "Validation Complete", "Document validation finalized successfully.")
+            # REMOVED: QMessageBox popup that interrupted workflow - fixes Issue #31
+            # The validation completion should be seamless without popup interruption
             
         except Exception as e:
             QMessageBox.critical(self, "Finalization Error", f"Failed to finalize validation: {str(e)}")
