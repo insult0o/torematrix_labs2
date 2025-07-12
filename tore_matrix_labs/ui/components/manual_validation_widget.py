@@ -2520,6 +2520,9 @@ class ManualValidationWidget(QWidget):
         try:
             self.logger.info("LOAD EXISTING: Starting load_existing_areas_from_project")
             
+            # CRITICAL FIX: Clear any existing areas from previous projects first
+            self._clear_all_areas_silent()
+            
             # Also load extracted content
             self.load_extracted_content_from_project()
             
