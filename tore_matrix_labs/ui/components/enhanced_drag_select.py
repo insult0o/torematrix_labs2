@@ -425,16 +425,11 @@ class EnhancedDragSelectLabel(QLabel):
             # Convert PDF coordinates to widget coordinates for display
             widget_rect = self._pdf_to_widget_coordinates(area.bbox)
             if not widget_rect:
-                self.logger.warning(f"DRAW: Failed to convert coordinates for area {area.id}, attempting fallback")
-                # Fallback: try to draw with raw coordinates scaled to widget size
-                try:
-                    scale_x = self.width() / 612.0  # Standard PDF width
-                    scale_y = self.height() / 792.0  # Standard PDF height
-                    x1, y1, x2, y2 = area.bbox
-                    widget_rect = [x1 * scale_x, y1 * scale_y, x2 * scale_x, y2 * scale_y]
-                    self.logger.debug(f"DRAW: Using fallback coordinates for area {area.id}: {widget_rect}")
-                except:
-                    self.logger.error(f"DRAW: Fallback coordinates also failed for area {area.id}")
+                self.logger.warning(f"DRAW: Coordinate conversion failed for area {area.id}, using fallback rendering")
+                # Use fallback coordinates instead of skipping the area entirely
+                widget_rect = self._get_fallback_coordinates(area.bbox)
+                if not widget_rect:
+                    self.logger.error(f"DRAW: Fallback coordinates also failed for area {area.id}, skipping")
                     return
                 
             x1, y1, x2, y2 = widget_rect
@@ -467,7 +462,7 @@ class EnhancedDragSelectLabel(QLabel):
             painter.setPen(pen)
             painter.drawRect(rect)
             
-            self.logger.info(f"DRAW: Successfully drew area {area.id} with color {area.color}")
+            self.logger.debug(f"DRAW: Successfully drew area {area.id} with color {area.color}")
             
             # Draw resize handles if active
             if is_active:
@@ -791,12 +786,23 @@ class EnhancedDragSelectLabel(QLabel):
     
     def _pdf_to_widget_coordinates(self, bbox: Tuple[float, float, float, float]) -> Optional[Tuple[float, float, float, float]]:
         """Convert PDF coordinates back to widget coordinates for display."""
-        if not self.pdf_viewer or not self.pdf_viewer.current_document:
-            return bbox
+        # Log the input for debugging
+        self.logger.debug(f"COORD_CONVERT: Input PDF bbox: {bbox}")
+        
+        if not self.pdf_viewer:
+            self.logger.warning(f"COORD_CONVERT: No PDF viewer available")
+            return self._get_fallback_coordinates(bbox)
+            
+        if not self.pdf_viewer.current_document:
+            self.logger.warning(f"COORD_CONVERT: No current document in PDF viewer")
+            return self._get_fallback_coordinates(bbox)
         
         try:
             # Use PDF viewer's zoom factor
             zoom_factor = getattr(self.pdf_viewer, 'current_zoom_factor', 1.0)
+            
+            # Log zoom factor for debugging
+            self.logger.debug(f"COORD_CONVERT: Zoom factor: {zoom_factor}")
             
             x1, y1, x2, y2 = bbox
             
@@ -806,11 +812,21 @@ class EnhancedDragSelectLabel(QLabel):
             widget_x2 = x2 * zoom_factor
             widget_y2 = y2 * zoom_factor
             
-            return (widget_x1, widget_y1, widget_x2, widget_y2)
+            widget_coords = (widget_x1, widget_y1, widget_x2, widget_y2)
+            self.logger.debug(f"COORD_CONVERT: Output widget coords: {widget_coords}")
+            
+            # Validate that coordinates are reasonable
+            if self._coords_within_reasonable_bounds(widget_coords):
+                return widget_coords
+            else:
+                self.logger.warning(f"COORD_CONVERT: Coordinates outside reasonable bounds, using fallback")
+                return self._get_fallback_coordinates(bbox)
             
         except Exception as e:
-            self.logger.error(f"Error converting PDF to widget coordinates: {e}")
-            return bbox
+            self.logger.error(f"COORD_CONVERT: Error converting coordinates: {e}")
+            import traceback
+            self.logger.error(f"COORD_CONVERT: Traceback: {traceback.format_exc()}")
+            return self._get_fallback_coordinates(bbox)
     
     def _get_area_at_position(self, x: float, y: float) -> Optional[VisualArea]:
         """Get area at given position."""
@@ -1125,3 +1141,87 @@ class EnhancedDragSelectLabel(QLabel):
                 self.logger.error(f"WORKFLOW ERROR: {title} - {message}")
         except Exception as e:
             self.logger.error(f"Error showing workflow error: {e}")
+    
+    def _coords_within_reasonable_bounds(self, coords: Tuple[float, float, float, float]) -> bool:
+        """Check if coordinates are within reasonable bounds for the widget."""
+        try:
+            x1, y1, x2, y2 = coords
+            
+            # Check for negative coordinates or extremely large values
+            if x1 < -100 or y1 < -100 or x2 > 10000 or y2 > 10000:
+                self.logger.warning(f"COORD_CHECK: Coordinates outside reasonable bounds: {coords}")
+                return False
+            
+            # Check if rectangle has reasonable size
+            width = abs(x2 - x1)
+            height = abs(y2 - y1)
+            
+            if width < 1 or height < 1:
+                self.logger.warning(f"COORD_CHECK: Rectangle too small: {width}x{height}")
+                return False
+            
+            if width > 5000 or height > 5000:
+                self.logger.warning(f"COORD_CHECK: Rectangle too large: {width}x{height}")
+                return False
+            
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"COORD_CHECK: Error checking coordinate bounds: {e}")
+            return False
+    
+    def _get_fallback_coordinates(self, bbox: Tuple[float, float, float, float]) -> Optional[Tuple[float, float, float, float]]:
+        """Get fallback coordinates when normal conversion fails."""
+        try:
+            self.logger.debug(f"FALLBACK: Attempting fallback coordinates for bbox: {bbox}")
+            
+            # Try to get widget dimensions
+            widget_width = self.width()
+            widget_height = self.height()
+            
+            if widget_width <= 0 or widget_height <= 0:
+                self.logger.warning(f"FALLBACK: Invalid widget dimensions: {widget_width}x{widget_height}")
+                return None
+            
+            # Assume standard PDF page size (612x792 points) and scale to widget
+            pdf_width = 612.0
+            pdf_height = 792.0
+            
+            scale_x = widget_width / pdf_width
+            scale_y = widget_height / pdf_height
+            
+            x1, y1, x2, y2 = bbox
+            
+            # Scale coordinates
+            fallback_x1 = x1 * scale_x
+            fallback_y1 = y1 * scale_y
+            fallback_x2 = x2 * scale_x
+            fallback_y2 = y2 * scale_y
+            
+            fallback_coords = (fallback_x1, fallback_y1, fallback_x2, fallback_y2)
+            
+            # Validate fallback coordinates
+            if self._coords_within_reasonable_bounds(fallback_coords):
+                self.logger.debug(f"FALLBACK: Successfully generated fallback coordinates: {fallback_coords}")
+                return fallback_coords
+            else:
+                self.logger.warning(f"FALLBACK: Fallback coordinates also invalid: {fallback_coords}")
+                
+                # Try a simple default rectangle in the center of the widget
+                center_x = widget_width / 2
+                center_y = widget_height / 2
+                default_size = min(100, widget_width / 4, widget_height / 4)
+                
+                default_coords = (
+                    center_x - default_size / 2,
+                    center_y - default_size / 2,
+                    center_x + default_size / 2,
+                    center_y + default_size / 2
+                )
+                
+                self.logger.debug(f"FALLBACK: Using default center rectangle: {default_coords}")
+                return default_coords
+            
+        except Exception as e:
+            self.logger.error(f"FALLBACK: Error generating fallback coordinates: {e}")
+            return None
