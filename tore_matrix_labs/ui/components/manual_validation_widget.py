@@ -423,6 +423,9 @@ class DragSelectPDFViewer(QWidget):
             # CRITICAL FIX for Issue #47: Sync PDF viewer to page 1
             self._sync_pdf_viewer_page()
             
+            # CRITICAL FIX for Issue #47: Set document ID in PDF viewer
+            self._set_pdf_viewer_document_id(file_path)
+            
             self.logger.info(f"Loaded document: {file_path} ({self.total_pages} pages)")
             
         except Exception as e:
@@ -489,6 +492,10 @@ class DragSelectPDFViewer(QWidget):
             
             # CRITICAL FIX for Issue #47: Sync with PDF viewer
             self._sync_pdf_viewer_page()
+            
+            # Ensure document ID is still set (in case it was cleared)
+            if self.current_file_path:
+                self._set_pdf_viewer_document_id(self.current_file_path)
     
     def _next_page(self):
         """Go to next page."""
@@ -500,6 +507,10 @@ class DragSelectPDFViewer(QWidget):
             
             # CRITICAL FIX for Issue #47: Sync with PDF viewer
             self._sync_pdf_viewer_page()
+            
+            # Ensure document ID is still set (in case it was cleared)
+            if self.current_file_path:
+                self._set_pdf_viewer_document_id(self.current_file_path)
     
     def _load_page_areas(self):
         """Load persistent areas for the current page."""
@@ -565,6 +576,47 @@ class DragSelectPDFViewer(QWidget):
                 self.logger.info(f"SYNC_PDF: PDF viewer current_page is now {pdf_viewer.current_page} (0-based)")
         except Exception as e:
             self.logger.error(f"SYNC_PDF: Error syncing PDF viewer page: {e}")
+    
+    def _set_pdf_viewer_document_id(self, file_path: str):
+        """Set document ID in PDF viewer for area persistence."""
+        try:
+            main_window = self._get_main_window()
+            if main_window and hasattr(main_window, 'pdf_viewer'):
+                pdf_viewer = main_window.pdf_viewer
+                
+                # Try to get document ID from project manager first
+                document_id = None
+                if hasattr(main_window, 'project_widget') and main_window.project_widget:
+                    project_manager = main_window.project_widget.project_manager
+                    if project_manager:
+                        current_project = project_manager.get_current_project()
+                        if current_project:
+                            # Look for document in project
+                            for doc in current_project.get('documents', []):
+                                if doc.get('file_path') == file_path:
+                                    document_id = doc.get('id')
+                                    break
+                
+                # Fallback to filename-based ID if not found in project
+                if not document_id:
+                    document_id = Path(file_path).stem
+                    self.logger.info(f"SYNC_PDF: Using fallback document ID: {document_id}")
+                
+                # Set the document ID in PDF viewer
+                pdf_viewer.current_document_id = document_id
+                self.logger.info(f"SYNC_PDF: Set PDF viewer document_id to '{document_id}'")
+                
+                # Also trigger area loading for current page
+                if hasattr(pdf_viewer, 'page_label') and hasattr(pdf_viewer.page_label, 'load_persistent_areas'):
+                    current_page_1based = self.current_page
+                    self.logger.info(f"SYNC_PDF: Loading areas for document '{document_id}', page {current_page_1based}")
+                    pdf_viewer.page_label.load_persistent_areas(document_id, current_page_1based)
+                    pdf_viewer.page_label.update()
+                    
+        except Exception as e:
+            self.logger.error(f"SYNC_PDF: Error setting PDF viewer document ID: {e}")
+            import traceback
+            self.logger.error(f"SYNC_PDF: Traceback: {traceback.format_exc()}")
     
     def _update_selection_info(self):
         """Update selection information display."""
