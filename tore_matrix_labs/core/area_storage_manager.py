@@ -91,8 +91,8 @@ class AreaStorageManager:
                 
             project_data = self.project_manager.get_current_project()
             if not project_data:
-                self.logger.warning("LOAD: No active project")
-                return {}
+                self.logger.warning("LOAD: No active project - attempting to load from document file directly")
+                return self._load_areas_from_document_file(document_id)
             
             self.logger.debug(f"LOAD: Current project has {len(project_data.get('documents', []))} documents")
             
