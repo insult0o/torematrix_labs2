@@ -424,7 +424,9 @@ class DragSelectPDFViewer(QWidget):
             
         except Exception as e:
             self.logger.error(f"Error loading document: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to load document: {e}")
+            # FIXED Issue #38: Remove popup interruption - use status message instead
+            self.status_message.emit(f"❌ Failed to load document: {e}")
+            # Emit as status message to main window instead of blocking popup
     
     def _load_current_page(self):
         """Load and display the current page."""
@@ -2108,46 +2110,41 @@ class ManualValidationWidget(QWidget):
     def _clear_all_areas(self):
         """Clear all selected areas."""
         if self.all_selections:
-            # Confirm with user
-            reply = QMessageBox.question(
-                self, 
-                "Clear All Special Areas",
-                f"Are you sure you want to delete all {sum(len(selections) for selections in self.all_selections.values())} selected areas?",
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No
-            )
+            # FIXED Issue #38: Remove popup interruption - clear areas seamlessly
+            total_areas = sum(len(selections) for selections in self.all_selections.values())
+            self.status_message.emit(f"Clearing {total_areas} selected areas...")
             
-            if reply == QMessageBox.Yes:
-                # Delete all areas from persistent storage first
-                main_window = self._get_main_window()
-                document_id = self._get_current_document_id()
-                if main_window and hasattr(main_window, 'area_storage_manager') and document_id:
-                    area_storage = main_window.area_storage_manager
-                    all_areas = area_storage.load_areas(document_id)
-                    for area_id in all_areas.keys():
-                        area_storage.delete_area(document_id, area_id)
-                    self.logger.info(f"CLEAR ALL: Deleted {len(all_areas)} areas from persistent storage")
-                
-                # Get all pages that had areas for refresh
-                pages_to_refresh = list(self.all_selections.keys())
-                
-                # Clear all selections
-                self.all_selections.clear()
-                
-                # Force refresh PDF viewer for all affected pages
-                for page in pages_to_refresh:
-                    self._refresh_pdf_viewer_areas(page)
-                
-                # Update UI
-                self.selection_list.clear()
-                self._update_statistics()
-                self._clear_area_preview()
-                
-                # Save updated (empty) selections
-                self._save_persistent_selections()
-                
-                self.status_message.emit("Cleared all selected areas")
-                self._update_navigation_buttons()
+            # Delete all areas from persistent storage first
+            main_window = self._get_main_window()
+            document_id = self._get_current_document_id()
+            if main_window and hasattr(main_window, 'area_storage_manager') and document_id:
+                area_storage = main_window.area_storage_manager
+                all_areas = area_storage.load_areas(document_id)
+                for area_id in all_areas.keys():
+                    area_storage.delete_area(document_id, area_id)
+                self.logger.info(f"CLEAR ALL: Deleted {len(all_areas)} areas from persistent storage")
+            
+            # Get all pages that had areas for refresh
+            pages_to_refresh = list(self.all_selections.keys())
+            
+            # Clear all selections
+            self.all_selections.clear()
+            
+            # Force refresh PDF viewer for all affected pages
+            for page in pages_to_refresh:
+                self._refresh_pdf_viewer_areas(page)
+            
+            # Update UI
+            self.selection_list.clear()
+            self._update_statistics()
+            self._clear_area_preview()
+            
+            # Show completion status
+            self.status_message.emit(f"✅ Cleared {total_areas} selected areas successfully")
+            
+            # Save updated (empty) selections
+            self._save_persistent_selections()
+            self._update_navigation_buttons()
     
     def _clear_all_areas_silent(self):
         """Clear all selected areas without user confirmation - used for project switching."""
