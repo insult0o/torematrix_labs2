@@ -27,6 +27,15 @@ class WorkflowIntegrationManager:
     def __init__(self, settings: Settings):
         self.settings = settings
         self.logger = logging.getLogger(__name__)
+        
+        # Initialize processors
+        self.document_processor = EnhancedDocumentProcessor(settings)
+        self.workflow_orchestrator = ValidationWorkflowOrchestrator(
+            max_workers=settings.get('parallel_processing_workers', 4)
+        )
+        self.snippet_storage = SnippetStorageManager(settings)
+        
+        self.logger.info("Workflow integration manager initialized")
 
 
 def generate_stable_document_id(file_path: str) -> str:
@@ -44,17 +53,9 @@ def generate_stable_document_id(file_path: str) -> str:
     # Create a shorter, more readable ID
     stable_id = f"doc_{path_hash[:12]}"
     
+    logger = logging.getLogger(__name__)
     logger.debug(f"Generated stable ID '{stable_id}' for path '{abs_path}'")
     return stable_id
-        
-        # Initialize processors
-        self.document_processor = EnhancedDocumentProcessor(settings)
-        self.workflow_orchestrator = ValidationWorkflowOrchestrator(
-            max_workers=settings.get('parallel_processing_workers', 4)
-        )
-        self.snippet_storage = SnippetStorageManager(settings)
-        
-        self.logger.info("Workflow integration manager initialized")
     
     def start_document_processing(self, file_path: str, 
                                 document_type: DocumentType = DocumentType.ICAO,
