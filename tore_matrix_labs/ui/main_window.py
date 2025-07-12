@@ -157,6 +157,10 @@ class MainWindow(QMainWindow):
         # Connect navigation signal
         self.qa_widget.navigate_pdf_page.connect(self._navigate_pdf_page)
         
+        # Connect the PDF viewer to the QA widget's highlighting engine
+        if hasattr(self.qa_widget, 'set_pdf_viewer'):
+            self.qa_widget.set_pdf_viewer(self.pdf_viewer)
+        
         self.tab_widget.addTab(self.qa_widget, "QA Validation")
         
         # Connect PDF viewer page change signal to QA validation widget

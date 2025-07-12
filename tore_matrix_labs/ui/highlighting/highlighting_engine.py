@@ -91,12 +91,57 @@ class HighlightingEngine:
         self.coordinate_mapper.set_pdf_viewer(pdf_viewer)
         self.logger.info("HIGHLIGHTING_ENGINE: PDF viewer set")
     
+    def update_document(self, pdf_document=None):
+        """Update PDF document and rebuild coordinate maps."""
+        try:
+            if self.coordinate_mapper:
+                result = self.coordinate_mapper.update_document(pdf_document)
+                if result:
+                    self.logger.info("HIGHLIGHTING_ENGINE: Document updated successfully")
+                else:
+                    self.logger.warning("HIGHLIGHTING_ENGINE: Failed to update document")
+                return result
+            else:
+                self.logger.warning("HIGHLIGHTING_ENGINE: No coordinate mapper available")
+                return False
+        except Exception as e:
+            self.logger.error(f"HIGHLIGHTING_ENGINE: Error updating document: {e}")
+            return False
+    
     def set_text_widget(self, text_widget):
         """Set the text widget for highlighting."""
         self.text_widget = text_widget
         self.coordinate_mapper.set_text_widget(text_widget)
         self._setup_event_connections()
         self.logger.info("HIGHLIGHTING_ENGINE: Text widget set")
+    
+    def update_text_content(self, page: int = None):
+        """Update coordinate mapping when text content changes."""
+        try:
+            if not self.coordinate_mapper:
+                self.logger.warning("HIGHLIGHTING_ENGINE: No coordinate mapper available")
+                return
+            
+            # Use current page if not specified
+            if page is None:
+                page = self.current_page
+            
+            self.logger.info(f"HIGHLIGHTING_ENGINE: Updating coordinate mapping for page {page}")
+            
+            # Update coordinate maps for the new text content
+            self.coordinate_mapper.update_document()
+            
+            # Clear any existing highlights that might be invalid
+            page_highlights = [hid for hid, hinfo in self.active_highlights.items() 
+                             if hinfo['page'] == page and hinfo.get('type') == 'active_highlight']
+            
+            for highlight_id in page_highlights:
+                self.clear_highlight(highlight_id)
+            
+            self.logger.info(f"HIGHLIGHTING_ENGINE: Text content updated for page {page}, cleared {len(page_highlights)} text highlights")
+            
+        except Exception as e:
+            self.logger.error(f"HIGHLIGHTING_ENGINE: Error updating text content: {e}")
     
     def highlight_text_range(self, text_start: int, text_end: int, 
                            highlight_type: str = 'active_highlight',

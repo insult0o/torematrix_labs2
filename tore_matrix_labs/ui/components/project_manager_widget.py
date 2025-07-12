@@ -293,6 +293,11 @@ class ProjectManagerWidget(QWidget):
         )
         
         if ok and doc_path.strip():
+            # Check for duplicates before adding
+            if any(doc.get('path') == doc_path.strip() for doc in self.documents):
+                self.status_label.setText(f"Document already exists: {Path(doc_path.strip()).name}")
+                return
+                
             doc_info = {
                 'id': f"doc_{len(self.documents)}",
                 'path': doc_path.strip(),
