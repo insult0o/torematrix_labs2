@@ -8,6 +8,7 @@ and resize/move functionality.
 import logging
 from typing import Dict, Optional, Set, Tuple
 from datetime import datetime
+from pathlib import Path
 
 from ..qt_compat import (
     QLabel, QPainter, QPen, QBrush, QColor, QRectF, QPointF,

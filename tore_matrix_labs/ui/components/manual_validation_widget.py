@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Manual validation widget for page-by-page IMAGE/TABLE/DIAGRAM classification.
-Users drag to select areas and classify them before text extraction.
+Users drag to select Special Areas and classify them before text extraction.
 """
 
 import logging
@@ -27,7 +27,7 @@ from ...models.document_models import Document
 
 
 class ClassificationDialog(QDialog):
-    """Enhanced dialog for classifying selected areas with specialized processing options."""
+    """Enhanced dialog for classifying selected Special Areas with specialized processing options."""
     
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -46,7 +46,7 @@ class ClassificationDialog(QDialog):
         layout = QVBoxLayout(self)
         
         # Title
-        title_label = QLabel("What type of specialized content is this area?")
+        title_label = QLabel("What type of specialized content is this Special Area?")
         title_label.setStyleSheet("font-size: 14px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title_label)
         
@@ -303,7 +303,7 @@ class DragSelectPDFViewer(QWidget):
         header_layout = QVBoxLayout()
         
         # Document title
-        self.doc_title_label = QLabel("Manual Validation - Drag to Select Areas")
+        self.doc_title_label = QLabel("Manual Validation - Drag to Select Special Areas")
         self.doc_title_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #2c3e50;")
         header_layout.addWidget(self.doc_title_label)
         
@@ -381,7 +381,7 @@ class DragSelectPDFViewer(QWidget):
         footer_layout.addStretch()
         
         # Selection info
-        self.selection_info = QLabel("0 areas selected")
+        self.selection_info = QLabel("0 Special Areas selected")
         self.selection_info.setStyleSheet("color: #7f8c8d; font-style: italic;")
         footer_layout.addWidget(self.selection_info)
         
@@ -535,11 +535,11 @@ class DragSelectPDFViewer(QWidget):
         """Update selection information display."""
         count = len(self.current_selections)
         if count == 0:
-            self.selection_info.setText("0 areas selected - Drag to select IMAGE/TABLE/DIAGRAM areas")
+            self.selection_info.setText("0 Special Areas selected - Drag to select IMAGE/TABLE/DIAGRAM Special Areas")
         elif count == 1:
-            self.selection_info.setText("1 area selected")
+            self.selection_info.setText("1 Special Area selected")
         else:
-            self.selection_info.setText(f"{count} areas selected")
+            self.selection_info.setText(f"{count} Special Areas selected")
     
     def _on_mouse_press(self, event: QMouseEvent):
         """Handle mouse press for selection start."""
@@ -771,7 +771,7 @@ class ManualValidationWidget(QWidget):
     def _create_selection_panel(self, parent_layout):
         """Create the selection management panel."""
         # Selected Areas Section
-        areas_group = QGroupBox("Selected Areas")
+        areas_group = QGroupBox("Selected Special Areas")
         areas_layout = QVBoxLayout(areas_group)
         
         # Area navigation and statistics
@@ -782,7 +782,7 @@ class ManualValidationWidget(QWidget):
         self.prev_area_btn.setEnabled(False)
         nav_layout.addWidget(self.prev_area_btn)
         
-        self.area_info_label = QLabel("0 areas selected")
+        self.area_info_label = QLabel("0 Special Areas selected")
         self.area_info_label.setAlignment(Qt.AlignCenter)
         self.area_info_label.setStyleSheet("font-weight: bold; color: #2c3e50;")
         nav_layout.addWidget(self.area_info_label)

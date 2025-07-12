@@ -189,7 +189,8 @@ class MainWindow(QMainWindow):
             # Connect page change signal to reload areas
             if hasattr(self.pdf_viewer, 'page_changed'):
                 self.pdf_viewer.page_changed.connect(self.pdf_viewer.page_label.on_page_changed)
-        self.tab_widget.addTab(self.project_widget, "Project Management")
+        # Project Management tab removed per Issue #12 requirements
+        # self.tab_widget.addTab(self.project_widget, "Project Management")
     
     def _create_menu_bar(self):
         """Create application menu bar."""
