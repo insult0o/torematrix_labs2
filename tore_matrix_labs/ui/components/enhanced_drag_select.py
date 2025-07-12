@@ -752,6 +752,9 @@ class EnhancedDragSelectLabel(QLabel):
         current_page_0based = self.pdf_viewer.current_page
         page_for_storage = current_page_0based + 1  # Convert to 1-based for storage
         
+        # CRITICAL DEBUG for Issue #47
+        self.logger.warning(f"AREA_CREATE PAGE DEBUG: pdf_viewer.current_page = {current_page_0based}")
+        self.logger.warning(f"AREA_CREATE PAGE DEBUG: Page for storage = {page_for_storage}")
         self.logger.info(f"AREA_CREATE: Converting page: {current_page_0based} (0-based) → {page_for_storage} (1-based for storage)")
         
         area_data = {

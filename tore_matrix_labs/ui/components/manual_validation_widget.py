@@ -420,6 +420,9 @@ class DragSelectPDFViewer(QWidget):
             # Load first page
             self._load_current_page()
             
+            # CRITICAL FIX for Issue #47: Sync PDF viewer to page 1
+            self._sync_pdf_viewer_page()
+            
             self.logger.info(f"Loaded document: {file_path} ({self.total_pages} pages)")
             
         except Exception as e:
@@ -483,6 +486,9 @@ class DragSelectPDFViewer(QWidget):
             self._load_current_page()
             self._load_page_areas()  # Load persistent areas for this page
             self._update_navigation_buttons()
+            
+            # CRITICAL FIX for Issue #47: Sync with PDF viewer
+            self._sync_pdf_viewer_page()
     
     def _next_page(self):
         """Go to next page."""
@@ -491,6 +497,9 @@ class DragSelectPDFViewer(QWidget):
             self._load_current_page()
             self._load_page_areas()  # Load persistent areas for this page
             self._update_navigation_buttons()
+            
+            # CRITICAL FIX for Issue #47: Sync with PDF viewer
+            self._sync_pdf_viewer_page()
     
     def _load_page_areas(self):
         """Load persistent areas for the current page."""
@@ -533,6 +542,29 @@ class DragSelectPDFViewer(QWidget):
         """Update navigation button states."""
         self.prev_btn.setEnabled(self.current_page > 1)
         self.next_btn.setEnabled(self.current_page < self.total_pages)
+    
+    def _get_main_window(self):
+        """Get reference to main window."""
+        # Walk up the widget hierarchy to find main window
+        parent = self.parent()
+        while parent:
+            if hasattr(parent, 'pdf_viewer'):
+                return parent
+            parent = parent.parent()
+        return None
+    
+    def _sync_pdf_viewer_page(self):
+        """Sync PDF viewer to match manual validation's current page."""
+        try:
+            main_window = self._get_main_window()
+            if main_window and hasattr(main_window, 'pdf_viewer'):
+                pdf_viewer = main_window.pdf_viewer
+                # Manual validation uses 1-based, PDF viewer uses 1-based for _go_to_page
+                self.logger.info(f"SYNC_PDF: Syncing PDF viewer to page {self.current_page}")
+                pdf_viewer._go_to_page(self.current_page)
+                self.logger.info(f"SYNC_PDF: PDF viewer current_page is now {pdf_viewer.current_page} (0-based)")
+        except Exception as e:
+            self.logger.error(f"SYNC_PDF: Error syncing PDF viewer page: {e}")
     
     def _update_selection_info(self):
         """Update selection information display."""
