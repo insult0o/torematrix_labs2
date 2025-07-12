@@ -528,6 +528,11 @@ class PageValidationWidget(QWidget):
         total_corrections = len(corrections)
         self.status_label.setText(f"Loaded: {document.metadata.file_name} - {total_corrections} corrections on {len(self.corrections_by_page)} pages")
         
+        # CRITICAL FIX: Ensure the widget is visible and shows content
+        self.setVisible(True)
+        self.extracted_text.setVisible(True)
+        self.log_message.emit(f"QA_VALIDATION: Widget visibility set to True")
+        
         # Load first page (start with page 1 if no corrections, or first correction page)
         if self.corrections_by_page:
             first_page = min(self.corrections_by_page.keys())
@@ -547,6 +552,13 @@ class PageValidationWidget(QWidget):
         # Load page text and update display
         self._load_page_text(self.current_page)
         self._update_page_display()
+        
+        # CRITICAL FIX: Ensure we show something even if no corrections
+        if total_corrections == 0:
+            self.extracted_text.setPlaceholderText("✅ No corrections needed - document appears to be clean!")
+            if not self.extracted_text.toPlainText().strip():
+                self.extracted_text.setPlainText("✅ QA Validation: No corrections found.\n\nThis document passed quality checks without requiring manual corrections.")
+                self.log_message.emit("QA_VALIDATION: No corrections needed - document is clean")
         
         # Sync with PDF viewer
         self._sync_pdf_viewer_page(self.current_page)
@@ -1152,33 +1164,75 @@ class PageValidationWidget(QWidget):
     def _resolve_pdf_path(self, file_path):
         """Resolve actual PDF file path from project file or direct path."""
         try:
+            self.logger.info(f"QA_VALIDATION: Resolving PDF path from: {file_path}")
+            
             # If it's already a PDF file, return as-is
             if file_path.endswith('.pdf'):
-                return file_path
+                if Path(file_path).exists():
+                    self.logger.info(f"QA_VALIDATION: Direct PDF file found: {file_path}")
+                    return file_path
+                else:
+                    self.logger.warning(f"QA_VALIDATION: Direct PDF file not found: {file_path}")
+                    return None
             
             # If it's a .tore project file, extract the PDF path
             if file_path.endswith('.tore'):
                 import json
+                self.logger.info(f"QA_VALIDATION: Loading .tore project file: {file_path}")
+                
                 with open(file_path, 'r') as f:
                     project_data = json.load(f)
                 
                 # Get the first document's path (for now, assume single document projects)
                 documents = project_data.get('documents', [])
-                if documents:
-                    pdf_path = documents[0].get('path', '')
-                    if pdf_path.endswith('.pdf'):
-                        self.logger.info(f"Resolved PDF path from project: {pdf_path}")
-                        return pdf_path
+                self.logger.info(f"QA_VALIDATION: Found {len(documents)} documents in project")
                 
-                self.logger.error(f"No PDF document found in project file: {file_path}")
+                if documents:
+                    # Try multiple path fields
+                    for doc in documents:
+                        self.logger.info(f"QA_VALIDATION: Checking document: {doc.get('name', 'Unknown')}")
+                        
+                        # Try different path fields
+                        path_candidates = [
+                            doc.get('path', ''),
+                            doc.get('file_path', ''),
+                            doc.get('metadata', {}).get('file_path', ''),
+                            doc.get('processing_data', {}).get('file_path', '')
+                        ]
+                        
+                        for candidate_path in path_candidates:
+                            if candidate_path and candidate_path.endswith('.pdf'):
+                                self.logger.info(f"QA_VALIDATION: Checking candidate path: {candidate_path}")
+                                if Path(candidate_path).exists():
+                                    self.logger.info(f"QA_VALIDATION: Found valid PDF: {candidate_path}")
+                                    return candidate_path
+                                else:
+                                    # Try relative to project file directory
+                                    project_dir = Path(file_path).parent
+                                    relative_path = project_dir / Path(candidate_path).name
+                                    if relative_path.exists():
+                                        self.logger.info(f"QA_VALIDATION: Found relative PDF: {relative_path}")
+                                        return str(relative_path)
+                
+                # FALLBACK: Look for PDFs in the same directory as the project file
+                project_dir = Path(file_path).parent
+                pdf_files = list(project_dir.glob('*.pdf'))
+                if pdf_files:
+                    fallback_pdf = str(pdf_files[0])
+                    self.logger.info(f"QA_VALIDATION: Using fallback PDF from project directory: {fallback_pdf}")
+                    return fallback_pdf
+                
+                self.logger.error(f"QA_VALIDATION: No PDF document found in project file: {file_path}")
                 return None
             
             # Unknown file type
-            self.logger.error(f"Unknown file type for extraction: {file_path}")
+            self.logger.error(f"QA_VALIDATION: Unknown file type for extraction: {file_path}")
             return None
             
         except Exception as e:
-            self.logger.error(f"Failed to resolve PDF path from {file_path}: {str(e)}")
+            self.logger.error(f"QA_VALIDATION: Failed to resolve PDF path from {file_path}: {str(e)}")
+            import traceback
+            self.logger.error(f"QA_VALIDATION: Traceback: {traceback.format_exc()}")
             return None
 
     def _load_page_text(self, page_number):
@@ -1244,9 +1298,45 @@ class PageValidationWidget(QWidget):
             
         except Exception as e:
             error_msg = f"Failed to load page {page_number} text: {str(e)}"
-            self.extracted_text.setPlainText(error_msg)
-            self.log_message.emit(error_msg)
             self.logger.error(error_msg)
+            self.log_message.emit(error_msg)
+            
+            # CRITICAL FIX: Add basic fallback extraction using PyMuPDF directly
+            try:
+                self.logger.info("QA_VALIDATION: Attempting basic fallback extraction...")
+                project_file_path = self.current_document.metadata.file_path
+                pdf_file_path = self._resolve_pdf_path(project_file_path)
+                
+                if pdf_file_path and Path(pdf_file_path).exists():
+                    import fitz  # PyMuPDF
+                    doc = fitz.open(pdf_file_path)
+                    
+                    # Ensure page number is valid (1-based to 0-based)
+                    page_index = page_number - 1
+                    if 0 <= page_index < len(doc):
+                        page = doc.load_page(page_index)
+                        fallback_text = page.get_text()
+                        
+                        if fallback_text.strip():
+                            self.extracted_text.setPlainText(fallback_text)
+                            self.log_message.emit(f"QA_VALIDATION: Loaded page {page_number} using basic fallback extraction ({len(fallback_text)} chars)")
+                            self.logger.info(f"QA_VALIDATION: Fallback extraction successful for page {page_number}")
+                        else:
+                            self.extracted_text.setPlainText(f"Page {page_number} appears to be empty or contains only images.")
+                            self.log_message.emit(f"QA_VALIDATION: Page {page_number} has no extractable text")
+                    else:
+                        self.extracted_text.setPlainText(f"Page {page_number} not found in document (total pages: {len(doc)})")
+                        self.log_message.emit(f"QA_VALIDATION: Invalid page number {page_number}")
+                    
+                    doc.close()
+                else:
+                    self.extracted_text.setPlainText("Could not resolve PDF file path for text extraction.")
+                    self.log_message.emit("QA_VALIDATION: PDF file not found for fallback extraction")
+                    
+            except Exception as fallback_error:
+                self.logger.error(f"QA_VALIDATION: Fallback extraction also failed: {fallback_error}")
+                self.extracted_text.setPlainText(f"All text extraction methods failed.\n\nOriginal error: {str(e)}\nFallback error: {str(fallback_error)}")
+                self.log_message.emit("QA_VALIDATION: All extraction methods failed")
     
     def _load_page_text_with_ocr(self, page_number, file_path):
         """Load page text using OCR-based extraction for perfect accuracy."""

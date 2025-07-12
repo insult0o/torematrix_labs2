@@ -11,30 +11,38 @@ TORE Matrix Labs is the foundational component of the TORE AI ecosystem, enginee
 - Intelligent document structure analysis
 - OCR quality assessment and recommendations
 - Automatic document type classification
+- **NEW:** Enhanced PyMuPDF extraction with fallback processing
 
 ### 🛡️ **Quality Assurance Engine**
 - Multi-dimensional quality scoring
 - Human validation workflow
+- **NEW:** Page-by-page validation with precise error highlighting
 - Error detection and auto-correction
 - Complete audit trail
+- **NEW:** Advanced highlighting system with multi-box rendering
 
 ### 🎨 **Professional UI**
 - PyQt5-based modern interface
-- Side-by-side document review
+- **NEW:** Side-by-side document review with synchronized highlighting
+- **NEW:** Manual validation workflow with drag-to-select areas
 - Advanced table and image editing
 - Real-time processing feedback
+- **NEW:** Project-based document management with auto-loading
 
 ### 🚀 **Production-Ready Pipeline**
 - Batch processing capabilities
+- **NEW:** Multi-document support with session continuity
 - Scalable architecture
 - Enterprise security features
 - Cloud storage integration
+- **NEW:** Automated git integration with session recovery
 
 ### 🤖 **AI Integration**
 - Multiple embedding models
 - Vector database support (FAISS, Qdrant)
 - Fine-tuning dataset generation
 - RAG-optimized output formats
+- **NEW:** Visual area detection and exclusion from text processing
 
 ## 🛠️ Installation
 
@@ -73,6 +81,9 @@ python main.py
 
 # Or using entry point
 tore-matrix
+
+# Using project operations script
+./scripts/project_operations.sh run
 ```
 
 ### 2. Create New Project
@@ -86,13 +97,20 @@ tore-matrix
 3. Configure processing settings
 4. Click "Start Processing"
 
-### 4. Quality Validation
-1. Switch to "QA Validation" tab
-2. Review extracted content side-by-side
-3. Make corrections using built-in tools
-4. Approve or reject documents
+### 4. **NEW: Manual Validation Workflow**
+1. **Manual Area Selection**: Use drag-to-select to mark images, tables, and diagrams
+2. **Visual Area Detection**: System automatically detects and excludes special areas
+3. **Content Processing**: Text extraction excludes marked areas for higher accuracy
+4. **Quality Control**: Review and validate all selections before processing
 
-### 5. Export Data
+### 5. **Enhanced QA Validation**
+1. Switch to "QA Validation" tab
+2. **Page-by-page review** with precise error highlighting
+3. **Synchronized highlighting** between text and PDF viewer
+4. Make corrections using built-in tools
+5. Approve or reject documents with detailed feedback
+
+### 6. Export Data
 1. Go to "Project Management" tab
 2. Select export format (JSONL, JSON, CSV, etc.)
 3. Configure output settings
@@ -217,8 +235,17 @@ TORE Matrix Labs
 
 ## 🧪 Testing
 
+### **NEW: Automated Test Suite**
 ```bash
-# Run all tests
+# Run comprehensive tests using project operations
+./scripts/project_operations.sh test all
+
+# Run individual test categories
+./scripts/project_operations.sh test highlighting
+./scripts/project_operations.sh test areas
+./scripts/project_operations.sh test loading
+
+# Traditional pytest testing
 pytest
 
 # Run specific test categories
@@ -229,6 +256,13 @@ pytest -m slow
 # With coverage
 pytest --cov=tore_matrix_labs --cov-report=html
 ```
+
+### **Test Coverage**
+- ✅ **Project Loading**: Automatic loading of processed documents with areas
+- ✅ **PDF Highlighting**: Precise error highlighting with page synchronization  
+- ✅ **Area Display**: Visual area detection and preview functionality
+- ✅ **Multi-Document Support**: Session continuity and document management
+- ✅ **Quality Assurance**: Page-by-page validation workflow
 
 ## 📈 Performance
 
@@ -278,12 +312,40 @@ pre-commit install
 pytest
 ```
 
+## 🔄 **NEW: Session Continuity & Automation**
+
+### **Automated Scripts**
+```bash
+# Project operations
+./scripts/project_operations.sh run          # Launch application
+./scripts/project_operations.sh test all     # Run comprehensive tests
+./scripts/project_operations.sh status       # Check project health
+
+# Git operations  
+./scripts/git_operations.sh status           # Check git status
+./scripts/git_operations.sh commit "msg"     # Commit changes
+./scripts/git_operations.sh sync "msg"       # Commit and push
+
+# Session recovery
+./scripts/session_recovery.sh summary        # Show session state
+./scripts/session_recovery.sh restore        # Restore configuration
+./scripts/session_recovery.sh health         # Quick health check
+```
+
+### **Session Recovery Features**
+- **Automatic Configuration**: Git and project settings restored automatically
+- **State Preservation**: Project data and document states maintained across sessions
+- **Health Monitoring**: Continuous monitoring of project integrity
+- **Quick Recovery**: One-command restoration of working environment
+
 ## 📚 Documentation
 
-- [User Guide](docs/user_guide/): Complete user manual
-- [API Documentation](docs/api/): API reference
+- [User Guide](docs/user_guide/): Complete user manual with new workflow
+- [API Documentation](docs/api/): API reference including highlighting system
 - [Developer Guide](docs/developer_guide/): Development documentation
 - [Examples](docs/examples/): Usage examples and tutorials
+- **NEW:** [Highlighting System Guide](docs/highlighting/): Advanced highlighting documentation
+- **NEW:** [Multi-Document Guide](docs/multi_document/): Multi-document workflow guide
 
 ## 🆘 Support
 
