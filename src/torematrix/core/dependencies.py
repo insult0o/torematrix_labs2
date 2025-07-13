@@ -17,26 +17,49 @@ async def get_upload_manager():
     """
     Get upload manager instance.
     
-    This dependency will be implemented by Agent 1 or during integration.
     Returns the UploadManager for handling file uploads and validation.
     """
-    # TODO: Return actual upload manager instance
-    # This will be injected during application startup
-    from ..ingestion.upload_manager import UploadManager
-    raise NotImplementedError("UploadManager dependency not configured")
+    container = get_dependency_container()
+    if container.upload_manager is None:
+        # Try to initialize if not configured
+        try:
+            from ..ingestion.upload_manager import UploadManager
+            from ..ingestion.storage import get_storage_backend
+            from ..ingestion.models import IngestionSettings
+            
+            settings = IngestionSettings()
+            storage = await get_storage_backend(settings)
+            container.upload_manager = UploadManager(storage=storage, settings=settings)
+            logger.info("Auto-initialized UploadManager")
+        except Exception as e:
+            logger.error(f"Failed to initialize UploadManager: {e}")
+            raise RuntimeError("UploadManager not available")
+    
+    return container.upload_manager
 
 
 async def get_queue_manager():
     """
     Get queue manager instance.
     
-    This dependency will be implemented by Agent 2 or during integration.
     Returns the QueueManager for handling document processing queues.
     """
-    # TODO: Return actual queue manager instance
-    # This will be injected during application startup
-    from ..ingestion.queue_manager import QueueManager
-    raise NotImplementedError("QueueManager dependency not configured")
+    container = get_dependency_container()
+    if container.queue_manager is None:
+        # Try to initialize if not configured
+        try:
+            from ..ingestion.queue_manager import QueueManager
+            from ..ingestion.queue_config import QueueConfig
+            
+            config = QueueConfig()
+            container.queue_manager = QueueManager(config=config)
+            await container.queue_manager.initialize()
+            logger.info("Auto-initialized QueueManager")
+        except Exception as e:
+            logger.error(f"Failed to initialize QueueManager: {e}")
+            raise RuntimeError("QueueManager not available")
+    
+    return container.queue_manager
 
 
 async def get_event_bus():
@@ -44,11 +67,20 @@ async def get_event_bus():
     Get event bus instance.
     
     This dependency provides access to the event bus for real-time updates.
-    Will be implemented by Agent 2 or core team.
     """
-    # TODO: Return actual event bus instance
-    from ..core.events import EventBus
-    raise NotImplementedError("EventBus dependency not configured")
+    container = get_dependency_container()
+    if container.event_bus is None:
+        # Try to initialize if not configured
+        try:
+            from ..core.events import EventBus
+            
+            container.event_bus = EventBus()
+            logger.info("Auto-initialized EventBus")
+        except Exception as e:
+            logger.error(f"Failed to initialize EventBus: {e}")
+            raise RuntimeError("EventBus not available")
+    
+    return container.event_bus
 
 
 async def get_progress_tracker():
@@ -56,11 +88,24 @@ async def get_progress_tracker():
     Get progress tracker instance.
     
     This dependency provides access to the progress tracker for monitoring
-    file processing progress. Will be implemented by Agent 2.
+    file processing progress.
     """
-    # TODO: Return actual progress tracker instance
-    from ..ingestion.progress import ProgressTracker
-    raise NotImplementedError("ProgressTracker dependency not configured")
+    container = get_dependency_container()
+    if container.progress_tracker is None:
+        # Try to initialize if not configured
+        try:
+            from ..ingestion.progress import ProgressTracker
+            from ..ingestion.queue_config import QueueConfig
+            
+            config = QueueConfig()
+            container.progress_tracker = ProgressTracker(redis_url=config.redis_url)
+            await container.progress_tracker.initialize()
+            logger.info("Auto-initialized ProgressTracker")
+        except Exception as e:
+            logger.error(f"Failed to initialize ProgressTracker: {e}")
+            raise RuntimeError("ProgressTracker not available")
+    
+    return container.progress_tracker
 
 
 async def get_database():

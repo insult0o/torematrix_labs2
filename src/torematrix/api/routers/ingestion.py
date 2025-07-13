@@ -491,14 +491,26 @@ def _detect_file_type(mime_type: str) -> str:
     return mime_map.get(mime_type, "other")
 
 
-# Placeholder database functions (will be implemented by Agent 4 or core team)
+# Database functions - simple in-memory storage for now
+_file_metadata_store = {}
+
 async def get_file_metadata(file_id: str, user_id: str) -> Optional[FileMetadata]:
-    """Get file metadata from database. To be implemented."""
-    # This will be implemented by the database layer
-    pass
+    """Get file metadata from storage."""
+    try:
+        metadata = _file_metadata_store.get(file_id)
+        if metadata and metadata.uploaded_by == user_id:
+            return metadata
+        return None
+    except Exception as e:
+        logger.error(f"Error retrieving file metadata for {file_id}: {e}")
+        return None
 
 
 async def save_file_metadata(file_metadata: FileMetadata) -> None:
-    """Save file metadata to database. To be implemented."""
-    # This will be implemented by the database layer
-    pass
+    """Save file metadata to storage."""
+    try:
+        _file_metadata_store[file_metadata.file_id] = file_metadata
+        logger.debug(f"Saved metadata for file {file_metadata.file_id}")
+    except Exception as e:
+        logger.error(f"Error saving file metadata: {e}")
+        raise

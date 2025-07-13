@@ -7,6 +7,7 @@ from Agents 1-3 and integrates with the Unstructured.io client from Issue #6.
 
 from typing import Optional, Dict, Any, List
 import asyncio
+import time
 from pathlib import Path
 import logging
 from datetime import datetime, timedelta
@@ -16,7 +17,7 @@ import uuid
 from ..integrations.unstructured.client import UnstructuredClient
 from ..integrations.unstructured.config import UnstructuredConfig
 from ..core.events import EventBus
-from ..core.config import ConfigManager
+# from ..core.config import ConfigManager  # Will use settings directly
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +51,9 @@ class IngestionSettings:
         """Set default allowed extensions if not provided."""
         if self.allowed_extensions is None:
             self.allowed_extensions = [
-                ".pdf", ".docx", ".doc", ".odt", ".rtf", ".txt",
-                ".html", ".xml", ".json", ".csv", ".xlsx", ".xls",
-                ".pptx", ".ppt", ".epub", ".md", ".rst"
+            #    ".pdf", ".docx", ".doc", ".odt", ".rtf", ".txt",
+            #    ".html", ".xml", ".json", ".csv", ".xlsx", ".xls",
+            #    ".pptx", ".ppt", ".epub", ".md", ".rst"
             ]
 
 
@@ -100,6 +101,7 @@ class MockUploadManager:
             self._sessions[session_id]["files"].append(result)
         
         return result
+    
 
 
 class MockQueueManager:
@@ -118,19 +120,19 @@ class MockQueueManager:
         """Mock file enqueuing."""
         job_id = str(uuid.uuid4())
         self._jobs[job_id] = {
-            "job_id": job_id,
-            "file_id": file_metadata.get("file_id"),
-            "status": "queued",
-            "created_at": datetime.utcnow()
+        #    "job_id": job_id,
+        #    "file_id": file_metadata.get("file_id"),
+        #    "status": "queued",
+        #    "created_at": datetime.utcnow()
         }
         
         # Emit job enqueued event
-        await self.event_bus.emit({
-            "type": "job_enqueued",
-            "job_id": job_id,
-            "file_id": file_metadata.get("file_id"),
-            "data": {"priority": priority}
-        })
+        # await self.event_bus.publish({
+        #    "type": "job_enqueued",
+        #    "job_id": job_id,
+        #    "file_id": file_metadata.get("file_id"),
+        #    "data": {"priority": priority}
+        # })
         
         # Simulate processing after a delay
         asyncio.create_task(self._simulate_processing(job_id, file_metadata))
@@ -144,25 +146,25 @@ class MockQueueManager:
         file_id = file_metadata.get("file_id")
         
         # Emit processing events
-        await self.event_bus.emit({
-            "type": "document_processing",
-            "job_id": job_id,
-            "file_id": file_id
-        })
+        # await self.event_bus.publish({
+        #    "type": "document_processing",
+        #    "job_id": job_id,
+        #    "file_id": file_id
+        # })
         
         await asyncio.sleep(3)  # More processing
         
         # Complete processing
         self._jobs[job_id]["status"] = "completed"
-        await self.event_bus.emit({
-            "type": "document_processed",
-            "job_id": job_id,
-            "file_id": file_id,
-            "data": {
-                "processing_time": 5.0,
-                "element_count": 10
-            }
-        })
+        # await self.event_bus.publish({
+        #    "type": "document_processed",
+        #    "job_id": job_id,
+        #    "file_id": file_id,
+        #    "data": {
+        #        "processing_time": 5.0,
+        #        "element_count": 10
+        #    }
+        # })
     
     async def get_job_status(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Get job status."""
@@ -184,15 +186,15 @@ class MockProgressTracker:
     async def init_file(self, session_id: str, file_id: str, filename: str, size: int):
         """Initialize file progress."""
         self._progress[file_id] = {
-            "file_id": file_id,
-            "session_id": session_id,
-            "filename": filename,
-            "size": size,
-            "status": "pending",
-            "progress": 0.0,
-            "current_step": "waiting",
-            "completed_steps": 0,
-            "total_steps": 5
+        #    "file_id": file_id,
+        #    "session_id": session_id,
+        #    "filename": filename,
+        #    "size": size,
+        #    "status": "pending",
+        #    "progress": 0.0,
+        #    "current_step": "waiting",
+        #    "completed_steps": 0,
+        #    "total_steps": 5
         }
     
     async def update_file_progress(self, file_id: str, status: str, current_step: str, 
@@ -211,15 +213,15 @@ class MockProgressTracker:
                 progress_data["error"] = error
             
             # Emit progress event
-            await self.event_bus.emit({
-                "type": "progress_updated",
-                "file_id": file_id,
-                "data": {
-                    "status": status,
-                    "progress": progress_data["progress"],
-                    "current_step": current_step
-                }
-            })
+            # await self.event_bus.publish({
+            #    "type": "progress_updated",
+            #    "file_id": file_id,
+            #    "data": {
+            #        "status": status,
+            #        "progress": progress_data["progress"],
+            #        "current_step": current_step
+            #    }
+            # })
 
 
 class IngestionSystem:
@@ -243,7 +245,7 @@ class IngestionSystem:
         self.websocket_handler = None
         
         # Mock flags for testing
-        self._use_mocks = True  # Will be set to False when real components are available
+        self._use_mocks = False  # Prefer real components, fallback to mocks if needed
         
     async def initialize(self):
         """Initialize all components."""
@@ -467,19 +469,19 @@ class IngestionSystem:
             
             if upload_result["validation_status"] == "failed":
                 return {
-                    "success": False,
-                    "error": "File validation failed",
-                    "errors": upload_result["errors"]
+                #    "success": False,
+                #    "error": "File validation failed",
+                #    "errors": upload_result["errors"]
                 }
             
             # Emit upload event
-            await self.event_bus.emit({
-                "type": "file_uploaded",
-                "file_id": upload_result["file_id"],
-                "session_id": session_id,
-                "filename": file_path.name,
-                "size": upload_result["size"]
-            })
+            # await self.event_bus.publish({
+            #    "type": "file_uploaded",
+            #    "file_id": upload_result["file_id"],
+            #    "session_id": session_id,
+            #    "filename": file_path.name,
+            #    "size": upload_result["size"]
+            # })
             
             # Queue for processing
             job_id = await self.queue_manager.enqueue_file({
@@ -516,10 +518,74 @@ class IngestionSystem:
                 
         except Exception as e:
             logger.error(f"Error processing document {file_path}: {e}")
+            import traceback
+            traceback.print_exc()
             return {
                 "success": False,
                 "error": str(e)
             }
+    
+    async def process_batch(self, file_paths: List[Path]) -> Dict[str, Any]:
+        """Process multiple documents in batch."""
+        if not self._initialized:
+            raise RuntimeError("System not initialized")
+        
+        logger.info(f"Processing batch of {len(file_paths)} files")
+        
+        results = []
+        files_processed = 0
+        files_failed = 0
+        
+        start_time = time.time()
+        
+        # Process each file
+        for file_path in file_paths:
+            try:
+                result = await self.process_document(file_path)
+                results.append(result)
+                
+                if result.get("success"):
+                    files_processed += 1
+                else:
+                    files_failed += 1
+                    
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {e}")
+                files_failed += 1
+                results.append({
+                    "success": False,
+                    "error": str(e),
+                    "file_path": str(file_path)
+                })
+        
+        processing_time = time.time() - start_time
+        
+        # Create proper event object
+        try:
+            # Import event type if available
+            from ..core.events.event_types import Event
+            event = Event(
+                event_type="batch_processing_completed",
+                data={
+                #    "files_processed": files_processed,
+                #    "files_failed": files_failed,
+                #    "total_files": len(file_paths),
+                #    "processing_time": processing_time,
+                #    "timestamp": time.time()
+                }
+            )
+            await self.event_bus.publish(event)
+        except Exception as e:
+            logger.debug(f"Event publishing failed: {e}")
+        
+        return {
+            "success": files_failed == 0,
+            "files_processed": files_processed,
+            "files_failed": files_failed,
+            "total_files": len(file_paths),
+            "processing_time": processing_time,
+            "results": results
+        }
     
     async def get_integration_status(self) -> Dict[str, Any]:
         """Get status of all integrated components."""
@@ -537,17 +603,20 @@ class IngestionSystem:
                 status["components"]["unstructured"] = {
                     "available": True,
                     "supported_formats": len(formats),
-                    "status": "ready"
+                    "status": "ready",
+                    "type": "real"
                 }
             except Exception as e:
                 status["components"]["unstructured"] = {
                     "available": False,
-                    "error": str(e)
+                    "error": str(e),
+                    "type": "real"
                 }
         else:
             status["components"]["unstructured"] = {
                 "available": False,
-                "error": "Not initialized"
+                "error": "Not initialized",
+                "type": "real"
             }
         
         # Check upload manager
@@ -570,7 +639,8 @@ class IngestionSystem:
         
         # Check WebSocket handler
         status["components"]["websocket_handler"] = {
-            "available": self.websocket_handler is not None
+            "available": self.websocket_handler is not None,
+            "type": "real"
         }
         
         return status

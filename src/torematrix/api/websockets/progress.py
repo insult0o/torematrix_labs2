@@ -498,3 +498,18 @@ async def websocket_health():
         "connections": manager.get_connection_stats(),
         "timestamp": datetime.utcnow().isoformat()
     }
+
+# FastAPI router for WebSocket endpoints
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.websocket("/progress")
+async def websocket_progress_endpoint(websocket: WebSocket, session_id: str = Query(...)):
+    """WebSocket endpoint for real-time progress updates."""
+    await progress_websocket_endpoint(websocket, session_id)
+
+@router.get("/health")
+async def websocket_health_endpoint():
+    """WebSocket service health check."""
+    return await websocket_health()

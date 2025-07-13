@@ -132,7 +132,7 @@ class RetryPolicy(BaseModel):
     
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "max_attempts": 3,
                 "backoff_type": "exponential",
@@ -163,7 +163,7 @@ class WorkerConfig(BaseModel):
     
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "document-processor-1",
                 "queues": ["document_processing", "document_processing_priority"],
@@ -191,7 +191,7 @@ class QueueHealthConfig(BaseModel):
     
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "max_queue_size": 1000,
                 "max_failed_job_rate": 0.1,
@@ -217,7 +217,7 @@ class PriorityConfig(BaseModel):
     
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "enable_priority_processing": True,
                 "priority_queue_weight": 3,
