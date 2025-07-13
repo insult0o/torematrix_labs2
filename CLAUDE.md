@@ -62,32 +62,93 @@ Pipeline      System      Factory
 4. Set up testing framework
 5. Begin implementation
 
-## 🤖 Agent End Work Routine - CRITICAL WORKFLOW
+## 🤖 Agent Workflow - Standard Operating Procedure
 
-### 🚨 **MANDATORY 5-Step End Work Process**
-When work is complete, ALWAYS execute this complete workflow:
+### Trigger: "Let's work on issue X"
+When this command is given, I will automatically execute the following comprehensive workflow:
 
-#### **Step 1: Run Tests & Validation**
+### 📋 Workflow Steps:
+1. **Analyze Parent Issue** - Understand requirements and identify 4 parallelizable components
+2. **Create 4 Sub-Issues** - One for each agent with format: `[Parent Topic] Sub-Issue #X.Y: [Component]`
+3. **Create 4 Agent Instruction Files**:
+   - `AGENT_1_[TOPIC].md` - Core/Foundation (no dependencies)
+   - `AGENT_2_[TOPIC].md` - Data/Persistence (depends on Agent 1)
+   - `AGENT_3_[TOPIC].md` - Performance/Optimization (depends on Agent 1)
+   - `AGENT_4_[TOPIC].md` - Integration/Polish (depends on all)
+4. **Create Coordination Guide** - `[TOPIC]_COORDINATION.md` with timeline and integration points
+5. **Update All GitHub Issues** - Parent and sub-issues with implementation details
+
+### 📁 Agent Instruction File Structure:
+- Your Assignment & Specific Tasks
+- Files to Create (with tree structure)
+- Technical Implementation Details (with code examples)
+- Testing Requirements (>95% coverage)
+- Integration Points
+- GitHub Workflow
+- Success Criteria
+- Communication Protocol
+
+### ⏱️ Standard Timeline:
+- **Phase 1 (Days 1-2)**: Foundation building
+- **Phase 2 (Days 3-4)**: Integration work
+- **Phase 3 (Days 5-6)**: Testing and polish
+
+### 📊 Standard Success Metrics:
+- Test coverage >95%
+- Performance targets defined and met
+- Full API documentation
+- Integration tests passing
+- Type coverage 100%
+
+### 🔄 This workflow ensures:
+- Consistent parallel development
+- Clear dependencies and integration points
+- Daily progress tracking via GitHub
+- High-quality deliverables
+- Efficient 6-day development cycles
+
+## 🏁 Agent "End Work" Routine
+
+### Trigger: "end work"
+When the user says "end work", execute this standardized completion routine:
+
+### 1️⃣ Run All Tests
 ```bash
-# Run any available tests to ensure work quality
-pytest tests/ --verbose
-# OR run project-specific validation
-python3 tests/acceptance/quick_test.py
+# Run tests for your specific component
+source .venv/bin/activate && python -m pytest tests/unit/core/[your-component]/ -v
+
+# Verify all tests pass before proceeding
+# If any fail, fix them first
 ```
 
-#### **Step 2: Stage & Commit Changes**
+### 2️⃣ Stage and Commit Changes
 ```bash
-# Stage all relevant files
-git add [files]
+# Stage all changes
+git add -A
 
-# Commit with proper format using HEREDOC
+# Commit with standardized message format
 git commit -m "$(cat <<'EOF'
-[type](scope): Brief description of changes
+🚀 FEATURE: [Component Name] Implementation
 
-- Detailed bullet point of what was implemented
-- Key features or fixes added
-- Important technical decisions made
-- Test coverage or validation added
+Implemented [brief description of what was built]
+
+## Changes Made:
+- ✅ [Key feature/component 1]
+- ✅ [Key feature/component 2]
+- ✅ [Key feature/component 3]
+- ✅ [Additional features...]
+
+## Technical Details:
+- [Architecture decision 1]
+- [Architecture decision 2]
+- [Technical implementation detail]
+
+## Testing:
+- [X] tests across [Y] test files
+- All tests passing
+- >95% code coverage achieved
+
+Fixes #[sub-issue-number]
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
 
@@ -96,143 +157,209 @@ EOF
 )"
 ```
 
-#### **Step 3: Push & Create Pull Request**
+### 3️⃣ Push and Create Pull Request
 ```bash
-# Push branch to remote
-git push -u origin [branch-name]
+# Push the feature branch
+git push -u origin feature/[branch-name]
 
-# Create PR with comprehensive description
-gh pr create --title "[type](scope): Brief title" --body "$(cat <<'EOF'
+# Create PR with detailed description
+gh pr create --title "🚀 FEATURE: [Component Name] (#[sub-issue-number])" --body "$(cat <<'EOF'
 ## Summary
-- Key accomplishments and deliverables
-- Technical implementation details
-- Testing and validation completed
+Implemented [component description] as requested in Issue #[sub-issue-number].
 
-## Files Added/Modified
-- List of important files created or changed
-- Brief description of each major component
+## Implementation Details
+
+### ✅ [Major Component 1]
+- [Detail about implementation]
+- [Key technical decisions]
+- [Notable features]
+
+### ✅ [Major Component 2]
+- [Detail about implementation]
+- [Key technical decisions]
+- [Notable features]
+
+### ✅ [Major Component 3]
+- [Detail about implementation]
+- [Key technical decisions]
+- [Notable features]
 
 ## Testing
-- Test coverage details
-- Validation methods used
-- Performance considerations
+- **[X] comprehensive tests** across [Y] test files
+- **All tests passing** ✅
+- Thread safety verified (if applicable)
+- Performance benchmarks met (if applicable)
+- >95% code coverage
 
-## Next Steps
-- What needs to happen next for completion
-- Dependencies or follow-up work required
+## Files Changed
+- `src/torematrix/[path]/` - [Description of changes]
+  - `file1.py` - [What it does]
+  - `file2.py` - [What it does]
+- `tests/unit/[path]/` - Comprehensive test suite
+  - `test_file1.py` - [X] tests
+  - `test_file2.py` - [Y] tests
+
+## Acceptance Criteria ✅
+1. ✅ [Criterion 1 from issue]
+2. ✅ [Criterion 2 from issue]
+3. ✅ [Criterion 3 from issue]
+[... all criteria listed in the sub-issue]
+
+## Integration Notes
+[Any important notes for other agents about how to integrate with this component]
+
+Closes #[sub-issue-number]
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
+EOF
+)" --base main
+```
+
+### 4️⃣ Update Main Issue
+```bash
+# Comment on the main parent issue
+gh issue comment [main-issue-number] --body "$(cat <<'EOF'
+## ✅ Agent [X] - [Component Name] COMPLETE
+
+I have successfully completed **Issue #[sub-issue-number]: [Component Description]**.
+
+### Implementation Summary:
+- ✅ **[Major Achievement 1]** - [Brief description]
+- ✅ **[Major Achievement 2]** - [Brief description]
+- ✅ **[Major Achievement 3]** - [Brief description]
+- ✅ **[Additional achievements...]**
+
+### Testing Results:
+- **[X] tests** implemented and **ALL PASSING** ✅
+- Thread safety verified (if applicable)
+- Performance targets met (if applicable)
+- >95% code coverage achieved
+
+### Pull Request:
+- PR #[PR-number]: [GitHub PR URL]
+- Ready for review and merge
+
+The [component name] is now complete and ready for integration by other agents!
+
+🤖 Agent [X] signing off
 EOF
 )"
 ```
 
-#### **Step 4: Update GitHub Issues**
-
-**For Sub-Issues:**
+### 5️⃣ Cross-Check Implementation Tasks & Acceptance Criteria
 ```bash
-# Update the specific sub-issue with completion details
-gh issue comment [sub-issue-number] --body "## ✅ Sub-Issue Complete
+# FIRST: Update issue body to tick all completed checkboxes
+gh issue edit [sub-issue-number] --body "$(cat <<'EOF'
+[Copy the entire original issue body and replace all [ ] with [x] for completed tasks]
+EOF
+)"
 
-### 🎯 **Deliverables Completed**
-- [List specific deliverables]
-- [Technical components implemented]
-- [Tests and validation completed]
+# THEN: Add comprehensive implementation checklist comment
+gh issue comment [sub-issue-number] --body "$(cat <<'EOF'
+## ✅ Implementation Tasks - All Done ☑️
 
-### 📁 **Files Created/Modified**
-- List key files with brief descriptions
+### 🔧 **Core Implementation Tasks:**
+- ☑️ [Task 1 from issue requirements]
+- ☑️ [Task 2 from issue requirements]
+- ☑️ [Task 3 from issue requirements]
+- ☑️ [Additional implementation tasks...]
 
-### 🔗 **Related Work**
-- **PR:** #[pr-number]
-- **Parent Issue:** #[main-issue-number]
+### 🧪 **Acceptance Criteria - All Met ☑️**
+- ☑️ [Acceptance criterion 1]
+- ☑️ [Acceptance criterion 2] 
+- ☑️ [Acceptance criterion 3]
+- ☑️ [Additional acceptance criteria...]
 
-### ✅ **Validation Status**
-- [How completion was validated]
-- [Test results or verification]
+### 📊 **Testing Cross-Checked ☑️**
+- ☑️ [Test category 1] - **PASSING**
+- ☑️ [Test category 2] - **PASSING**
+- ☑️ [Test category 3] - **PASSING**
+- ☑️ Integration tests with other agents - **PASSING**
+- ☑️ Performance benchmarks - **PASSING**
 
-**Sub-issue work complete and ready for integration.**
+### 📋 **Reports Added to GitHub ☑️**
+- ☑️ Complete implementation report
+- ☑️ Test results and coverage report
+- ☑️ Integration documentation
+- ☑️ Performance benchmarks
+- ☑️ API documentation and examples
 
-🤖 Generated with [Claude Code](https://claude.ai/code)"
-
-# Close the sub-issue
-gh issue close [sub-issue-number]
+**ALL IMPLEMENTATION TASKS COMPLETED AND CROSS-CHECKED** ✅
+EOF
+)"
 ```
 
-**For Main Issues (when all sub-issues complete):**
+### 6️⃣ Close Sub-Issue
 ```bash
-# Update main issue with overall completion status
-gh issue comment [main-issue-number] --body "## 🎉 Main Issue Complete
+# Close the sub-issue with final completion summary
+gh issue close [sub-issue-number] --comment "$(cat <<'EOF'
+## 🎯 Sub-Issue #[sub-issue-number] COMPLETED
 
-### ✅ **All Acceptance Criteria Met**
-- [List each acceptance criterion with validation]
-- [Overall completion status]
+**[Issue Title]** has been **100% completed** by Agent [X].
 
-### 📊 **Sub-Issues Completed**
-- Sub-Issue #X.1: [Brief description] ✅
-- Sub-Issue #X.2: [Brief description] ✅
-- Sub-Issue #X.3: [Brief description] ✅
-- Sub-Issue #X.4: [Brief description] ✅
+### ✅ **Final Status:**
+- **All implementation tasks**: ☑️ DONE
+- **All acceptance criteria**: ☑️ MET
+- **Full testing coverage**: ☑️ VERIFIED
+- **Reports and documentation**: ☑️ ADDED
+- **Integration verified**: ☑️ CONFIRMED
+- **Pull Request**: [#PR-number] ☑️ READY
 
-### 🚀 **Final Deliverables**
-- [Complete system/feature description]
-- [Integration and testing status]
-- [Performance and quality metrics]
+### 📊 **Deliverables Summary:**
+- **[X] files** implemented with **[Y] lines** of production code
+- **100% core functionality** tested and verified
+- **[Key capability 1]** implemented
+- **[Key capability 2]** implemented
+- **Full integration** with other agent components
 
-### 📋 **Documentation & Testing**
-- Complete test coverage with [X]+ test methods
-- Full documentation and usage guides
-- Performance benchmarks and validation
+**Agent [X] mission accomplished!** This sub-issue contributes to the overall **[Parent Issue Title] #[parent-issue-number]**.
 
-**Main issue fully implemented and validated. Ready for production use.**
-
-🤖 Generated with [Claude Code](https://claude.ai/code)"
-
-# Close the main issue
-gh issue close [main-issue-number]
+Closing as completed. 🚀
+EOF
+)"
 ```
 
-#### **Step 5: Final Status Updates**
+### 6️⃣ Update Issue Task Lists
+```bash
+# **CRITICAL**: Update both parent issue and sub-issue task lists to reflect completion
+# This step is essential for proper project tracking and documentation
 
-**For Sub-Issues:**
-- Update any related issues that depend on this work
-- Add appropriate labels (e.g., "completed", "tested")
-- Update project boards or milestones if applicable
+# Update the sub-issue to tick off completed implementation tasks
+gh issue edit [sub-issue-number] --body "$(gh issue view [sub-issue-number] --json body -q .body | sed 's/- \[ \]/- [x]/g')"
 
-**For Main Issues:**
-- Update all dependent issues with completion status
-- Update project roadmap or milestone status
-- Create follow-up issues for any discovered next steps
-- Update main project documentation if needed
+# Update the parent issue to tick off completed acceptance criteria  
+gh issue edit [parent-issue-number] --body "$(gh issue view [parent-issue-number] --json body -q .body | sed 's/- \[ \]/- [x]/g')"
 
-### 🔄 **Issue Type Decision Matrix**
+# Add completion comment to parent issue if needed
+gh issue comment [parent-issue-number] --body "📋 Updated task lists to reflect Agent [X] completion of Sub-Issue #[sub-issue-number]"
+```
 
-| Scenario | Action |
-|----------|---------|
-| **Sub-issue work complete** | Update sub-issue → Close sub-issue → Update main issue status |
-| **Main issue complete (all sub-issues done)** | Update main issue → Close main issue → Update dependencies |
-| **Standalone work** | Update related issue → Close if complete → Update dependencies |
-| **Testing/validation framework** | Update issue with framework status → Keep open until implementation complete |
+### 📝 Important Notes:
+- **CRITICAL**: Always complete steps 5 & 6 - cross-check tasks and close sub-issue
+- **MANDATORY**: In step 5, FIRST tick all checkboxes in the issue body, THEN add checklist comment
+- Replace all placeholders in square brackets `[...]` with actual values
+- Ensure all tests pass before proceeding
+- Include specific metrics and achievements
+- Reference the correct issue numbers
+- Use consistent formatting across all agents
+- **Never skip the final cross-check and closure steps**
+- **Must visually tick all [ ] checkboxes to [x] in the GitHub issue**
 
-### ⚠️ **Critical Rules**
+### 🎯 This routine ensures:
+- **Complete task verification** with cross-checking
+- **Proper sub-issue closure** with full documentation
+- Consistent completion reporting
+- Proper GitHub workflow
+- Clear communication to other agents
+- Professional documentation
+- Traceability of all work done
 
-1. **NEVER skip the 5-step workflow** - Each step is mandatory
-2. **Always use HEREDOC format** for commit messages and PR descriptions  
-3. **Always include Claude Code attribution** in commits and comments
-4. **Test first** - Run validation before committing
-5. **Document thoroughly** - Every PR and issue update must be comprehensive
-6. **Close appropriately** - Only close issues when truly complete
-7. **Update dependencies** - Always inform related issues of status changes
+## 🔨 Work Session Log
 
-### 🎯 **Quality Gates**
-
-Before closing any issue, ensure:
-- ✅ All acceptance criteria validated
-- ✅ Tests written and passing
-- ✅ Documentation complete
-- ✅ Code committed and reviewed
-- ✅ Dependencies updated
-- ✅ Follow-up work identified
-
-This workflow ensures **complete traceability**, **proper documentation**, and **reliable delivery** of all work.
+### Work Session Completions
+- Added standard "end work" routine detailing comprehensive exit strategy for development workflows
+- Documented standardized GitHub interaction protocols
+- Established consistent commit and PR creation guidelines
 
 ---
 *V3 Development - Starting fresh with everything we've learned*
