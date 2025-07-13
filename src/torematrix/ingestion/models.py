@@ -81,7 +81,7 @@ class FileMetadata(BaseModel):
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "file_id": "550e8400-e29b-41d4-a716-446655440000",
                 "filename": "document.pdf",
@@ -113,7 +113,7 @@ class UploadResult(BaseModel):
     
     class Config:
         """Pydantic configuration."""
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "file_id": "550e8400-e29b-41d4-a716-446655440000",
                 "filename": "document.pdf",
@@ -145,7 +145,7 @@ class UploadSession(BaseModel):
         json_encoders = {
             datetime: lambda v: v.isoformat()
         }
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "session_id": "session-550e8400-e29b-41d4-a716-446655440000",
                 "user_id": "user-123",

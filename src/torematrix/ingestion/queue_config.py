@@ -58,7 +58,7 @@ class QueueConfig(BaseModel):
     class Config:
         """Pydantic configuration."""
         env_prefix = "TOREMATRIX_QUEUE_"
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "redis_url": "redis://localhost:6379/0",
                 "batch_size": 10,
@@ -73,7 +73,7 @@ class RetryPolicy(BaseModel):
     """Retry policy for failed jobs with configurable backoff strategies."""
     
     max_attempts: int = Field(default=3, ge=1, le=10)
-    backoff_type: str = Field(default="exponential", regex="^(linear|exponential|fixed)$")
+    backoff_type: str = Field(default="exponential", pattern="^(linear|exponential|fixed)$")
     initial_delay: int = Field(default=60, ge=1)  # seconds
     max_delay: int = Field(default=3600, ge=60)  # 1 hour max
     jitter: bool = Field(default=True)

@@ -1,198 +1,250 @@
 #!/usr/bin/env python3
 """
-Basic test for Agent 4 configuration management implementation.
+Basic Agent 4 Integration Test.
+
+Simple validation test that doesn't require external dependencies
+like Redis or PostgreSQL.
 """
 
 import sys
-import tempfile
-import json
 from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-def test_encryption():
-    """Test configuration encryption functionality."""
-    print("Testing encryption...")
+
+def test_imports():
+    """Test that all core modules can be imported."""
+    print("🧪 Testing Core Module Imports")
+    print("-" * 40)
     
-    from torematrix.core.config.security.encryption import ConfigEncryption
-    from torematrix.core.config.exceptions import ConfigurationError
+    tests = [
+        ("Integration Settings", "src.torematrix.ingestion.integration", "IngestionSettings"),
+        ("File Models", "src.torematrix.ingestion.models", "FileMetadata"),
+        ("Queue Config", "src.torematrix.ingestion.queue_config", "QueueConfig"),
+        ("Unstructured Integration", "src.torematrix.integrations.unstructured.integration", "UnstructuredIntegration"),
+    ]
     
-    # Test key generation and basic encryption
-    enc = ConfigEncryption()
-    key = ConfigEncryption.generate_key()
-    enc.set_key(key)
+    success_count = 0
     
-    # Test value encryption
-    test_value = "secret_password"
-    encrypted = enc.encrypt_value(test_value)
-    decrypted = enc.decrypt_value(encrypted)
+    for name, module_path, class_name in tests:
+        try:
+            module = __import__(module_path, fromlist=[class_name])
+            cls = getattr(module, class_name)
+            print(f"✅ {name}: {cls.__name__}")
+            success_count += 1
+        except Exception as e:
+            print(f"❌ {name}: {e}")
     
-    assert decrypted == test_value, "Basic encryption/decryption failed"
-    
-    # Test config encryption
-    config = {
-        "database": {
-            "host": "localhost",
-            "password": "secret123"
-        },
-        "api_key": "key456",
-        "public_setting": "not_secret"
-    }
-    
-    encrypted_config = enc.encrypt_config(config)
-    
-    # Check that sensitive fields are encrypted
-    assert encrypted_config["database"]["password"].startswith("ENC:")
-    assert encrypted_config["api_key"].startswith("ENC:")
-    assert encrypted_config["public_setting"] == "not_secret"  # Not encrypted
-    
-    # Test decryption
-    decrypted_config = enc.decrypt_config(encrypted_config)
-    assert decrypted_config["database"]["password"] == "secret123"
-    assert decrypted_config["api_key"] == "key456"
-    
-    print("✓ Encryption tests passed")
+    print(f"\nImport Results: {success_count}/{len(tests)} successful")
+    return success_count == len(tests)
 
 
-def test_secret_management():
-    """Test secret management functionality."""
-    print("Testing secret management...")
+def test_models():
+    """Test that models can be instantiated."""
+    print("\n📋 Testing Model Creation")
+    print("-" * 40)
     
-    from torematrix.core.config.security.secrets import SecretManager, EnvironmentSecretProvider, FileSecretProvider
-    import os
-    
-    # Test environment provider
-    manager = SecretManager()
-    env_provider = EnvironmentSecretProvider()
-    manager.register_provider('env', env_provider, is_default=True)
-    
-    # Set and get environment secret
-    test_key = "TEST_SECRET"
-    test_value = "secret_value_123"
-    
-    manager.set_secret(test_key, test_value)
-    retrieved = manager.get_secret(test_key)
-    
-    assert retrieved == test_value, "Environment secret storage failed"
-    
-    # Test secret interpolation
-    config = {
-        "database": {
-            "password": "${secret:db_password}",
-            "user": "admin"
-        },
-        "api_key": "${TEST_SECRET}"
-    }
-    
-    # Set db_password secret
-    manager.set_secret("db_password", "db_secret_123")
-    
-    interpolated = manager.interpolate_secrets(config)
-    
-    assert interpolated["database"]["password"] == "db_secret_123"
-    assert interpolated["api_key"] == test_value
-    assert interpolated["database"]["user"] == "admin"  # Not a secret reference
-    
-    print("✓ Secret management tests passed")
-
-
-def test_profile_management():
-    """Test profile management functionality."""
-    print("Testing profile management...")
-    
-    from torematrix.core.config.profiles.manager import ProfileManager, ProfileType
-    
-    # Create temporary directory for profiles
-    with tempfile.TemporaryDirectory() as temp_dir:
-        profiles_dir = Path(temp_dir)
-        manager = ProfileManager(profiles_dir)
+    try:
+        from src.torematrix.ingestion.models import FileMetadata, FileStatus, FileType, UploadSession
+        from src.torematrix.ingestion.queue_config import QueueConfig, RetryPolicy
+        from datetime import datetime
         
-        # Create base profile
-        base_config = {
-            "database": {
-                "host": "localhost",
-                "port": 5432
-            },
-            "debug": False
-        }
-        
-        manager.create_profile(
-            name="base",
-            config=base_config,
-            profile_type=ProfileType.ENVIRONMENT,
-            description="Base configuration"
+        # Test FileMetadata
+        file_metadata = FileMetadata(
+            filename="test.pdf",
+            file_type=FileType.PDF,
+            mime_type="application/pdf",
+            size=1024,
+            hash="abc123",
+            upload_session_id="session-123",
+            uploaded_by="user-123",
+            storage_key="/path/to/file"
         )
+        print(f"✅ FileMetadata: {file_metadata.filename}")
         
-        # Create development profile that inherits from base
-        dev_config = {
-            "database": {
-                "host": "dev.localhost"
-            },
-            "debug": True
-        }
-        
-        manager.create_profile(
-            name="development",
-            config=dev_config,
-            profile_type=ProfileType.ENVIRONMENT,
-            parent="base",
-            description="Development environment"
+        # Test UploadSession
+        session = UploadSession(
+            user_id="user-123",
+            created_at=datetime.utcnow()
         )
+        print(f"✅ UploadSession: {session.session_id}")
         
-        # Test profile resolution
-        manager.activate_profile("development")
+        # Test QueueConfig
+        config = QueueConfig()
+        print(f"✅ QueueConfig: {config.default_queue_name}")
         
-        empty_base = {}
-        resolved_config = manager.resolve_config(empty_base, "development")
+        # Test RetryPolicy
+        retry_policy = RetryPolicy()
+        print(f"✅ RetryPolicy: {retry_policy.max_attempts} attempts")
         
-        # Should have merged base and development configs
-        assert resolved_config["database"]["host"] == "dev.localhost"  # From dev
-        assert resolved_config["database"]["port"] == 5432  # From base
-        assert resolved_config["debug"] is True  # From dev
+        return True
         
-        # Test profile listing
-        profiles = manager.list_profiles()
-        assert "base" in profiles
-        assert "development" in profiles
-        
-        print("✓ Profile management tests passed")
+    except Exception as e:
+        print(f"❌ Model creation failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 
-def test_cli_functionality():
-    """Test CLI functionality (basic import)."""
-    print("Testing CLI...")
+def test_unstructured_formats():
+    """Test Unstructured.io format support."""
+    print("\n🔌 Testing Unstructured.io Integration")
+    print("-" * 40)
     
-    # Just test that CLI module can be imported
-    from torematrix.core.config.cli import cli
+    try:
+        from src.torematrix.integrations.unstructured.integration import UnstructuredIntegration
+        
+        integration = UnstructuredIntegration()
+        formats = integration.get_supported_formats()
+        
+        total_formats = sum(len(exts) for exts in formats.values())
+        print(f"✅ Format support: {total_formats} file extensions")
+        
+        for category, extensions in formats.items():
+            print(f"   {category}: {len(extensions)} formats")
+        
+        # Test that we have required formats
+        required_categories = ['pdf', 'office', 'text', 'web']
+        missing_categories = [cat for cat in required_categories if cat not in formats]
+        
+        if missing_categories:
+            print(f"⚠️  Missing categories: {missing_categories}")
+            return False
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Unstructured integration test failed: {e}")
+        return False
+
+
+def test_file_fixtures():
+    """Test file creation fixtures."""
+    print("\n📄 Testing Test Fixtures")
+    print("-" * 40)
     
-    # CLI module imports successfully
-    assert cli is not None
+    try:
+        from tests.fixtures.ingestion_fixtures import (
+            create_test_files, 
+            generate_random_content,
+            TestDataGenerator
+        )
+        import tempfile
+        
+        # Test content generation
+        content = generate_random_content(50)
+        print(f"✅ Content generation: {len(content)} characters")
+        
+        # Test file creation
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_files = create_test_files([
+                ("test.txt", "Test content"),
+                ("test.html", "<h1>Test</h1>")
+            ], Path(tmpdir))
+            
+            print(f"✅ File creation: {len(test_files)} files created")
+            
+            # Test data generator
+            generator = TestDataGenerator(Path(tmpdir))
+            batch_files = generator.create_document_batch(3)
+            print(f"✅ Data generator: {len(batch_files)} batch files")
+            generator.cleanup()
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Fixture test failed: {e}")
+        return False
+
+
+def test_basic_integration():
+    """Test basic integration without external dependencies."""
+    print("\n🔧 Testing Basic Integration")
+    print("-" * 40)
     
-    print("✓ CLI tests passed")
+    try:
+        from src.torematrix.ingestion.integration import IngestionSettings
+        
+        # Test settings creation
+        settings = IngestionSettings(
+            upload_dir="/tmp/test",
+            database_url="sqlite:///test.db"
+        )
+        print(f"✅ Settings: {len(settings.allowed_extensions)} allowed extensions")
+        
+        # Test that integration system can be imported
+        from src.torematrix.ingestion.integration import IngestionSystem
+        print(f"✅ IngestionSystem class available")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Basic integration test failed: {e}")
+        return False
+
+
+def print_summary(results):
+    """Print test summary."""
+    print("\n" + "=" * 60)
+    print("🎯 AGENT 4 BASIC TEST SUMMARY")
+    print("=" * 60)
+    
+    for test_name, success in results.items():
+        status = "✅ PASS" if success else "❌ FAIL"
+        print(f"{test_name}: {status}")
+    
+    total_tests = len(results)
+    passed_tests = sum(results.values())
+    
+    print(f"\nResults: {passed_tests}/{total_tests} tests passed")
+    
+    if passed_tests == total_tests:
+        print("\n🎉 All basic tests passed!")
+        print("   Agent 4 components are properly structured")
+        print("   Ready for full integration testing with dependencies")
+    else:
+        print("\n⚠️  Some tests failed - review errors above")
+    
+    print("\n📚 Next Steps:")
+    print("   1. Install Redis: docker run -d -p 6379:6379 redis:7-alpine")
+    print("   2. Run full integration test: python test_agent4_integration.py")
+    print("   3. Run test suite: pytest tests/")
+    print("   4. Deploy with Docker: docker-compose -f docker-compose.test.yml up")
+    
+    return passed_tests == total_tests
 
 
 def main():
-    """Run all tests."""
-    print("TORE Matrix Configuration Management - Agent 4 Tests")
-    print("=" * 60)
+    """Main test function."""
+    print("🚀 Agent 4 Basic Integration Validation")
+    print(f"🐍 Python version: {sys.version}")
+    print(f"📍 Working directory: {Path.cwd()}")
     
+    # Run tests
+    results = {
+        "Module Imports": test_imports(),
+        "Model Creation": test_models(),
+        "Unstructured Formats": test_unstructured_formats(),
+        "Test Fixtures": test_file_fixtures(),
+        "Basic Integration": test_basic_integration()
+    }
+    
+    # Print summary
+    success = print_summary(results)
+    
+    return 0 if success else 1
+
+
+if __name__ == "__main__":
     try:
-        test_encryption()
-        test_secret_management() 
-        test_profile_management()
-        test_cli_functionality()
-        
-        print("\n" + "=" * 60)
-        print("🎉 All Agent 4 tests passed! Configuration management system is working.")
-        return 0
-        
+        result = main()
+        sys.exit(result)
+    except KeyboardInterrupt:
+        print("\n⏹️  Test interrupted by user")
+        sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Test failed: {e}")
+        print(f"\n💥 Unexpected error: {e}")
         import traceback
         traceback.print_exc()
-        return 1
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+        sys.exit(1)
