@@ -271,6 +271,21 @@ EOF
 )"
 ```
 
+### 6️⃣ Update Issue Task Lists
+```bash
+# **CRITICAL**: Update both parent issue and sub-issue task lists to reflect completion
+# This step is essential for proper project tracking and documentation
+
+# Update the sub-issue to tick off completed implementation tasks
+gh issue edit [sub-issue-number] --body "$(gh issue view [sub-issue-number] --json body -q .body | sed 's/- \[ \]/- [x]/g')"
+
+# Update the parent issue to tick off completed acceptance criteria  
+gh issue edit [parent-issue-number] --body "$(gh issue view [parent-issue-number] --json body -q .body | sed 's/- \[ \]/- [x]/g')"
+
+# Add completion comment to parent issue if needed
+gh issue comment [parent-issue-number] --body "📋 Updated task lists to reflect Agent [X] completion of Sub-Issue #[sub-issue-number]"
+```
+
 ### 📝 Important Notes:
 - Replace all placeholders in square brackets `[...]` with actual values
 - Ensure all tests pass before proceeding
