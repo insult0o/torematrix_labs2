@@ -23,6 +23,11 @@ try:
     WATCHDOG_AVAILABLE = True
 except ImportError:
     WATCHDOG_AVAILABLE = False
+    # Create dummy classes when watchdog is not available
+    class FileSystemEventHandler:
+        def on_modified(self, event): pass
+        def on_created(self, event): pass
+        def on_deleted(self, event): pass
 
 from .types import ConfigDict, ConfigSource
 from .exceptions import ConfigurationError
