@@ -632,7 +632,7 @@ def test_v1_compatibility_acceptance_criteria():
     assert title.element_type == ElementType.TITLE
     assert title.text == "Comprehensive Test Document"
     assert title.metadata.confidence == 0.98
-    assert title.metadata.coordinates.layout_bbox == [50, 50, 500, 100]
+    assert title.metadata.coordinates.layout_bbox == (50, 50, 500, 100)
     
     table = converted_elements[1]
     assert isinstance(table, TableElement)
