@@ -246,39 +246,85 @@ EOF
 )"
 ```
 
-### 5️⃣ Close Sub-Issue
+### 5️⃣ Cross-Check Implementation Tasks & Acceptance Criteria
 ```bash
-# Close the sub-issue with final summary
+# Add comprehensive implementation checklist to sub-issue
+gh issue comment [sub-issue-number] --body "$(cat <<'EOF'
+## ✅ Implementation Tasks - All Done ☑️
+
+### 🔧 **Core Implementation Tasks:**
+- ☑️ [Task 1 from issue requirements]
+- ☑️ [Task 2 from issue requirements]
+- ☑️ [Task 3 from issue requirements]
+- ☑️ [Additional implementation tasks...]
+
+### 🧪 **Acceptance Criteria - All Met ☑️**
+- ☑️ [Acceptance criterion 1]
+- ☑️ [Acceptance criterion 2] 
+- ☑️ [Acceptance criterion 3]
+- ☑️ [Additional acceptance criteria...]
+
+### 📊 **Testing Cross-Checked ☑️**
+- ☑️ [Test category 1] - **PASSING**
+- ☑️ [Test category 2] - **PASSING**
+- ☑️ [Test category 3] - **PASSING**
+- ☑️ Integration tests with other agents - **PASSING**
+- ☑️ Performance benchmarks - **PASSING**
+
+### 📋 **Reports Added to GitHub ☑️**
+- ☑️ Complete implementation report
+- ☑️ Test results and coverage report
+- ☑️ Integration documentation
+- ☑️ Performance benchmarks
+- ☑️ API documentation and examples
+
+**ALL IMPLEMENTATION TASKS COMPLETED AND CROSS-CHECKED** ✅
+EOF
+)"
+```
+
+### 6️⃣ Close Sub-Issue
+```bash
+# Close the sub-issue with final completion summary
 gh issue close [sub-issue-number] --comment "$(cat <<'EOF'
-## ✅ Issue Complete
+## 🎯 Sub-Issue #[sub-issue-number] COMPLETED
 
-The [Component Name] has been successfully implemented!
+**[Issue Title]** has been **100% completed** by Agent [X].
 
-### Deliverables:
-- ✅ [Deliverable 1 from issue]
-- ✅ [Deliverable 2 from issue]
-- ✅ [Deliverable 3 from issue]
-- ✅ [X] comprehensive tests (all passing)
-- ✅ >95% code coverage
+### ✅ **Final Status:**
+- **All implementation tasks**: ☑️ DONE
+- **All acceptance criteria**: ☑️ MET
+- **Full testing coverage**: ☑️ VERIFIED
+- **Reports and documentation**: ☑️ ADDED
+- **Integration verified**: ☑️ CONFIRMED
+- **Pull Request**: [#PR-number] ☑️ READY
 
-### Pull Request:
-PR #[PR-number]: [GitHub PR URL]
+### 📊 **Deliverables Summary:**
+- **[X] files** implemented with **[Y] lines** of production code
+- **100% core functionality** tested and verified
+- **[Key capability 1]** implemented
+- **[Key capability 2]** implemented
+- **Full integration** with other agent components
 
-All acceptance criteria have been met and the implementation is ready for integration.
+**Agent [X] mission accomplished!** This sub-issue contributes to the overall **[Parent Issue Title] #[parent-issue-number]**.
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
+Closing as completed. 🚀
 EOF
 )"
 ```
 
 ### 📝 Important Notes:
+- **CRITICAL**: Always complete steps 5 & 6 - cross-check tasks and close sub-issue
 - Replace all placeholders in square brackets `[...]` with actual values
 - Ensure all tests pass before proceeding
 - Include specific metrics and achievements
 - Reference the correct issue numbers
 - Use consistent formatting across all agents
+- **Never skip the final cross-check and closure steps**
 
 ### 🎯 This routine ensures:
+- **Complete task verification** with cross-checking
+- **Proper sub-issue closure** with full documentation
 - Consistent completion reporting
 - Proper GitHub workflow
 - Clear communication to other agents
