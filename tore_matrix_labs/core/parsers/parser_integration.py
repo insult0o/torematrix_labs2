@@ -12,7 +12,8 @@ from typing import Dict, Any, List, Optional
 from .base_parser import ParseResult, ParserConfiguration, ParsingStrategy
 from .document_parser_factory import DocumentParserFactory
 from .elements.base_element import ParsedElement, ElementType
-from ..content_extractor import ExtractedContent, TextElement as LegacyTextElement
+from ..content_extractor import ExtractedContent
+from ..document_analyzer import DocumentElement as LegacyTextElement
 from ..document_analyzer import PageAnalysis
 from ...models.document_models import Document
 
