@@ -112,8 +112,8 @@ class Element:
         Returns:
             Element instance reconstructed from data
         """
-        # Import from parent module to use the stub if needed
-        from torematrix.core.models import ElementMetadata
+        # Import from local module
+        from .metadata import ElementMetadata
         
         # Handle metadata if present
         metadata = None
