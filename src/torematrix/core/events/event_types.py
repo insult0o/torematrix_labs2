@@ -49,3 +49,43 @@ class ErrorEvent(DocumentEvent):
     error_message: str = ""
     stack_trace: Optional[str] = None
     recovery_attempted: bool = False
+
+
+# Queue and Processing Events for Agent 2
+class ProcessingEventTypes(Enum):
+    """Event types for document processing pipeline."""
+    JOB_ENQUEUED = "processing.job.enqueued"
+    JOB_STARTED = "processing.job.started"
+    JOB_PROGRESS = "processing.job.progress"
+    JOB_COMPLETED = "processing.job.completed"
+    JOB_FAILED = "processing.job.failed"
+    JOB_RETRIED = "processing.job.retried"
+    JOB_CANCELLED = "processing.job.cancelled"
+    
+    BATCH_ENQUEUED = "processing.batch.enqueued"
+    BATCH_STARTED = "processing.batch.started" 
+    BATCH_PROGRESS = "processing.batch.progress"
+    BATCH_COMPLETED = "processing.batch.completed"
+    BATCH_FAILED = "processing.batch.failed"
+    
+    QUEUE_STATUS_CHANGED = "processing.queue.status_changed"
+    WORKER_STATUS_CHANGED = "processing.worker.status_changed"
+    
+    PROGRESS_UPDATED = "processing.progress.updated"
+    SESSION_PROGRESS_UPDATED = "processing.session.progress_updated"
+
+
+@dataclass  
+class ProcessingEvent(Event):
+    """Event for processing pipeline operations."""
+    file_id: Optional[str] = None
+    job_id: Optional[str] = None
+    batch_id: Optional[str] = None
+    session_id: Optional[str] = None
+    queue_name: Optional[str] = None
+    worker_id: Optional[str] = None
+    progress: Optional[float] = None  # 0.0 to 1.0
+    error: Optional[str] = None
+    retry_count: Optional[int] = None
+    processing_time: Optional[float] = None
+    data: Dict[str, Any] = field(default_factory=dict)
