@@ -186,37 +186,52 @@ class Stage(ABC):
 
 
 class ProcessorStage(Stage):
-    """Base class for document processor stages."""
+    """Stage that executes a document processor from the processor plugin system."""
+    
+    def __init__(self, config: StageConfig):
+        super().__init__(config)
+        self.processor = None
+        self._registry = None
     
     async def _initialize(self) -> None:
-        """Initialize processor."""
-        # Load processor based on config
-        # This will be implemented to work with Agent 2's processor system
-        pass
+        """Initialize processor from registry."""
+        try:
+            # Import registry on demand to avoid circular imports
+            from ..processors.registry import get_registry
+            self._registry = get_registry()
+            
+            # Get processor instance
+            self.processor = await self._registry.get_processor(
+                self.config.processor,
+                self.config.config
+            )
+            logger.info(f"Initialized processor: {self.config.processor} for stage {self.name}")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize processor {self.config.processor}: {e}")
+            raise
     
     async def execute(self, context: 'PipelineContext') -> StageResult:
-        """Execute document processing."""
+        """Execute document processing using the processor."""
         start_time = datetime.utcnow()
         
+        if not self.processor:
+            raise RuntimeError(f"Processor not initialized: {self.config.processor}")
+        
         try:
-            # Get document from context
-            document_id = context.document_id
+            # Convert pipeline context to processor context
+            processor_context = self._create_processor_context(context)
             
-            # Process document
-            # This would call the actual processor from Agent 2's system
-            result_data = {
-                "processed": True,
-                "document_id": document_id,
-                "processor": self.config.processor
-            }
+            # Execute processor
+            logger.debug(f"Executing processor: {self.config.processor}")
+            processor_result = await self.processor.process(processor_context)
             
-            return StageResult(
-                stage_name=self.name,
-                status=StageStatus.COMPLETED,
-                start_time=start_time,
-                end_time=datetime.utcnow(),
-                data=result_data
-            )
+            # Convert processor result to stage result
+            stage_result = processor_result.to_stage_result()
+            stage_result.stage_name = self.name  # Override with stage name
+            
+            logger.info(f"Processor stage completed: {self.name} ({processor_result.status})")
+            return stage_result
             
         except Exception as e:
             logger.error(f"Processing failed in {self.name}: {e}")
@@ -227,6 +242,43 @@ class ProcessorStage(Stage):
                 end_time=datetime.utcnow(),
                 error=str(e)
             )
+    
+    def _create_processor_context(self, pipeline_context: 'PipelineContext'):
+        """Convert pipeline context to processor context."""
+        from ..processors.base import ProcessorContext
+        
+        # Extract document information from pipeline context
+        file_path = pipeline_context.metadata.get('file_path', '')
+        mime_type = pipeline_context.metadata.get('mime_type', '')
+        
+        # Get results from previous stages
+        previous_results = {}
+        for stage_name, stage_result in pipeline_context.stage_results.items():
+            if stage_result.status == StageStatus.COMPLETED:
+                previous_results[stage_name] = stage_result.data
+        
+        return ProcessorContext(
+            document_id=pipeline_context.document_id,
+            file_path=file_path,
+            mime_type=mime_type,
+            metadata=pipeline_context.metadata.copy(),
+            previous_results=previous_results,
+            pipeline_context=pipeline_context
+        )
+    
+    def _validate(self, context: 'PipelineContext') -> None:
+        """Validate processor stage configuration."""
+        super()._validate(context)
+        
+        # Check if processor is registered
+        if self._registry and self.config.processor not in self._registry.list_processors():
+            raise ValueError(f"Processor not found: {self.config.processor}")
+    
+    async def _cleanup(self) -> None:
+        """Clean up processor resources."""
+        if self.processor:
+            await self.processor.cleanup()
+            self.processor = None
 
 
 class ValidationStage(Stage):

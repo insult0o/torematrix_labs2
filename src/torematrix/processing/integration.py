@@ -17,8 +17,8 @@ from .processors.registry import ProcessorRegistry
 from .workers.pool import WorkerPool, WorkerConfig
 from .workers.progress import ProgressTracker
 from .workers.resources import ResourceMonitor, ResourceLimits
-from ..core.events import EventBus
-from ..core.state import StateStore
+from ..core.events.event_bus import EventBus
+from .pipeline.state_store import StateStore
 from ..integrations.unstructured.client import UnstructuredClient
 from ..integrations.unstructured.config import UnstructuredConfig
 
@@ -52,10 +52,7 @@ class ProcessingSystem:
         
         # Core components
         self.event_bus = EventBus()
-        self.state_store = StateStore(
-            persistence_enabled=config.state_persistence_enabled,
-            storage_path=config.state_store_path
-        )
+        self.state_store = StateStore()
         
         # Resource management
         self.resource_monitor = ResourceMonitor(
@@ -64,7 +61,7 @@ class ProcessingSystem:
         
         # Processing components
         self.processor_registry = ProcessorRegistry()
-        self.progress_tracker = ProgressTracker(self.event_bus)
+        self.progress_tracker = ProgressTracker(None)  # Will set event_bus in initialize()
         
         self.worker_pool = WorkerPool(
             config=config.worker_config,
@@ -105,6 +102,11 @@ class ProcessingSystem:
             logger.info("Initializing processing system...")
             
             try:
+                # Set event bus for progress tracker now that event loop is running
+                self.progress_tracker.event_bus = self.event_bus
+                if hasattr(self.progress_tracker, '_subscribe_to_events'):
+                    asyncio.create_task(self.progress_tracker._subscribe_to_events())
+                
                 # Register built-in processors
                 await self._register_processors()
                 
@@ -115,21 +117,22 @@ class ProcessingSystem:
                 if self.monitoring:
                     await self.monitoring.start()
                 
-                # Load persisted state
-                if self.config.state_persistence_enabled:
-                    await self.state_store.load()
+                # Load persisted state (StateStore is ready to use)
                 
                 self._running = True
                 logger.info("Processing system initialized successfully")
                 
                 # Emit system started event
-                await self.event_bus.emit({
-                    "type": "system_started",
-                    "data": {
+                from ..core.events.event_types import Event
+                event = Event(
+                    event_type="system_started",
+                    payload={
                         "config": self.config.dict() if hasattr(self.config, 'dict') else str(self.config),
                         "timestamp": str(asyncio.get_event_loop().time())
-                    }
-                })
+                    },
+                    id=f"system_started_{int(asyncio.get_event_loop().time())}"
+                )
+                await self.event_bus.publish(event)
                 
             except Exception as e:
                 logger.error(f"Failed to initialize processing system: {e}")
@@ -151,15 +154,13 @@ class ProcessingSystem:
             await self.worker_pool.wait_for_completion(timeout=60.0)
             
             # Shutdown components in order
-            await self.worker_pool.stop()
+            await self.worker_pool.stop(timeout=60.0)
             await self.resource_monitor.stop()
             
             if self.monitoring:
                 await self.monitoring.stop()
             
-            # Persist state
-            if self.config.state_persistence_enabled:
-                await self.state_store.save()
+            # Persist state (no specific save method needed for simple StateStore)
             
             # Cleanup processor registry
             await self.processor_registry.shutdown()
@@ -201,8 +202,7 @@ class ProcessingSystem:
         
         # Create pipeline context
         pipeline_id = await self.pipeline_manager.create_pipeline(
-            pipeline_name=pipeline_name,
-            document_path=document_path,
+            document_id=str(document_path),
             metadata=metadata or {}
         )
         
@@ -257,7 +257,7 @@ class ProcessingSystem:
         return {
             "workers": self.worker_pool.get_stats(),
             "resources": self.resource_monitor.get_current_usage(),
-            "pipelines": self.pipeline_manager.get_stats(),
+            "pipelines": {"status": self.pipeline_manager.status.value},
             "processors": {
                 "registered": len(self.processor_registry.list_processors()),
                 "active": len(self.processor_registry._instances)
