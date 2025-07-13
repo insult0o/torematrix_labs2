@@ -1,1 +1,1 @@
-# Unit tests for processing module
+"""Unit tests for processing module."""
