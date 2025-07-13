@@ -151,7 +151,7 @@ class FallbackHandler:
         
         return metadata
     
-    async def _handle_timeout_error(self, element: UnifiedElement) -> Optional[ParseResponse]:
+    async def _handle_timeout_error(self, element: UnifiedElement) -> Optional['ParseResponse']:
         """Handle timeout errors with faster fallback."""
         self.logger.info("Attempting fast fallback for timeout error")
         
@@ -191,7 +191,7 @@ class FallbackHandler:
         
         return None
     
-    async def _handle_memory_error(self, element: UnifiedElement) -> Optional[ParseResponse]:
+    async def _handle_memory_error(self, element: UnifiedElement) -> Optional['ParseResponse']:
         """Handle memory errors with lightweight fallback."""
         self.logger.info("Attempting lightweight fallback for memory error")
         
@@ -230,7 +230,7 @@ class FallbackHandler:
         
         return None
     
-    async def _handle_generic_error(self, element: UnifiedElement, error: Exception) -> Optional[ParseResponse]:
+    async def _handle_generic_error(self, element: UnifiedElement, error: Exception) -> Optional['ParseResponse']:
         """Handle generic errors with safe fallback."""
         self.logger.info(f"Attempting safe fallback for error: {type(error).__name__}")
         

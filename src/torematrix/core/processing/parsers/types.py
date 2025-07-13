@@ -118,4 +118,3 @@ class ParserCapabilities(BaseModel):
     
     class Config:
         extra = "forbid"
-        use_enum_values = True
