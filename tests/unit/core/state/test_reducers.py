@@ -340,12 +340,16 @@ class TestCombineReducers:
     def test_combine_reducers(self):
         """Test combining multiple reducers."""
         # Create simple reducers
-        def counter_reducer(state=0, action=None):
+        def counter_reducer(state=None, action=None):
+            if state is None:
+                state = 0
             if action and action.type == 'INCREMENT':
                 return state + 1
             return state
         
-        def toggle_reducer(state=False, action=None):
+        def toggle_reducer(state=None, action=None):
+            if state is None:
+                state = False
             if action and action.type == 'TOGGLE':
                 return not state
             return state
@@ -370,7 +374,9 @@ class TestCombineReducers:
     
     def test_combine_reducers_immutability(self):
         """Test combined reducers maintain immutability."""
-        def changing_reducer(state={'value': 1}, action=None):
+        def changing_reducer(state=None, action=None):
+            if state is None:
+                state = {'value': 1}
             if action and action.type == 'CHANGE':
                 return {'value': state['value'] + 1}
             return state

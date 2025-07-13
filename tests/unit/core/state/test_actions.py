@@ -13,7 +13,7 @@ import pytest
 from datetime import datetime
 import time
 
-from torematrix.core.state.actions import (
+from src.torematrix.core.state.actions import (
     Action, ActionType, ActionValidator,
     create_action, init_store, reset_store, hydrate_store,
     set_document, add_element, update_element, delete_element,

@@ -27,13 +27,14 @@ def combine_reducers(reducers: Dict[str, ReducerType]) -> ReducerType:
         next_state = {}
         
         for key, reducer in reducers.items():
-            previous_state_for_key = state.get(key, {})
+            previous_state_for_key = state.get(key, None)
             next_state_for_key = reducer(previous_state_for_key, action)
             
             next_state[key] = next_state_for_key
             has_changed = has_changed or (next_state_for_key != previous_state_for_key)
         
-        return next_state if has_changed else state
+        # Always return next_state to ensure all reducers are initialized
+        return next_state
     
     return root_reducer
 
