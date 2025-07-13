@@ -343,8 +343,8 @@ class MathDetector:
         delimiters = [
             (r'\$\$(.*?)\$\$', 'display'),
             (r'\$(.*?)\$', 'inline'),
-            (r'\\[\[(.*?)\\]\]', 'display'),
-            (r'\\[\((.*?)\\)\]', 'inline'),
+            (r'\\[\[](.*)\\[\]]', 'display'),
+            (r'\\[\(](.*)\\[\)]', 'inline'),
         ]
         
         for pattern, math_type in delimiters:

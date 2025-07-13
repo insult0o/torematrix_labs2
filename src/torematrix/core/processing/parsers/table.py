@@ -54,11 +54,19 @@ class TableParser(BaseParser):
     
     def can_parse(self, element: UnifiedElement) -> bool:
         """Check if element is a table."""
-        return (
-            hasattr(element, 'type') and element.type == "Table" or
-            hasattr(element, 'category') and element.category == "table" or
-            self._has_table_indicators(element)
-        )
+        if not element:
+            return False
+            
+        # Check element type
+        if hasattr(element, 'element_type'):
+            return element.element_type.value == ElementType.TABLE.value
+        elif hasattr(element, 'type'):
+            return element.type == "Table"
+        elif hasattr(element, 'category'):
+            return element.category == "table"
+        
+        # Check for table indicators in content
+        return self._has_table_indicators(element)
     
     async def parse(self, element: UnifiedElement, hints: Optional[ProcessingHints] = None) -> ParserResult:
         """Parse table with structure preservation."""

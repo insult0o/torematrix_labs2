@@ -5,7 +5,8 @@ import logging
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
 
-from .base import BaseParser, ParserResult, ParserMetadata, UnifiedElement
+from .base import BaseParser, ParserResult, ParserMetadata
+from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
 from .types import ElementType, ParserConfig, ParserCapabilities, ProcessingHints, ParserPriority
 from .structural.list_detector import ListDetector, ListItem, ListStructure, ListType
 from .exceptions import StructureExtractionError, ValidationError

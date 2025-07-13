@@ -229,7 +229,7 @@ class OCREngine:
         
         try:
             # Configure Tesseract
-            config = f'--oem {self.config.oem} --psm {self.config.psm} -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,!?()[]{}:;-+*/=<>@#$%^&_|\\`~"\' '
+            config = f'--oem {self.config.oem} --psm {self.config.psm} -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,!?()[]{{}}:;-+*/=<>@#$%^&_|\\`~"\' '
             
             # Get text and confidence data
             text = pytesseract.image_to_string(image, lang='+'.join(self.config.languages), config=config)
