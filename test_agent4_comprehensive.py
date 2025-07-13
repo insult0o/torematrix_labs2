@@ -218,9 +218,9 @@ Agent 4 successfully processes markdown with:
         
         # Integration status
         print(f"\n🔗 Integration Status:")
-        print(f"  Bridge Available: {status['bridge_available']}")
-        print(f"  Handlers: {', '.join(status['handlers'])}")
-        print(f"  Supported Extensions: {status['total_extensions']}")
+        print(f"  Bridge Available: {status.get('bridge_available', False)}")
+        print(f"  Handlers: {', '.join(status.get('handlers', []))}")
+        print(f"  Supported Extensions: {status.get('total_extensions', 0)}")
         
         if successful_tests == total_tests and avg_quality > 0.5:
             print("\n🎉 AGENT 4 COMPREHENSIVE TEST: PASSED")

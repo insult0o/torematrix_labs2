@@ -102,28 +102,39 @@ class UnstructuredIntegration:
         """Try to integrate with Agent 3's optimization bridge."""
         try:
             from .bridge import OptimizedInfrastructureBridge, BridgeFactory
+            from .strategies.adaptive import SelectionCriteria
             
-            # Try to create bridge with fallback for missing config
+            # Store selection criteria for later use
+            self.SelectionCriteria = SelectionCriteria
+            
+            # Try to create bridge with development config first
             try:
                 self.bridge = BridgeFactory.create_development_bridge()
-                logger.info("Successfully integrated with Agent 3's optimization bridge")
+                logger.info("Successfully integrated with Agent 3's optimization bridge (development config)")
             except Exception as e:
-                logger.warning(f"Could not create bridge with config: {e}")
-                # Try without config
+                logger.warning(f"Could not create development bridge: {e}")
+                # Try production config
                 try:
-                    # Use the main bridge class directly with None config
-                    self.bridge = OptimizedInfrastructureBridge(None)
-                    logger.info("Created bridge without configuration")
+                    self.bridge = BridgeFactory.create_production_bridge()
+                    logger.info("Successfully integrated with Agent 3's optimization bridge (production config)")
                 except Exception as e2:
-                    logger.warning(f"Bridge creation failed: {e2}")
-                    self.bridge = None
+                    logger.warning(f"Could not create production bridge: {e2}")
+                    # Try basic bridge with no config
+                    try:
+                        self.bridge = OptimizedInfrastructureBridge()
+                        logger.info("Created basic Agent 3 bridge without specific config")
+                    except Exception as e3:
+                        logger.warning(f"Basic bridge creation failed: {e3}")
+                        self.bridge = None
                     
         except ImportError as e:
             logger.info("Agent 3's bridge not available, using standalone mode")
             self.bridge = None
+            self.SelectionCriteria = None
         except Exception as e:
             logger.warning(f"Bridge integration failed: {e}")
             self.bridge = None
+            self.SelectionCriteria = None
     
     async def initialize(self) -> None:
         """Initialize the integration system."""
@@ -215,8 +226,15 @@ class UnstructuredIntegration:
         start_time = time.time()
         
         try:
-            # Use bridge's optimized parsing
-            elements, metrics, analysis = await self.bridge.parse_document_optimized(file_path)
+            # Determine selection criteria based on file characteristics
+            selection_criteria = self._determine_selection_criteria(file_path, validation_result, **kwargs)
+            
+            # Use bridge's optimized parsing with intelligent strategy selection
+            elements, metrics, analysis = await self.bridge.parse_document_optimized(
+                file_path=file_path,
+                selection_criteria=selection_criteria,
+                use_cache=kwargs.get('use_cache', True)
+            )
             
             # Validate output
             output_validation = await self.output_validator.validate_output(
@@ -226,7 +244,7 @@ class UnstructuredIntegration:
             return ProcessingResult(
                 success=True,
                 elements=elements,
-                features=analysis,  # Agent 3's analysis
+                features=analysis,  # Agent 3's document analysis
                 processing_time=time.time() - start_time,
                 quality_score=output_validation.quality_score,
                 validation_result=validation_result,
@@ -310,7 +328,9 @@ class UnstructuredIntegration:
         
         async def process_single(file_path: Path) -> ProcessingResult:
             async with semaphore:
-                return await self.process_document(file_path, **kwargs)
+                # Add batch mode flag for optimized processing
+                batch_kwargs = {**kwargs, 'batch_mode': True}
+                return await self.process_document(file_path, **batch_kwargs)
         
         # Process all files concurrently
         tasks = [process_single(path) for path in file_paths]
@@ -404,3 +424,41 @@ class UnstructuredIntegration:
         
         self.is_initialized = False
         logger.info("UnstructuredIntegration shutdown complete")
+    
+    def _determine_selection_criteria(self, file_path: Path, validation_result, **kwargs):
+        """Determine optimal selection criteria based on file characteristics."""
+        if not self.SelectionCriteria:
+            return None  # No selection criteria available
+        
+        # Default to BALANCED
+        criteria = self.SelectionCriteria.BALANCED
+        
+        # Override based on user preference
+        if 'selection_criteria' in kwargs:
+            return kwargs['selection_criteria']
+        
+        # Intelligent selection based on file characteristics
+        file_size_mb = validation_result.file_size_mb if validation_result else 0
+        format_type = validation_result.detected_format if validation_result else 'unknown'
+        
+        # Large files - prioritize memory efficiency
+        if file_size_mb > 50:
+            criteria = self.SelectionCriteria.MEMORY
+        # Small files - prioritize quality
+        elif file_size_mb < 1:
+            criteria = self.SelectionCriteria.QUALITY
+        # Medium files - check format
+        else:
+            if format_type == 'pdf':
+                criteria = self.SelectionCriteria.QUALITY  # PDFs benefit from quality processing
+            elif format_type in ['text', 'web']:
+                criteria = self.SelectionCriteria.SPEED    # Text files can be processed quickly
+            else:
+                criteria = self.SelectionCriteria.BALANCED # Default for other formats
+        
+        # Override for batch processing
+        if kwargs.get('batch_mode', False):
+            criteria = self.SelectionCriteria.SPEED
+        
+        logger.debug(f"Selected criteria {criteria} for {file_path.name} (size: {file_size_mb:.1f}MB, format: {format_type})")
+        return criteria
