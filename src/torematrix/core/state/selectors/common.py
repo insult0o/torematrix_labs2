@@ -16,70 +16,70 @@ get_validation_state = lambda state: state.get('validation', {})
 # Document selectors
 get_document_metadata = create_selector(
     get_document,
-    lambda doc: doc.get('metadata', {}),
+    output_fn=lambda doc: doc.get('metadata', {}),
     name='get_document_metadata'
 )
 
 get_document_pages = create_selector(
     get_document,
-    lambda doc: doc.get('pages', []),
+    output_fn=lambda doc: doc.get('pages', []),
     name='get_document_pages'
 )
 
 get_current_page = create_selector(
     get_document,
     get_ui_state,
-    lambda doc, ui: ui.get('current_page', 0),
+    output_fn=lambda doc, ui: ui.get('current_page', 0),
     name='get_current_page'
 )
 
 # Element selectors
 get_element_count = create_selector(
     get_elements,
-    lambda elements: len(elements),
+    output_fn=lambda elements: len(elements),
     name='get_element_count'
 )
 
 get_visible_elements = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('visible', True)],
+    output_fn=lambda elements: [e for e in elements if e.get('visible', True)],
     name='get_visible_elements'
 )
 
 get_selected_elements = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('selected', False)],
+    output_fn=lambda elements: [e for e in elements if e.get('selected', False)],
     name='get_selected_elements'
 )
 
 get_validated_elements = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('validated', False)],
+    output_fn=lambda elements: [e for e in elements if e.get('validated', False)],
     name='get_validated_elements'
 )
 
 get_unvalidated_elements = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if not e.get('validated', False)],
+    output_fn=lambda elements: [e for e in elements if not e.get('validated', False)],
     name='get_unvalidated_elements'
 )
 
 # Element type selectors
 get_text_elements = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('type') == 'text'],
+    output_fn=lambda elements: [e for e in elements if e.get('type') == 'text'],
     name='get_text_elements'
 )
 
 get_table_elements = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('type') == 'table'],
+    output_fn=lambda elements: [e for e in elements if e.get('type') == 'table'],
     name='get_table_elements'
 )
 
 get_image_elements = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('type') == 'image'],
+    output_fn=lambda elements: [e for e in elements if e.get('type') == 'image'],
     name='get_image_elements'
 )
 
@@ -111,7 +111,7 @@ get_elements_by_status = create_parametric_selector(
 # Validation selectors
 get_validation_status = create_selector(
     get_elements,
-    lambda elements: {
+    output_fn=lambda elements: {
         'total': len(elements),
         'validated': len([e for e in elements if e.get('validated', False)]),
         'pending': len([e for e in elements if not e.get('validated', False)]),

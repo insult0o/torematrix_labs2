@@ -92,8 +92,13 @@ class OptimisticMiddleware:
             'avg_confirmation_time': 0,
         }
         
-        # Start cleanup task
-        self._cleanup_task = asyncio.create_task(self._cleanup_pending_updates())
+        # Start cleanup task if event loop is running
+        self._cleanup_task = None
+        try:
+            self._cleanup_task = asyncio.create_task(self._cleanup_pending_updates())
+        except RuntimeError:
+            # No event loop running, cleanup task will be started later
+            pass
     
     def __call__(self, store):
         """Create optimistic middleware function."""

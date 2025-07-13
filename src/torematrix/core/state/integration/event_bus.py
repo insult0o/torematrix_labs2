@@ -6,8 +6,8 @@ from typing import Dict, Any, Callable, Optional, Set
 import logging
 import time
 from dataclasses import dataclass
-from ..events.event_bus import EventBus
-from ..events.event_types import Event, StateChangedEvent
+from ...events.event_bus import EventBus
+from ...events.event_types import Event
 
 logger = logging.getLogger(__name__)
 
@@ -15,27 +15,32 @@ logger = logging.getLogger(__name__)
 @dataclass
 class StateUpdateEvent(Event):
     """Event for requesting state updates."""
-    path: str
-    value: Any
-    action_type: str = "STATE_UPDATE_REQUEST"
+    event_type: str = "STATE_UPDATE_REQUEST"
+    payload: Dict[str, Any] = None
+    path: str = ""
+    value: Any = None
     
     def __post_init__(self):
-        super().__post_init__()
-        self.type = self.action_type
+        if self.payload is None:
+            self.payload = {'path': self.path, 'value': self.value}
 
 
-@dataclass
+@dataclass  
 class StateChangeEvent(Event):
     """Event emitted when state changes."""
-    action: Any
-    state_before: Dict[str, Any]
-    state_after: Dict[str, Any]
-    timestamp: float
-    action_type: str = "STATE_CHANGED"
+    event_type: str = "STATE_CHANGED"
+    payload: Dict[str, Any] = None
+    action: Any = None
+    state_before: Dict[str, Any] = None
+    state_after: Dict[str, Any] = None
     
     def __post_init__(self):
-        super().__post_init__()
-        self.type = self.action_type
+        if self.payload is None:
+            self.payload = {
+                'action': self.action,
+                'state_before': self.state_before,
+                'state_after': self.state_after
+            }
 
 
 class EventBusIntegration:

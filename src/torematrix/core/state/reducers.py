@@ -39,7 +39,7 @@ def combine_reducers(reducers: Dict[str, ReducerType]) -> ReducerType:
 
 
 # Document reducer
-def document_reducer(state: StateSlice = None, action: Action) -> StateSlice:
+def document_reducer(state: StateSlice = None, action: Action = None) -> StateSlice:
     """
     Handle document-related state changes.
     
@@ -60,6 +60,9 @@ def document_reducer(state: StateSlice = None, action: Action) -> StateSlice:
             'is_modified': False,
             'metadata': {}
         }
+    
+    if action is None:
+        return state
     
     if action.type == ActionType.SET_DOCUMENT:
         payload = action.payload
@@ -93,15 +96,15 @@ def document_reducer(state: StateSlice = None, action: Action) -> StateSlice:
 
 
 # Elements reducer
-def elements_reducer(state: StateSlice = None, action: Action) -> StateSlice:
+def elements_reducer(state: StateSlice = None, action: Action = None) -> StateSlice:
     """
     Handle element-related state changes.
     
     State shape:
     {
         'byId': {element_id: element_data},
-        'allIds': [element_id, ...],
-        'selectedIds': [element_id, ...]
+        'allIds': [element_id],
+        'selectedIds': [element_id]
     }
     """
     if state is None:
@@ -110,6 +113,9 @@ def elements_reducer(state: StateSlice = None, action: Action) -> StateSlice:
             'allIds': [],
             'selectedIds': []
         }
+    
+    if action is None:
+        return state
     
     if action.type == ActionType.ADD_ELEMENT:
         payload = action.payload
@@ -129,7 +135,7 @@ def elements_reducer(state: StateSlice = None, action: Action) -> StateSlice:
                     **payload.element_data
                 }
             },
-            'allIds': [...state['allIds'], element_id],
+            'allIds': state['allIds'] + [element_id],
             'selectedIds': state['selectedIds']
         }
     
@@ -181,7 +187,7 @@ def elements_reducer(state: StateSlice = None, action: Action) -> StateSlice:
 
 
 # UI reducer
-def ui_reducer(state: StateSlice = None, action: Action) -> StateSlice:
+def ui_reducer(state: StateSlice = None, action: Action = None) -> StateSlice:
     """
     Handle UI-related state changes.
     
@@ -200,6 +206,9 @@ def ui_reducer(state: StateSlice = None, action: Action) -> StateSlice:
             'view_mode': 'single',
             'sidebar_visible': True
         }
+    
+    if action is None:
+        return state
     
     if action.type == ActionType.SET_PAGE:
         return {
@@ -230,7 +239,7 @@ def ui_reducer(state: StateSlice = None, action: Action) -> StateSlice:
 
 
 # Async reducer for handling async operations
-def async_reducer(state: StateSlice = None, action: Action) -> StateSlice:
+def async_reducer(state: StateSlice = None, action: Action = None) -> StateSlice:
     """
     Handle async operation state.
     
@@ -245,6 +254,9 @@ def async_reducer(state: StateSlice = None, action: Action) -> StateSlice:
             'pending': {},
             'errors': {}
         }
+    
+    if action is None:
+        return state
     
     if action.type == ActionType.ASYNC_START:
         payload = action.payload
