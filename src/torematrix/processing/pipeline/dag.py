@@ -4,7 +4,7 @@ DAG (Directed Acyclic Graph) utilities for pipeline management.
 Provides functions for validating, analyzing, and optimizing pipeline DAGs.
 """
 
-from typing import List, Set, Dict, Tuple, Optional
+from typing import List, Set, Dict, Tuple, Optional, Any
 import networkx as nx
 from collections import defaultdict
 
