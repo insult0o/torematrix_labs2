@@ -248,7 +248,13 @@ EOF
 
 ### 5️⃣ Cross-Check Implementation Tasks & Acceptance Criteria
 ```bash
-# Add comprehensive implementation checklist to sub-issue
+# FIRST: Update issue body to tick all completed checkboxes
+gh issue edit [sub-issue-number] --body "$(cat <<'EOF'
+[Copy the entire original issue body and replace all [ ] with [x] for completed tasks]
+EOF
+)"
+
+# THEN: Add comprehensive implementation checklist comment
 gh issue comment [sub-issue-number] --body "$(cat <<'EOF'
 ## ✅ Implementation Tasks - All Done ☑️
 
@@ -315,12 +321,14 @@ EOF
 
 ### 📝 Important Notes:
 - **CRITICAL**: Always complete steps 5 & 6 - cross-check tasks and close sub-issue
+- **MANDATORY**: In step 5, FIRST tick all checkboxes in the issue body, THEN add checklist comment
 - Replace all placeholders in square brackets `[...]` with actual values
 - Ensure all tests pass before proceeding
 - Include specific metrics and achievements
 - Reference the correct issue numbers
 - Use consistent formatting across all agents
 - **Never skip the final cross-check and closure steps**
+- **Must visually tick all [ ] checkboxes to [x] in the GitHub issue**
 
 ### 🎯 This routine ensures:
 - **Complete task verification** with cross-checking
