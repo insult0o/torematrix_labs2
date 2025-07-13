@@ -34,18 +34,18 @@ class Event:
 
 @dataclass
 class DocumentEvent(Event):
-    document_id: str
+    document_id: str = ""
     page_numbers: Optional[List[int]] = None
 
 @dataclass
 class ValidationEvent(DocumentEvent):
-    validation_type: str
-    validation_status: str
+    validation_type: str = ""
+    validation_status: str = ""
     validation_errors: List[Dict[str, Any]] = field(default_factory=list)
 
 @dataclass
 class ErrorEvent(DocumentEvent):
-    error_type: str
-    error_message: str
+    error_type: str = ""
+    error_message: str = ""
     stack_trace: Optional[str] = None
     recovery_attempted: bool = False

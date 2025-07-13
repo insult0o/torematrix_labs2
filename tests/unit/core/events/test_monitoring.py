@@ -27,7 +27,7 @@ def test_record_event_processing(monitor, test_event):
     event_metrics = metrics[test_event.event_type]
     
     assert event_metrics.count == 2
-    assert event_metrics.total_processing_time == 0.3
+    assert abs(event_metrics.total_processing_time - 0.3) < 0.0001
     assert event_metrics.max_processing_time == 0.2
     assert event_metrics.error_count == 0
     assert isinstance(event_metrics.last_occurrence, datetime)
@@ -51,7 +51,7 @@ def test_record_handler_execution(monitor):
     
     assert handler_metrics.success_count == 2
     assert handler_metrics.error_count == 0
-    assert handler_metrics.total_execution_time == 0.3
+    assert abs(handler_metrics.total_execution_time - 0.3) < 0.0001
     assert handler_metrics.max_execution_time == 0.2
 
 def test_record_handler_execution_with_error(monitor):
@@ -72,9 +72,9 @@ def test_get_total_metrics(monitor, test_event):
     
     assert total_metrics["total_events"] == 2
     assert total_metrics["total_errors"] == 1
-    assert total_metrics["total_processing_time"] == 0.3
+    assert abs(total_metrics["total_processing_time"] - 0.3) < 0.0001
     assert total_metrics["error_rate"] == 0.5
-    assert total_metrics["average_processing_time"] == 0.15
+    assert abs(total_metrics["average_processing_time"] - 0.15) < 0.0001
     assert "events_per_second" in total_metrics
 
 @pytest.mark.asyncio
@@ -113,7 +113,7 @@ def test_metrics_calculations():
     handler_metrics.error_count = 1
     handler_metrics.total_execution_time = 0.6
     
-    assert handler_metrics.average_execution_time == 0.2
+    assert abs(handler_metrics.average_execution_time - 0.2) < 0.0001
 
 def test_empty_metrics():
     event_metrics = EventMetrics(event_type="test")
