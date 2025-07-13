@@ -9,16 +9,33 @@ This module provides a comprehensive configuration management system with:
 """
 
 from .types import ConfigSource, ConfigValue, ConfigDict
-from .models import ApplicationConfig
-from .manager import ConfigurationManager
 from .exceptions import ConfigurationError, ValidationError
+
+# Optional imports that may require additional dependencies
+try:
+    from .models import ApplicationConfig
+    _HAS_MODELS = True
+except ImportError:
+    ApplicationConfig = None
+    _HAS_MODELS = False
+
+try:
+    from .manager import ConfigurationManager
+    _HAS_MANAGER = True
+except ImportError:
+    ConfigurationManager = None
+    _HAS_MANAGER = False
 
 __all__ = [
     "ConfigSource",
-    "ConfigValue",
+    "ConfigValue", 
     "ConfigDict",
-    "ApplicationConfig",
-    "ConfigurationManager",
     "ConfigurationError",
     "ValidationError",
 ]
+
+if _HAS_MODELS:
+    __all__.append("ApplicationConfig")
+    
+if _HAS_MANAGER:
+    __all__.append("ConfigurationManager")
