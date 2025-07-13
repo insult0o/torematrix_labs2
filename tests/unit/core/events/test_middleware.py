@@ -13,6 +13,7 @@ def test_event():
         payload={"document_id": "test123"}
     )
 
+@pytest.mark.asyncio
 async def test_validation_middleware():
     middleware = ValidationMiddleware()
     
@@ -31,6 +32,7 @@ async def test_validation_middleware():
     result = await middleware(event)
     assert result is None
 
+@pytest.mark.asyncio
 async def test_logging_middleware(caplog):
     middleware = LoggingMiddleware(log_level=logging.INFO)
     event = Event(event_type="test", payload={})
@@ -41,6 +43,7 @@ async def test_logging_middleware(caplog):
     
     assert result == event
 
+@pytest.mark.asyncio
 async def test_metrics_middleware():
     middleware = MetricsMiddleware()
     
@@ -65,6 +68,7 @@ async def test_metrics_middleware():
     assert metrics["total_events"] == 2
     assert metrics["total_errors"] == 1
 
+@pytest.mark.asyncio
 async def test_filter_middleware():
     allowed_types = [DocumentEventTypes.PROCESSING_STARTED.value]
     middleware = FilterMiddleware(allowed_types)
@@ -85,6 +89,7 @@ async def test_filter_middleware():
     result2 = await middleware(event2)
     assert result2 is None
 
+@pytest.mark.asyncio
 async def test_middleware_exception_handling():
     class FailingMiddleware(ValidationMiddleware):
         async def process(self, event: Event) -> Event:

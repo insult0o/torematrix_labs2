@@ -5,14 +5,29 @@ Provides a unified interface for creating repositories with different backends.
 """
 
 import logging
-from typing import Type, TypeVar, Dict, Any, Optional
+from typing import Type, TypeVar, Dict, Any, Optional, List
 from enum import Enum
 
 from .repository import Repository, AsyncRepository
 from .sqlite_backend import SQLiteRepository, SQLiteConfig
-from .postgres_backend import PostgreSQLRepository, PostgreSQLConfig
-from .mongodb_backend import MongoDBRepository, MongoDBConfig
 from .base_backend import BackendConfig
+
+# Optional backend imports
+_BACKEND_IMPORTS = {
+    'sqlite': (SQLiteRepository, SQLiteConfig)
+}
+
+try:
+    from .postgres_backend import PostgreSQLRepository, PostgreSQLConfig
+    _BACKEND_IMPORTS['postgresql'] = (PostgreSQLRepository, PostgreSQLConfig)
+except ImportError:
+    pass
+
+try:
+    from .mongodb_backend import MongoDBRepository, MongoDBConfig
+    _BACKEND_IMPORTS['mongodb'] = (MongoDBRepository, MongoDBConfig)
+except ImportError:
+    pass
 
 
 logger = logging.getLogger(__name__)
@@ -33,12 +48,21 @@ class StorageFactory:
     Handles backend selection, configuration, and repository creation.
     """
     
-    # Registry of backend implementations
-    _backends = {
-        StorageBackend.SQLITE: (SQLiteRepository, SQLiteConfig),
-        StorageBackend.POSTGRESQL: (PostgreSQLRepository, PostgreSQLConfig),
-        StorageBackend.MONGODB: (MongoDBRepository, MongoDBConfig),
-    }
+    @classmethod
+    def _get_backends(cls) -> Dict[StorageBackend, tuple]:
+        """Get available backend implementations."""
+        backends = {}
+        
+        if 'sqlite' in _BACKEND_IMPORTS:
+            backends[StorageBackend.SQLITE] = _BACKEND_IMPORTS['sqlite']
+        
+        if 'postgresql' in _BACKEND_IMPORTS:
+            backends[StorageBackend.POSTGRESQL] = _BACKEND_IMPORTS['postgresql']
+            
+        if 'mongodb' in _BACKEND_IMPORTS:
+            backends[StorageBackend.MONGODB] = _BACKEND_IMPORTS['mongodb']
+            
+        return backends
     
     @classmethod
     def create_repository(
@@ -65,38 +89,43 @@ class StorageFactory:
         Raises:
             ValueError: If backend is not supported
         """
-        if backend not in cls._backends:
-            raise ValueError(f"Unsupported backend: {backend}")
+        backends = cls._get_backends()
+        if backend not in backends:
+            available = [b.value for b in backends.keys()]
+            raise ValueError(f"Unsupported backend: {backend}. Available: {available}")
         
-        repo_class, config_class = cls._backends[backend]
+        repo_class, config_class = backends[backend]
         
         # Merge config dict with kwargs
+        all_config = dict(kwargs)  # Make a copy
         if config:
-            kwargs.update(config)
+            all_config.update(config)
         
         # Create configuration instance
         if backend == StorageBackend.SQLITE:
             backend_config = config_class(
-                database_path=kwargs.get('database_path', 'data/torematrix.db'),
-                **kwargs
+                database_path=all_config.get('database_path', 'data/torematrix.db'),
+                **{k: v for k, v in all_config.items() if k != 'database_path'}
             )
         elif backend == StorageBackend.POSTGRESQL:
             backend_config = config_class(
-                host=kwargs.get('host', 'localhost'),
-                port=kwargs.get('port', 5432),
-                database=kwargs.get('database', 'torematrix'),
-                user=kwargs.get('user', 'torematrix'),
-                password=kwargs.get('password', ''),
-                **kwargs
+                host=all_config.get('host', 'localhost'),
+                port=all_config.get('port', 5432),
+                database=all_config.get('database', 'torematrix'),
+                user=all_config.get('user', 'torematrix'),
+                password=all_config.get('password', ''),
+                **{k: v for k, v in all_config.items() 
+                   if k not in ['host', 'port', 'database', 'user', 'password']}
             )
         elif backend == StorageBackend.MONGODB:
             backend_config = config_class(
-                connection_string=kwargs.get('connection_string', 'mongodb://localhost:27017/'),
-                database=kwargs.get('database', 'torematrix'),
-                **kwargs
+                connection_string=all_config.get('connection_string', 'mongodb://localhost:27017/'),
+                database=all_config.get('database', 'torematrix'),
+                **{k: v for k, v in all_config.items() 
+                   if k not in ['connection_string', 'database']}
             )
         else:
-            backend_config = config_class(**kwargs)
+            backend_config = config_class(**all_config)
         
         # Create repository instance
         repository = repo_class(backend_config, entity_class, collection_name)
@@ -206,8 +235,13 @@ class StorageFactory:
             repository_class: Repository implementation class
             config_class: Configuration class for the backend
         """
-        cls._backends[backend] = (repository_class, config_class)
+        _BACKEND_IMPORTS[backend.value] = (repository_class, config_class)
         logger.info(f"Registered backend: {backend.value}")
+    
+    @classmethod
+    def get_available_backends(cls) -> List[StorageBackend]:
+        """Get list of available backends."""
+        return list(cls._get_backends().keys())
 
 
 # Convenience functions
