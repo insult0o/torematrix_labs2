@@ -46,10 +46,13 @@ except ImportError:
     ValidationResult = None
     _HAS_VALIDATORS = False
 
-# Import Agent 3 components (optimization)
+# Import Agent 3 components (optimization) - temporarily disabled due to import issues
 try:
-    from .bridge import OptimizedInfrastructureBridge, BridgeFactory
-    _HAS_OPTIMIZATION = True
+    # from .bridge import OptimizedInfrastructureBridge, BridgeFactory
+    # Temporarily disabled until other infrastructure components are fixed
+    OptimizedInfrastructureBridge = None
+    BridgeFactory = None
+    _HAS_OPTIMIZATION = False
 except ImportError:
     OptimizedInfrastructureBridge = None
     BridgeFactory = None
