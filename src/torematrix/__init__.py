@@ -1,43 +1,102 @@
 """
-TORE Matrix Labs V3 - Next-Generation Document Processing Platform
+TORE Matrix V3 - Enterprise AI Document Processing Pipeline
 
-A complete ground-up rewrite leveraging all lessons learned from V1.
+A comprehensive document processing system with advanced parsing, 
+extraction, and quality assurance capabilities.
 """
 
+# Version info
 __version__ = "3.0.0"
-__author__ = "TORE Matrix Labs Team"
-__email__ = "team@torematrixlabs.com"
+__author__ = "TORE Matrix Labs"
+__email__ = "contact@torematrix.com"
 
-# Version information
-VERSION_MAJOR = 3
-VERSION_MINOR = 0
-VERSION_PATCH = 0
-VERSION_INFO = (VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH)
+# Core imports - making key components easily accessible
+try:
+    # Core infrastructure (Issues #1-5)
+    from .core.events import EventBus, Event
+    from .core.models import Element, ElementType
+    from .core.state import Store as StateStore
+    from .core.storage import StorageFactory
+    from .core.config import ConfigManager
+except ImportError as e:
+    import warnings
+    warnings.warn(f"Core components not fully available: {e}")
 
-# Project metadata
-PROJECT_NAME = "TORE Matrix Labs"
-PROJECT_DESCRIPTION = "Enterprise Document Processing with Zero-Hallucination AI"
+try:
+    # Document processing (Issues #6-7)
+    from .integrations.unstructured import UnstructuredClient
+    from .ingestion import UploadManager, QueueManager
+except ImportError as e:
+    import warnings
+    warnings.warn(f"Document processing components not available: {e}")
 
-# API Version for backward compatibility
-API_VERSION = "v3"
+try:
+    # Processing pipeline (Issue #8)
+    from .processing.pipeline import (
+        PipelineManager,
+        PipelineConfig,
+        create_pipeline_from_template
+    )
+    from .processing.processors import ProcessorRegistry, BaseProcessor
+except ImportError as e:
+    import warnings
+    warnings.warn(f"Pipeline components not available: {e}")
 
-# Feature flags for gradual rollout
-FEATURES = {
-    "unified_elements": True,
-    "async_processing": True,
-    "multi_backend_storage": True,
-    "advanced_filtering": True,
-    "rich_visualization": True,
-}
+# Integration system - the main entry point
+from .integration import ToreMatrixSystem, SystemConfig, create_system
 
-def get_version() -> str:
-    """Get the current version string."""
+# Public API
+__all__ = [
+    # Version info
+    "__version__",
+    "__author__",
+    "__email__",
+    
+    # Main system
+    "ToreMatrixSystem",
+    "SystemConfig", 
+    "create_system",
+    
+    # Core components
+    "EventBus",
+    "Event",
+    "Element",
+    "ElementType",
+    "StateStore",
+    "StorageFactory",
+    "ConfigManager",
+    
+    # Document processing
+    "UnstructuredClient",
+    "UploadManager",
+    "QueueManager",
+    
+    # Pipeline
+    "PipelineManager",
+    "PipelineConfig",
+    "create_pipeline_from_template",
+    "ProcessorRegistry",
+    "BaseProcessor"
+]
+
+
+def get_version():
+    """Get the current version of TORE Matrix."""
     return __version__
 
-def get_version_info() -> tuple:
-    """Get the current version as a tuple."""
-    return VERSION_INFO
 
-def is_feature_enabled(feature: str) -> bool:
-    """Check if a feature is enabled."""
-    return FEATURES.get(feature, False)
+def get_system_info():
+    """Get system information."""
+    return {
+        "name": "TORE Matrix V3",
+        "version": __version__,
+        "author": __author__,
+        "description": "Enterprise AI Document Processing Pipeline",
+        "features": [
+            "Multi-format document processing",
+            "Advanced element extraction",
+            "Quality assurance system",
+            "Real-time progress tracking",
+            "Scalable pipeline architecture"
+        ]
+    }
