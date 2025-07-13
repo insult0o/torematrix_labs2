@@ -210,10 +210,12 @@ class WorkerPool:
             
             # Emit started event
             if self.event_bus:
-                await self.event_bus.emit({
-                    "type": "worker_pool_started",
-                    "data": {"config": self.config.dict()}
-                })
+                from ...core.events.event_types import Event
+                event = Event(
+                    event_type="worker_pool_started",
+                    payload={"config": self.config.dict()}
+                )
+                await self.event_bus.publish(event)
             
             logger.info("Worker pool started successfully")
             
@@ -268,10 +270,12 @@ class WorkerPool:
             
             # Emit stopped event
             if self.event_bus:
-                await self.event_bus.emit({
-                    "type": "worker_pool_stopped",
-                    "data": {"uptime_seconds": self._get_uptime_seconds()}
-                })
+                from ...core.events.event_types import Event
+                event = Event(
+                    event_type="worker_pool_stopped",
+                    payload={"uptime_seconds": self._get_uptime_seconds()}
+                )
+                await self.event_bus.publish(event)
             
             logger.info("Worker pool stopped successfully")
             
@@ -353,14 +357,16 @@ class WorkerPool:
         
         # Emit event
         if self.event_bus:
-            await self.event_bus.emit({
-                "type": "task_submitted",
-                "data": {
+            from ...core.events.event_types import Event
+            event = Event(
+                event_type="task_submitted",
+                payload={
                     "task_id": task_id,
                     "processor": processor_name,
                     "priority": priority.value
                 }
-            })
+            )
+            await self.event_bus.publish(event)
         
         logger.debug(f"Submitted task {task_id} for processor {processor_name}")
         return task_id
@@ -433,6 +439,45 @@ class WorkerPool:
             average_processing_time=avg_processing_time,
             resource_utilization=resource_utilization
         )
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get statistics in dictionary format for compatibility."""
+        pool_stats = self.get_pool_stats()
+        return {
+            "total_workers": pool_stats.total_workers,
+            "active_workers": pool_stats.active_workers,
+            "idle_workers": pool_stats.idle_workers,
+            "queued_tasks": pool_stats.queued_tasks,
+            "completed_tasks": pool_stats.completed_tasks,
+            "failed_tasks": pool_stats.failed_tasks,
+            "average_wait_time": pool_stats.average_wait_time,
+            "average_processing_time": pool_stats.average_processing_time,
+            "resource_utilization": pool_stats.resource_utilization
+        }
+    
+    async def wait_for_completion(self, timeout: float = 60.0) -> bool:
+        """
+        Wait for all active tasks to complete.
+        
+        Args:
+            timeout: Maximum time to wait in seconds
+            
+        Returns:
+            True if all tasks completed, False if timeout occurred
+        """
+        logger.info(f"Waiting for {len(self.active_tasks)} active tasks to complete...")
+        
+        start_time = time.time()
+        while self.active_tasks and (time.time() - start_time) < timeout:
+            await asyncio.sleep(0.5)
+        
+        completed = len(self.active_tasks) == 0
+        if completed:
+            logger.info("All active tasks completed successfully")
+        else:
+            logger.warning(f"{len(self.active_tasks)} tasks still active after {timeout}s timeout")
+        
+        return completed
     
     async def _async_worker(self, worker_id: str):
         """Async worker process."""
@@ -572,15 +617,17 @@ class WorkerPool:
         
         # Emit completion event
         if self.event_bus:
-            await self.event_bus.emit({
-                "type": "task_completed" if success else "task_failed",
-                "data": {
+            from ...core.events.event_types import Event
+            event = Event(
+                event_type="task_completed" if success else "task_failed",
+                payload={
                     "task_id": task.task_id,
                     "processor": task.processor_name,
                     "duration": task.processing_time,
                     "error": task.error if not success else None
                 }
-            })
+            )
+            await self.event_bus.publish(event)
     
     async def _handle_task_failure(self, task: WorkerTask, error: Exception):
         """Handle task failure."""
@@ -617,9 +664,10 @@ class WorkerPool:
                 
                 # Emit heartbeat
                 if self.event_bus:
-                    await self.event_bus.emit({
-                        "type": "worker_pool_heartbeat",
-                        "data": {
+                    from ...core.events.event_types import Event
+                    event = Event(
+                        event_type="worker_pool_heartbeat",
+                        payload={
                             "stats": self.get_pool_stats().__dict__,
                             "worker_stats": {
                                 worker_id: {
@@ -631,7 +679,8 @@ class WorkerPool:
                                 for worker_id, stats in self.worker_stats.items()
                             }
                         }
-                    })
+                    )
+                    await self.event_bus.publish(event)
                 
                 await asyncio.sleep(self.config.worker_heartbeat_interval)
                 
@@ -653,6 +702,50 @@ class WorkerPool:
         if not self._start_time:
             return 0.0
         return (datetime.utcnow() - self._start_time).total_seconds()
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """
+        Get worker pool statistics in dictionary format for integration compatibility.
+        
+        This method provides the same data as get_pool_stats() but in a dictionary
+        format that's expected by the ProcessingSystem integration layer.
+        """
+        pool_stats = self.get_pool_stats()
+        return {
+            "total_workers": pool_stats.total_workers,
+            "active_workers": pool_stats.active_workers,
+            "idle_workers": pool_stats.idle_workers,
+            "queued_tasks": pool_stats.queued_tasks,
+            "completed_tasks": pool_stats.completed_tasks,
+            "failed_tasks": pool_stats.failed_tasks,
+            "average_wait_time": pool_stats.average_wait_time,
+            "average_processing_time": pool_stats.average_processing_time,
+            "resource_utilization": pool_stats.resource_utilization,
+            "uptime_seconds": self._get_uptime_seconds(),
+            "total_tasks_submitted": self._total_tasks_submitted
+        }
+    
+    async def wait_for_completion(self, timeout: float = 60.0) -> bool:
+        """
+        Wait for all active tasks to complete.
+        
+        This method is used during system shutdown to ensure all active tasks
+        complete before stopping the worker pool.
+        
+        Args:
+            timeout: Maximum time to wait in seconds
+            
+        Returns:
+            True if all tasks completed within timeout, False otherwise
+        """
+        start_time = time.time()
+        
+        while self.active_tasks and (time.time() - start_time) < timeout:
+            # Check every 100ms
+            await asyncio.sleep(0.1)
+        
+        # Return True if no active tasks remain
+        return len(self.active_tasks) == 0
     
     def __str__(self) -> str:
         """String representation of worker pool."""

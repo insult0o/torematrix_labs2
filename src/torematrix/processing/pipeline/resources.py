@@ -7,7 +7,7 @@ Tracks CPU, memory, and GPU usage to ensure pipeline doesn't exceed system capab
 import asyncio
 import psutil
 import logging
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from datetime import datetime, timedelta
 from collections import deque
 from dataclasses import dataclass

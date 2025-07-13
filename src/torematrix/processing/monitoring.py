@@ -221,15 +221,15 @@ class MonitoringService:
         ]
         
         for event_type in events_to_monitor:
-            await self.event_bus.subscribe(
+            self.event_bus.subscribe(
                 event_type,
                 lambda e: asyncio.create_task(self._handle_event(e))
             )
     
     async def _handle_event(self, event: Event):
         """Handle monitoring events."""
-        event_type = event.get("type", "unknown")
-        event_data = event.get("data", {})
+        event_type = event.event_type
+        event_data = event.payload
         
         async with self._lock:
             self.event_counts[event_type] += 1
@@ -400,10 +400,12 @@ class MonitoringService:
                     self.last_health_check = datetime.utcnow()
                 
                 # Emit health status
-                await self.event_bus.emit({
-                    "type": "health_check",
-                    "data": health_status
-                })
+                from ..core.events.event_types import Event
+                event = Event(
+                    event_type="health_check",
+                    payload=health_status
+                )
+                await self.event_bus.publish(event)
                 
                 # Check for health alerts
                 if not health_status.get('overall', False):
@@ -557,15 +559,17 @@ class MonitoringService:
             self.alerts.append(alert)
         
         # Emit event
-        await self.event_bus.emit({
-            "type": "alert",
-            "data": {
+        from ..core.events.event_types import Event
+        event = Event(
+            event_type="alert",
+            payload={
                 "level": level,
                 "component": component,
                 "message": message,
                 "timestamp": alert.timestamp.isoformat()
             }
-        })
+        )
+        await self.event_bus.publish(event)
     
     def get_health_status(self) -> Dict[str, Any]:
         """Get current health status."""

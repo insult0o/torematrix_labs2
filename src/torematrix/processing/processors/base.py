@@ -14,6 +14,21 @@ import asyncio
 import logging
 from pydantic import BaseModel, Field
 
+# Import pipeline types for conversion
+try:
+    from ..pipeline.stages import StageResult
+except ImportError:
+    # Define minimal StageResult for conversion if pipeline not available
+    @dataclass
+    class StageResult:
+        stage_name: str
+        status: 'StageStatus'
+        start_time: datetime
+        end_time: Optional[datetime] = None
+        data: Dict[str, Any] = field(default_factory=dict)
+        error: Optional[str] = None
+        metrics: Dict[str, float] = field(default_factory=dict)
+
 logger = logging.getLogger(__name__)
 
 
