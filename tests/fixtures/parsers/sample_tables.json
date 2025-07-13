@@ -1,0 +1,77 @@
+{
+  "simple_pipe_table": {
+    "text": "Name | Age | City\nJohn | 25 | New York\nJane | 30 | London\nBob | 35 | Paris",
+    "expected": {
+      "headers": ["Name", "Age", "City"],
+      "rows": 3,
+      "columns": 3,
+      "table_type": "simple"
+    }
+  },
+  "csv_table": {
+    "text": "Product,Price,Stock,Category\nLaptop,999.99,15,Electronics\nMouse,29.99,50,Accessories\nKeyboard,79.99,25,Accessories\nMonitor,299.99,8,Electronics",
+    "expected": {
+      "headers": ["Product", "Price", "Stock", "Category"],
+      "rows": 4,
+      "columns": 4,
+      "table_type": "simple"
+    }
+  },
+  "complex_table_with_types": {
+    "text": "ID | Product Name | Price | Available | Launch Date | Rating\n1 | Gaming Laptop | $1299.99 | Yes | 2023-01-15 | 4.5\n2 | Wireless Mouse | $49.99 | No | 2022-11-20 | 4.2\n3 | Mechanical Keyboard | $129.99 | Yes | 2023-03-10 | 4.8\n4 | USB-C Hub | $79.99 | Yes | 2023-02-05 | 4.0",
+    "expected": {
+      "headers": ["ID", "Product Name", "Price", "Available", "Launch Date", "Rating"],
+      "rows": 4,
+      "columns": 6,
+      "table_type": "medium",
+      "column_types": ["number", "text", "number", "boolean", "date", "number"]
+    }
+  },
+  "tab_separated_table": {
+    "text": "Name\tAge\tSalary\tDepartment\nAlice\t28\t55000\tEngineering\nBob\t32\t62000\tMarketing\nCharlie\t29\t58000\tEngineering\nDiana\t35\t70000\tSales",
+    "expected": {
+      "headers": ["Name", "Age", "Salary", "Department"],
+      "rows": 4,
+      "columns": 4,
+      "table_type": "simple"
+    }
+  },
+  "financial_table": {
+    "text": "Quarter | Revenue | Profit | Growth %\nQ1 2023 | $1,250,000 | $180,000 | 12.5%\nQ2 2023 | $1,400,000 | $210,000 | 15.2%\nQ3 2023 | $1,325,000 | $195,000 | 8.7%\nQ4 2023 | $1,680,000 | $285,000 | 22.1%",
+    "expected": {
+      "headers": ["Quarter", "Revenue", "Profit", "Growth %"],
+      "rows": 4,
+      "columns": 4,
+      "table_type": "simple",
+      "column_types": ["text", "number", "number", "number"]
+    }
+  },
+  "empty_cells_table": {
+    "text": "Name | Age | Email | Phone\nJohn | 25 | john@email.com | \nJane |  | jane@email.com | 555-1234\nBob | 35 |  | 555-5678",
+    "expected": {
+      "headers": ["Name", "Age", "Email", "Phone"],
+      "rows": 3,
+      "columns": 4,
+      "table_type": "simple",
+      "data_quality": 0.75
+    }
+  },
+  "minimal_table": {
+    "text": "A | B\n1 | 2",
+    "expected": {
+      "headers": ["A", "B"],
+      "rows": 1,
+      "columns": 2,
+      "table_type": "simple"
+    }
+  },
+  "large_table": {
+    "text": "ID | Name | Value1 | Value2 | Value3 | Value4 | Value5\n1 | Item1 | 10.5 | 20.3 | 30.1 | 40.2 | 50.7\n2 | Item2 | 11.2 | 21.4 | 31.6 | 41.8 | 51.9\n3 | Item3 | 12.1 | 22.3 | 32.5 | 42.7 | 52.9\n4 | Item4 | 13.4 | 23.6 | 33.8 | 43.1 | 53.3\n5 | Item5 | 14.7 | 24.9 | 34.2 | 44.4 | 54.6",
+    "expected": {
+      "headers": ["ID", "Name", "Value1", "Value2", "Value3", "Value4", "Value5"],
+      "rows": 5,
+      "columns": 7,
+      "table_type": "medium"
+    }
+  }
+}
