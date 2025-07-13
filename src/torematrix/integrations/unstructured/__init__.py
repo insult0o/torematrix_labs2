@@ -46,14 +46,27 @@ except ImportError:
     ValidationResult = None
     _HAS_VALIDATORS = False
 
-# Import Agent 3 components (optimization) - temporarily disabled due to import issues
+# Import Agent 3 components (optimization) - bridge disabled due to infrastructure issues
 try:
+    # Bridge requires infrastructure fixes for typing issues
     # from .bridge import OptimizedInfrastructureBridge, BridgeFactory
-    # Temporarily disabled until other infrastructure components are fixed
+    # For now, just import the core optimization components
+    from .strategies import ParsingStrategyBase, AdaptiveStrategySelector, SelectionCriteria
+    from .optimization import MemoryManager, CacheManager, DocumentCache
+    from .analyzers import DocumentAnalyzer, DocumentAnalysis
     OptimizedInfrastructureBridge = None
     BridgeFactory = None
-    _HAS_OPTIMIZATION = False
+    _HAS_OPTIMIZATION = True  # Core components available
 except ImportError:
+    # Fallback if any Agent 3 components fail
+    ParsingStrategyBase = None
+    AdaptiveStrategySelector = None
+    SelectionCriteria = None
+    MemoryManager = None
+    CacheManager = None
+    DocumentCache = None
+    DocumentAnalyzer = None
+    DocumentAnalysis = None
     OptimizedInfrastructureBridge = None
     BridgeFactory = None
     _HAS_OPTIMIZATION = False
@@ -109,9 +122,17 @@ if _HAS_VALIDATORS:
         "ValidationResult",
     ])
 
-# Add optimization components if available
+# Add optimization components if available  
 if _HAS_OPTIMIZATION:
     __all__.extend([
+        "ParsingStrategyBase",
+        "AdaptiveStrategySelector", 
+        "SelectionCriteria",
+        "MemoryManager",
+        "CacheManager",
+        "DocumentCache",
+        "DocumentAnalyzer",
+        "DocumentAnalysis",
         "OptimizedInfrastructureBridge",
         "BridgeFactory",
     ])
