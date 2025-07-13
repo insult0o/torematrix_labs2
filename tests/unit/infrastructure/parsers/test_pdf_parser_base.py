@@ -1,5 +1,6 @@
 import pytest
 from pathlib import Path
+from typing import List
 from torematrix.infrastructure.parsers.pdf_parser_base import PDFParserBase, ParseResult
 
 class TestParserBase(PDFParserBase):
