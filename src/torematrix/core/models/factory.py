@@ -78,13 +78,89 @@ class ElementFactory:
             custom_fields=metadata_dict.get('custom_fields', {})
         )
         
-        return Element(
-            element_id=element_id,
-            element_type=element_type,
-            text=text,
-            metadata=element_metadata,
-            parent_id=parent_id
-        )
+        # Create appropriate element type based on element_type
+        if element_type == ElementType.TABLE:
+            from .complex_types import TableElement, TableMetadata
+            cells = kwargs.get('cells', [])
+            headers = kwargs.get('headers')
+            table_metadata = TableMetadata(
+                num_rows=len(cells),
+                num_cols=max(len(row) for row in cells) if cells else 0,
+                has_header=headers is not None
+            )
+            return TableElement(
+                element_id=element_id,
+                element_type=element_type,
+                text=text,
+                metadata=element_metadata,
+                parent_id=parent_id,
+                cells=cells,
+                headers=headers,
+                table_metadata=table_metadata
+            )
+        elif element_type == ElementType.IMAGE:
+            from .complex_types import ImageElement, ImageMetadata
+            return ImageElement(
+                element_id=element_id,
+                element_type=element_type,
+                text=text,
+                metadata=element_metadata,
+                parent_id=parent_id,
+                image_data=kwargs.get('image_data'),
+                image_url=kwargs.get('image_url'),
+                alt_text=kwargs.get('alt_text', text),
+                caption=kwargs.get('caption'),
+                image_metadata=ImageMetadata(
+                    width=kwargs.get('width'),
+                    height=kwargs.get('height'),
+                    format=kwargs.get('format')
+                )
+            )
+        elif element_type == ElementType.FORMULA:
+            from .complex_types import FormulaElement, FormulaMetadata, FormulaType
+            formula_type = kwargs.get('formula_type', FormulaType.INLINE)
+            return FormulaElement(
+                element_id=element_id,
+                element_type=element_type,
+                text=text,
+                metadata=element_metadata,
+                parent_id=parent_id,
+                latex=kwargs.get('latex', text),
+                mathml=kwargs.get('mathml'),
+                formula_metadata=FormulaMetadata(formula_type=formula_type)
+            )
+        elif element_type == ElementType.CODE_BLOCK:
+            from .complex_types import CodeBlockElement, CodeMetadata, CodeLanguage
+            language = kwargs.get('language', CodeLanguage.UNKNOWN)
+            return CodeBlockElement(
+                element_id=element_id,
+                element_type=element_type,
+                text=text,
+                metadata=element_metadata,
+                parent_id=parent_id,
+                code_metadata=CodeMetadata(
+                    language=language,
+                    line_count=len(text.split('\n')) if text else 0
+                )
+            )
+        elif element_type == ElementType.PAGE_BREAK:
+            from .complex_types import PageBreakElement
+            return PageBreakElement(
+                element_id=element_id,
+                element_type=element_type,
+                text=text or "[Page Break]",
+                metadata=element_metadata,
+                parent_id=parent_id
+            )
+        else:
+            # Default to basic Element for simple types
+            return Element(
+                element_id=element_id,
+                element_type=element_type,
+                text=text,
+                metadata=element_metadata,
+                parent_id=parent_id
+            )
     
     @staticmethod
     def from_unstructured(unstructured_element: Any) -> Element:
