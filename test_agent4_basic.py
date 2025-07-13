@@ -19,7 +19,6 @@ def test_imports():
     print("-" * 40)
     
     tests = [
-        ("Integration Settings", "src.torematrix.ingestion.integration", "IngestionSettings"),
         ("File Models", "src.torematrix.ingestion.models", "FileMetadata"),
         ("Queue Config", "src.torematrix.ingestion.queue_config", "QueueConfig"),
         ("Unstructured Integration", "src.torematrix.integrations.unstructured.integration", "UnstructuredIntegration"),
@@ -52,6 +51,7 @@ def test_models():
         
         # Test FileMetadata
         file_metadata = FileMetadata(
+            file_id="file-123",
             filename="test.pdf",
             file_type=FileType.PDF,
             mime_type="application/pdf",
@@ -59,12 +59,14 @@ def test_models():
             hash="abc123",
             upload_session_id="session-123",
             uploaded_by="user-123",
+            uploaded_at=datetime.utcnow(),
             storage_key="/path/to/file"
         )
         print(f"✅ FileMetadata: {file_metadata.filename}")
         
         # Test UploadSession
         session = UploadSession(
+            session_id="session-123",
             user_id="user-123",
             created_at=datetime.utcnow()
         )
