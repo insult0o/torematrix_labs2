@@ -34,6 +34,7 @@ class EventBus:
     async def publish(self, event: Event) -> None:
         start_time = time.time()
         success = True
+        original_event = event  # Keep original event for metrics
         
         try:
             for middleware in self._middlewares:
@@ -56,7 +57,8 @@ class EventBus:
         
         finally:
             processing_time = time.time() - start_time
-            self._monitor.record_event_processing(event, processing_time, success)
+            # Use original event for metrics even if middleware drops it
+            self._monitor.record_event_processing(original_event, processing_time, success)
     
     async def start(self) -> None:
         if self._running:

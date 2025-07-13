@@ -598,3 +598,8 @@ class SQLiteRepository(Repository[T], SQLiteBackend):
                 self.deserialize_entity(json.loads(r['data']), self.entity_class)
                 for r in results
             ]
+    
+    # Explicitly implement abstract methods from Repository interface
+    def transaction(self):
+        """Transaction context manager - delegates to backend implementation."""
+        return super().transaction()
