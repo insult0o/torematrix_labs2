@@ -22,8 +22,8 @@ from torematrix.ui.dialogs import (
     NotificationManager, ToastNotification, NotificationType, 
     NotificationPosition, NotificationData
 )
-from torematrix.core.events import EventBus, EventType
-from torematrix.core.state import StateManager
+from torematrix.core.events import EventBus, DocumentEventTypes
+from torematrix.core.state import Store as StateManager
 
 
 @pytest.fixture
@@ -165,7 +165,7 @@ class TestBaseDialog:
         # Check event emitted
         event_bus.emit.assert_called()
         emitted_event = event_bus.emit.call_args[0][0]
-        assert emitted_event.type == EventType.UI_STATE_CHANGED
+        assert emitted_event.type == DocumentEventTypes.UI_STATE_CHANGED
         assert emitted_event.data['action'] == 'opened'
     
     @pytest.mark.asyncio

@@ -16,11 +16,11 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QPushButton, QWidget, QDialogButtonBox, QSizePolicy
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QRect, QEasingCurve
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QRect, QEasingCurve, pyqtSignal as Signal
 from PyQt6.QtGui import QKeyEvent, QCloseEvent, QPalette
 
 from ...core.events import Event, DocumentEventTypes, EventBus
-from ...core.state import StateManager
+from ...core.state import Store as StateManager
 
 logger = logging.getLogger(__name__)
 
