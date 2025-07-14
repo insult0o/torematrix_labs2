@@ -138,9 +138,10 @@ class MainWindow(QMainWindow):
             # Linux specific settings
             pass
         
-        # High DPI support
-        if hasattr(Qt.ApplicationAttribute, 'AA_UseHighDpiPixmaps'):
-            QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps)
+        # High DPI support (PyQt6 handles this automatically)
+        # Legacy attributes for PyQt5 compatibility
+        if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
+            QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     
     def _setup_window(self) -> None:
         """Configure basic window properties."""
@@ -435,11 +436,11 @@ class MainWindow(QMainWindow):
 
 def create_application() -> QApplication:
     """Create and configure QApplication instance with high DPI support."""
-    # Enable high DPI scaling
-    if hasattr(Qt.ApplicationAttribute, 'AA_EnableHighDpiScaling'):
-        QApplication.setAttribute(Qt.ApplicationAttribute.AA_EnableHighDpiScaling, True)
-    if hasattr(Qt.ApplicationAttribute, 'AA_UseHighDpiPixmaps'):
-        QApplication.setAttribute(Qt.ApplicationAttribute.AA_UseHighDpiPixmaps, True)
+    # PyQt6 handles high DPI automatically, but we keep these for PyQt5 compatibility
+    if hasattr(Qt, 'AA_EnableHighDpiScaling'):
+        QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    if hasattr(Qt, 'AA_UseHighDpiPixmaps'):
+        QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
     
     # Create application
     app = QApplication(sys.argv)
