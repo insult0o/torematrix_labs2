@@ -19,7 +19,7 @@ from PyQt6.QtCore import Qt, pyqtSignal as Signal, QFileInfo, QDir
 from PyQt6.QtGui import QIcon, QPixmap
 
 from .base import BaseDialog, DialogResult, DialogButton
-from ...core.events import Event, EventType
+from ...core.events import Event, DocumentEventTypes
 
 logger = logging.getLogger(__name__)
 
@@ -420,8 +420,8 @@ Modified: {path.stat().st_mtime}
             # TODO: Save to settings
             if self.event_bus:
                 self.event_bus.emit(Event(
-                    type=EventType.UI_STATE_CHANGED,
-                    data={
+                    event_type="ui.state.changed",
+                    payload={
                         'action': 'recent_file_added',
                         'file': file_path
                     }

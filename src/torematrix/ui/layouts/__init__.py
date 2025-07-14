@@ -278,8 +278,8 @@ def create_layout_manager(main_window, event_bus, config_manager, state_manager)
     Args:
         main_window: QMainWindow instance
         event_bus: EventBus instance
-        config_manager: ConfigManager instance  
-        state_manager: StateManager instance
+        config_manager: ConfigurationManager instance  
+        state_manager: Store instance
         
     Returns:
         LayoutManager: Configured layout manager with all default templates registered

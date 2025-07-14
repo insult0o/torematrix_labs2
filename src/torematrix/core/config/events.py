@@ -11,7 +11,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 
-from ..events.base import BaseEvent, EventPriority
+from ..events import Event, EventPriority
 from .types import ConfigDict, ConfigSource
 from .watcher import ConfigurationChange, ChangeType
 
@@ -34,17 +34,16 @@ class ConfigEventType(Enum):
 
 
 @dataclass
-class ConfigurationChangeEvent(BaseEvent):
+class ConfigurationChangeEvent(Event):
     """Event for configuration changes."""
     
-    event_type: ConfigEventType
+    config_event_type: ConfigEventType = field(default=ConfigEventType.CONFIG_CHANGED)
     config_key: Optional[str] = None
     old_value: Any = None
     new_value: Any = None
-    source: Optional[ConfigSource] = None
+    config_source: Optional[ConfigSource] = None
     file_path: Optional[Path] = None
     validation_errors: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
     
     def __post_init__(self):
         """Initialize base event properties."""
@@ -212,7 +211,7 @@ class ConfigurationChangeEvent(BaseEvent):
 
 
 @dataclass
-class FileSystemChangeEvent(BaseEvent):
+class FileSystemChangeEvent(Event):
     """Event for file system changes affecting configuration."""
     
     file_change: ConfigurationChange

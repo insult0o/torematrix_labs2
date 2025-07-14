@@ -29,7 +29,7 @@ from PyQt6.QtGui import QFont, QColor, QPalette
 from PyQt6.QtCharts import QChart, QChartView, QLineSeries, QValueAxis, QDateTimeAxis
 
 from ...core.events import EventBus
-from ...core.config import ConfigManager
+from ...core.config import ConfigurationManager
 from .performance import PerformanceMetrics, PerformanceProfiler
 
 logger = logging.getLogger(__name__)
@@ -562,7 +562,7 @@ class PerformanceMonitor(QObject):
     def __init__(
         self,
         profiler: PerformanceProfiler,
-        config_manager: ConfigManager,
+        config_manager: ConfigurationManager,
         parent: Optional[QObject] = None
     ):
         super().__init__(parent)

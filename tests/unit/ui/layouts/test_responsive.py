@@ -14,8 +14,8 @@ from src.torematrix.ui.layouts.responsive import (
     ResponsiveWidget
 )
 from src.torematrix.core.events import EventBus
-from src.torematrix.core.config import ConfigManager
-from src.torematrix.core.state import StateManager
+from src.torematrix.core.config import ConfigurationManager
+from src.torematrix.core.state import Store
 
 
 @pytest.fixture
