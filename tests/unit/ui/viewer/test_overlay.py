@@ -311,6 +311,35 @@ class TestOverlayEngine:
         assert 'pipeline_metrics' in stats
         assert 'pipeline_frame_history' in stats
     
+    def test_performance_hooks(self, engine):
+        """Test performance hooks functionality."""
+        # Track hook calls
+        hook_calls = []
+        
+        def test_hook(event_type, data):
+            hook_calls.append((event_type, data))
+        
+        # Add hook
+        engine.add_performance_hook('test_hook', test_hook)
+        
+        # Trigger performance update
+        engine._update_performance_metrics(16.67)
+        
+        # Check hook was called
+        assert len(hook_calls) == 1
+        assert hook_calls[0][0] == 'render_complete'
+        assert 'render_time' in hook_calls[0][1]
+        assert hook_calls[0][1]['render_time'] == 16.67
+        
+        # Remove hook
+        engine.remove_performance_hook('test_hook')
+        
+        # Trigger update again
+        engine._update_performance_metrics(16.67)
+        
+        # Should still be only one call
+        assert len(hook_calls) == 1
+    
     def test_cleanup(self, engine):
         """Test cleanup functionality."""
         # Create some resources
@@ -457,6 +486,117 @@ class TestViewportInfo:
         assert viewport.center == center
         assert viewport.rotation == 0.5
         assert viewport.last_updated > 0
+
+
+class TestRendererIntegration:
+    """Test renderer integration with overlay system."""
+    
+    @pytest.fixture
+    def widget(self):
+        """Create test widget."""
+        return QWidget()
+    
+    def test_canvas_renderer_integration(self, widget):
+        """Test canvas renderer integration."""
+        from src.torematrix.ui.viewer.renderer import CanvasRenderer
+        from src.torematrix.ui.viewer.coordinates import Rectangle
+        
+        # Create renderer
+        renderer = CanvasRenderer(widget)
+        
+        # Test basic properties
+        assert renderer.target_widget == widget
+        assert renderer.current_context is None
+        assert not renderer.rendering_active
+        
+        # Test performance metrics
+        metrics = renderer.get_performance_metrics()
+        assert 'primitive_count' in metrics
+        assert 'render_time' in metrics
+    
+    def test_svg_renderer_integration(self, widget):
+        """Test SVG renderer integration."""
+        from src.torematrix.ui.viewer.renderer import SVGRenderer
+        from src.torematrix.ui.viewer.coordinates import Rectangle
+        
+        # Create renderer
+        renderer = SVGRenderer(widget)
+        
+        # Test basic properties
+        assert renderer.target_widget == widget
+        assert renderer.current_context is None
+        assert not renderer.rendering_active
+        
+        # Test SVG elements
+        assert renderer.svg_elements == []
+        assert renderer.current_id == 0
+
+
+class TestCoordinateIntegration:
+    """Test coordinate system integration."""
+    
+    def test_coordinate_transformation(self):
+        """Test coordinate transformation integration."""
+        from src.torematrix.ui.viewer.coordinates import CoordinateTransform, Rectangle, Point
+        
+        # Create transformation
+        doc_bounds = Rectangle(0, 0, 1000, 1000)
+        viewport_bounds = Rectangle(0, 0, 800, 600)
+        transform = CoordinateTransform(doc_bounds, viewport_bounds, 1.0)
+        
+        # Test transformation
+        doc_point = Point(500, 500)
+        screen_point = transform.document_to_screen(doc_point)
+        back_to_doc = transform.screen_to_document(screen_point)
+        
+        # Should be approximately equal
+        assert abs(back_to_doc.x - doc_point.x) < 0.01
+        assert abs(back_to_doc.y - doc_point.y) < 0.01
+    
+    def test_rectangle_operations(self):
+        """Test rectangle operations."""
+        from src.torematrix.ui.viewer.coordinates import Rectangle
+        
+        rect1 = Rectangle(0, 0, 100, 100)
+        rect2 = Rectangle(50, 50, 100, 100)
+        
+        # Test intersection
+        intersection = rect1.intersection(rect2)
+        assert intersection.x == 50
+        assert intersection.y == 50
+        assert intersection.width == 50
+        assert intersection.height == 50
+        
+        # Test union
+        union = rect1.union(rect2)
+        assert union.x == 0
+        assert union.y == 0
+        assert union.width == 150
+        assert union.height == 150
+
+
+class TestPipelineIntegration:
+    """Test pipeline integration."""
+    
+    def test_pipeline_components(self):
+        """Test pipeline components without PyQt6."""
+        # Test that pipeline concepts work
+        from src.torematrix.ui.viewer.coordinates import Rectangle
+        
+        # Simulate pipeline concepts
+        viewport = Rectangle(0, 0, 800, 600)
+        dirty_regions = [Rectangle(0, 0, 100, 100), Rectangle(50, 50, 100, 100)]
+        
+        # Test dirty region merging logic
+        merged_region = dirty_regions[0].union(dirty_regions[1])
+        assert merged_region.x == 0
+        assert merged_region.y == 0
+        assert merged_region.width == 150
+        assert merged_region.height == 150
+        
+        # Test viewport intersection
+        intersects = viewport.intersects(merged_region)
+        assert intersects == True
 
 
 if __name__ == "__main__":
