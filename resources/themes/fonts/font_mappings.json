@@ -1,0 +1,77 @@
+{
+  "name": "Font Category Mappings",
+  "description": "Font family mappings for different categories and platforms",
+  "version": "1.0.0",
+  "categories": {
+    "sans_serif": {
+      "primary": ["Segoe UI", "Helvetica Neue", "Arial"],
+      "fallbacks": ["system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+      "platform_specific": {
+        "windows": ["Segoe UI", "Tahoma", "Arial"],
+        "macos": ["Helvetica Neue", "Helvetica", "Arial"],
+        "linux": ["Ubuntu", "DejaVu Sans", "Liberation Sans", "Arial"]
+      }
+    },
+    "serif": {
+      "primary": ["Times New Roman", "Georgia", "Times"],
+      "fallbacks": ["serif"],
+      "platform_specific": {
+        "windows": ["Times New Roman", "Georgia"],
+        "macos": ["Times", "Georgia"],
+        "linux": ["DejaVu Serif", "Liberation Serif", "Times New Roman"]
+      }
+    },
+    "monospace": {
+      "primary": ["Consolas", "Monaco", "Menlo"],
+      "fallbacks": ["monospace"],
+      "platform_specific": {
+        "windows": ["Consolas", "Courier New"],
+        "macos": ["Monaco", "Menlo", "Courier New"],
+        "linux": ["DejaVu Sans Mono", "Liberation Mono", "Courier New"]
+      }
+    },
+    "display": {
+      "primary": ["Segoe UI", "Helvetica Neue", "Arial"],
+      "fallbacks": ["sans-serif"],
+      "notes": "Display fonts should be bold and attention-grabbing"
+    }
+  },
+  "weights": {
+    "thin": 100,
+    "extra_light": 200,
+    "light": 300,
+    "normal": 400,
+    "medium": 500,
+    "semi_bold": 600,
+    "bold": 700,
+    "extra_bold": 800,
+    "black": 900
+  },
+  "ui_elements": {
+    "menu_text": {
+      "family": "Segoe UI",
+      "size": 13,
+      "weight": 400
+    },
+    "button_text": {
+      "family": "Segoe UI",
+      "size": 13,
+      "weight": 500
+    },
+    "toolbar_text": {
+      "family": "Segoe UI",
+      "size": 12,
+      "weight": 400
+    },
+    "tooltip_text": {
+      "family": "Segoe UI",
+      "size": 11,
+      "weight": 400
+    },
+    "status_text": {
+      "family": "Segoe UI",
+      "size": 12,
+      "weight": 400
+    }
+  }
+}

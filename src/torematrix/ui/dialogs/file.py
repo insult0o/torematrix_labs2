@@ -10,13 +10,13 @@ from dataclasses import dataclass
 import mimetypes
 import logging
 
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QFileDialog, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QListWidget, QListWidgetItem, QSplitter,
     QTextEdit, QComboBox, QCheckBox, QWidget, QGroupBox
 )
-from PySide6.QtCore import Qt, Signal, QFileInfo, QDir
-from PySide6.QtGui import QIcon, QPixmap
+from PyQt6.QtCore import Qt, pyqtSignal as Signal, QFileInfo, QDir
+from PyQt6.QtGui import QIcon, QPixmap
 
 from .base import BaseDialog, DialogResult, DialogButton
 from ...core.events import Event, EventType

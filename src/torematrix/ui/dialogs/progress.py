@@ -11,12 +11,12 @@ import asyncio
 import logging
 from concurrent.futures import Future
 
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QProgressBar,
     QPushButton, QTextEdit, QGroupBox, QWidget
 )
-from PySide6.QtCore import Qt, Signal, QTimer, QThread, QObject
-from PySide6.QtGui import QCloseEvent
+from PyQt6.QtCore import Qt, pyqtSignal as Signal, QTimer, QThread, QObject
+from PyQt6.QtGui import QCloseEvent
 
 from .base import BaseDialog, DialogResult, DialogButton
 

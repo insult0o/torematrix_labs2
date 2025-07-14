@@ -10,15 +10,15 @@ from enum import Enum, auto
 import re
 import logging
 
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QFormLayout, QLabel,
     QLineEdit, QTextEdit, QSpinBox, QDoubleSpinBox,
     QCheckBox, QComboBox, QSlider, QDateEdit, QTimeEdit,
     QDateTimeEdit, QPushButton, QWidget, QGroupBox,
     QRadioButton, QButtonGroup, QListWidget, QFileDialog
 )
-from PySide6.QtCore import Qt, Signal, QDate, QTime, QDateTime
-from PySide6.QtGui import QPalette
+from PyQt6.QtCore import Qt, pyqtSignal as Signal, QDate, QTime, QDateTime
+from PyQt6.QtGui import QPalette
 
 from .base import BaseDialog, DialogResult, DialogButton
 

@@ -80,6 +80,72 @@ from .validation import (
     LayoutPerformanceRule,
 )
 
+# Agent 3: Responsive Design & Performance imports
+from .responsive import (
+    ResponsiveMode,
+    LayoutDensity,
+    TouchTarget,
+    ScreenProperties,
+    ResponsiveConstraints,
+    ResponsiveStrategy,
+    MobileFirstStrategy,
+    DesktopStrategy,
+    TabletStrategy,
+    ResponsiveLayoutEngine,
+    ResponsiveWidget,
+)
+
+from .breakpoints import (
+    BreakpointType,
+    DeviceClass,
+    BreakpointDefinition,
+    BreakpointEvent,
+    DeviceProfile,
+    BreakpointCalculator,
+    BreakpointManager,
+)
+
+from .adaptive import (
+    AdaptationStrategy,
+    LayoutDirection,
+    ContentPriority,
+    LayoutConstraints,
+    ContentItem,
+    LayoutSolution,
+    LayoutAlgorithm,
+    StackedLayoutAlgorithm,
+    SplitLayoutAlgorithm,
+    GridLayoutAlgorithm,
+    AdaptiveLayoutEngine,
+    AdaptiveLayout,
+)
+
+from .performance import (
+    PerformanceLevel,
+    OptimizationType,
+    PerformanceMetrics,
+    PerformanceProfiler,
+    performance_timer,
+    LayoutCache,
+    WidgetPool,
+    LazyLoader,
+    MemoryOptimizer,
+    RenderOptimizer,
+    PerformanceOptimizer,
+)
+
+from .monitoring import (
+    AlertLevel,
+    MetricType,
+    PerformanceAlert,
+    MetricThreshold,
+    PerformanceReport,
+    MetricCollector,
+    AlertManager,
+    BottleneckDetector,
+    PerformanceMonitor,
+)
+
 # Version info
 __version__ = "1.0.0"
 __author__ = "ToreMatrix Labs V3 Team"
@@ -132,6 +198,67 @@ __all__ = [
     "LayoutItemsRule",
     "LayoutTypeSpecificRule",
     "LayoutPerformanceRule",
+    
+    # Agent 3: Responsive Design & Performance
+    # Responsive system
+    "ResponsiveMode",
+    "LayoutDensity",
+    "TouchTarget",
+    "ScreenProperties",
+    "ResponsiveConstraints",
+    "ResponsiveStrategy",
+    "MobileFirstStrategy",
+    "DesktopStrategy",
+    "TabletStrategy",
+    "ResponsiveLayoutEngine",
+    "ResponsiveWidget",
+    
+    # Breakpoint system
+    "BreakpointType",
+    "DeviceClass",
+    "BreakpointDefinition",
+    "BreakpointEvent",
+    "DeviceProfile",
+    "BreakpointCalculator",
+    "BreakpointManager",
+    
+    # Adaptive layouts
+    "AdaptationStrategy",
+    "LayoutDirection",
+    "ContentPriority",
+    "LayoutConstraints",
+    "ContentItem",
+    "LayoutSolution",
+    "LayoutAlgorithm",
+    "StackedLayoutAlgorithm",
+    "SplitLayoutAlgorithm",
+    "GridLayoutAlgorithm",
+    "AdaptiveLayoutEngine",
+    "AdaptiveLayout",
+    
+    # Performance optimization
+    "PerformanceLevel",
+    "OptimizationType",
+    "PerformanceMetrics",
+    "PerformanceProfiler",
+    "performance_timer",
+    "LayoutCache",
+    "WidgetPool",
+    "LazyLoader",
+    "MemoryOptimizer",
+    "RenderOptimizer",
+    "PerformanceOptimizer",
+    
+    # Performance monitoring
+    "AlertLevel",
+    "MetricType",
+    "PerformanceAlert",
+    "MetricThreshold",
+    "PerformanceReport",
+    "MetricCollector",
+    "AlertManager",
+    "BottleneckDetector",
+    "PerformanceMonitor",
 ]
 
 

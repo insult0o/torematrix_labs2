@@ -12,14 +12,14 @@ import asyncio
 import logging
 from datetime import datetime
 
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
     QPushButton, QWidget, QDialogButtonBox, QSizePolicy
 )
-from PySide6.QtCore import Qt, Signal, QTimer, QPropertyAnimation, QRect, QEasingCurve
-from PySide6.QtGui import QKeyEvent, QCloseEvent, QPalette
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QRect, QEasingCurve
+from PyQt6.QtGui import QKeyEvent, QCloseEvent, QPalette
 
-from ...core.events import Event, EventType, EventBus
+from ...core.events import Event, DocumentEventTypes, EventBus
 from ...core.state import StateManager
 
 logger = logging.getLogger(__name__)

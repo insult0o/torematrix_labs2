@@ -91,6 +91,57 @@ Pipeline      System      Factory
 - 📋 Worker Pool & Progress Tracking (Sub-issue #91) - Ready for Agent 3
 - 📋 Integration, Monitoring & Testing (Sub-issue #92) - Ready for Agent 4
 
+## 🚨 CRITICAL: Multi-Agent Branch Management
+**MANDATORY for ALL agents before starting ANY work:**
+
+### 1️⃣ Create Unique Feature Branch - REQUIRED
+```bash
+# NEVER work on an existing branch used by another agent
+# ALWAYS create your own unique branch from main
+git checkout main
+git pull origin main
+git checkout -b feature/[component]-agent[N]-issue[number]
+```
+
+### 2️⃣ Branch Naming Convention - STRICT ENFORCEMENT
+- Agent 1: `feature/[topic]-agent1-issue[number]`
+- Agent 2: `feature/[topic]-agent2-issue[number]`
+- Agent 3: `feature/[topic]-agent3-issue[number]`
+- Agent 4: `feature/[topic]-agent4-issue[number]`
+
+### 3️⃣ Examples - Follow These Patterns
+```bash
+# Agent 1 working on reactive components for issue #108
+git checkout -b feature/reactive-components-agent1-issue108
+
+# Agent 2 working on state integration for issue #109
+git checkout -b feature/state-integration-agent2-issue109
+
+# Agent 3 working on performance for issue #110
+git checkout -b feature/performance-agent3-issue110
+
+# Agent 4 working on components for issue #111
+git checkout -b feature/components-agent4-issue111
+```
+
+### 4️⃣ Verification Before Starting - MANDATORY
+```bash
+# ALWAYS verify you're on YOUR unique branch
+git branch --show-current
+
+# NEVER proceed if branch name doesn't include your agent number
+# NEVER share branches between agents
+```
+
+### 5️⃣ Consequences of Branch Sharing
+- ❌ PRs get mixed with unrelated work
+- ❌ Commits become interleaved
+- ❌ Cannot create separate PRs
+- ❌ Review process becomes confused
+- ❌ Integration becomes difficult
+
+**ENFORCEMENT**: Any agent work on shared branches is NON-COMPLIANT and must be rebranched immediately.
+
 ## 🤖 Agent Workflow - Standard Operating Procedure
 
 ### Trigger: "Let's work on issue X"

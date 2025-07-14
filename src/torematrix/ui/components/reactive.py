@@ -118,7 +118,9 @@ class ReactiveMetaclass(type(QWidget)):
         
         # Create property descriptors for reactive properties
         for prop_name, prop_info in reactive_props.items():
-            namespace[prop_name] = mcs._create_property_descriptor(prop_name)
+            # Don't override if already has a descriptor
+            if prop_name not in namespace or not hasattr(namespace[prop_name], '__get__'):
+                namespace[prop_name] = mcs._create_property_descriptor(prop_name)
         
         # Process lifecycle methods
         lifecycle_methods = {
@@ -142,7 +144,12 @@ class ReactiveMetaclass(type(QWidget)):
             prop = self._reactive_properties.get(prop_name)
             if prop and prop.getter:
                 return prop.getter()
-            return self._property_values.get(prop_name)
+            # Return from property values or use default from ReactiveProperty
+            if prop_name in self._property_values:
+                return self._property_values[prop_name]
+            elif prop:
+                return prop.value
+            return None
         
         def setter(self: ReactiveWidget, value: Any) -> None:
             old_value = self._property_values.get(prop_name)

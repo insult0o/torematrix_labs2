@@ -18,7 +18,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from torematrix.ui.components.reactive import ReactiveProperty, ReactiveWidget
-
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")

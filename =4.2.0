@@ -1,0 +1,11 @@
+Collecting pytest-qt
+  Downloading pytest_qt-4.5.0-py3-none-any.whl.metadata (7.9 kB)
+Requirement already satisfied: pytest in ./.venv/lib/python3.12/site-packages (from pytest-qt) (8.4.1)
+Requirement already satisfied: pluggy>=1.1 in ./.venv/lib/python3.12/site-packages (from pytest-qt) (1.6.0)
+Requirement already satisfied: typing_extensions in ./.venv/lib/python3.12/site-packages (from pytest-qt) (4.14.1)
+Requirement already satisfied: iniconfig>=1 in ./.venv/lib/python3.12/site-packages (from pytest->pytest-qt) (2.1.0)
+Requirement already satisfied: packaging>=20 in ./.venv/lib/python3.12/site-packages (from pytest->pytest-qt) (25.0)
+Requirement already satisfied: pygments>=2.7.2 in ./.venv/lib/python3.12/site-packages (from pytest->pytest-qt) (2.19.2)
+Downloading pytest_qt-4.5.0-py3-none-any.whl (37 kB)
+Installing collected packages: pytest-qt
+Successfully installed pytest-qt-4.5.0

@@ -7,12 +7,12 @@ button combinations and icon support.
 from typing import Optional, List, Callable
 from enum import Enum, auto
 
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QTextEdit,
     QCheckBox, QWidget
 )
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QIcon
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap, QIcon
 
 from .base import BaseDialog, DialogResult, DialogButton
 
