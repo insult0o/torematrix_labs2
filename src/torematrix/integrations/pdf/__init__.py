@@ -15,12 +15,21 @@ Future Agent Integrations:
 - Agent 4: Advanced features and UI integration
 """
 
-from .viewer import PDFViewer, PDFDocument, PDFLoadError
 from .exceptions import PDFIntegrationError, PDFRenderError
+
+# Import viewer components only when needed (requires PyQt6)
+try:
+    from .viewer import PDFViewer, PDFDocument, PDFLoadError
+    _VIEWER_AVAILABLE = True
+except ImportError:
+    _VIEWER_AVAILABLE = False
+    PDFViewer = None
+    PDFDocument = None
+    PDFLoadError = None
 
 __all__ = [
     'PDFViewer',
-    'PDFDocument',
+    'PDFDocument', 
     'PDFLoadError',
     'PDFIntegrationError',
     'PDFRenderError'
