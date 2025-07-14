@@ -2,16 +2,20 @@
 Pointer Tool for single-element selection.
 
 This tool provides precise single-element selection with click-to-select behavior,
-hover effects, and double-click expansion functionality.
+hover effects, and double-click expansion functionality. Enhanced implementation
+using Agent 1's core infrastructure.
 """
 
 import time
 from typing import Optional, List, Any
 
-from PyQt6.QtCore import QPoint, QRect, QTimer, Qt
+from PyQt6.QtCore import QPoint, QRect, QTimer, Qt, pyqtSignal
 from PyQt6.QtGui import QPainter, QCursor, QPen, QColor, QBrush
 
 from .base import SelectionTool, ToolState, SelectionResult
+from .geometry import HitTesting, SelectionGeometry
+from .cursor import CursorType, get_global_cursor_manager
+from .events import create_mouse_event, create_selection_event, EventType
 from ..coordinates import Point, Rectangle
 from ..layers import LayerElement
 
@@ -21,15 +25,28 @@ class PointerTool(SelectionTool):
     Single-element selection tool with click-to-select behavior.
     
     Features:
-    - Precise single-element selection
+    - Precise single-element selection using Agent 1's hit testing
     - Hover effects with visual feedback
     - Double-click expansion for text and related elements
     - Modifier key support for multi-selection
     - Smart cursor changes based on element type
+    - Performance tracking and optimization
     """
     
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    # Additional signals for enhanced functionality
+    element_highlighted = pyqtSignal(object)  # element
+    element_unhighlighted = pyqtSignal(object)  # element
+    precision_mode_changed = pyqtSignal(bool)  # enabled
+    
+    def __init__(self, overlay=None, selection_manager=None, spatial_index=None):
+        super().__init__(
+            tool_id="pointer_tool",
+            name="Pointer Tool", 
+            description="Precise point-based element selection",
+            overlay=overlay,
+            selection_manager=selection_manager,
+            spatial_index=spatial_index
+        )
         
         # Selection state
         self._current_element: Optional[LayerElement] = None
