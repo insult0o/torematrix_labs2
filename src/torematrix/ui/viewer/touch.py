@@ -13,7 +13,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Protocol, Callable, Tuple
 
 from PyQt6.QtCore import QObject, QTimer, QPointF, pyqtSignal, QPropertyAnimation, QEasingCurve
-from PyQt6.QtGui import QTouchEvent, QTouchEvent.TouchPoint
+from PyQt6.QtGui import QTouchEvent
 from PyQt6.QtWidgets import QWidget, QGestureEvent, QGesture
 
 from .coordinates import Point, Rectangle
@@ -548,7 +548,7 @@ class TouchManager(QObject):
         
         return True
     
-    def _qt_to_touch_point(self, qt_touch: TouchPoint) -> TouchPoint:
+    def _qt_to_touch_point(self, qt_touch) -> TouchPoint:
         """Convert Qt touch point to our format."""
         # Determine state
         if qt_touch.state() == qt_touch.State.Pressed:
