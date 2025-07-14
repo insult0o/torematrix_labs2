@@ -20,9 +20,9 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal, QThread
 from PyQt6.QtWebEngineCore import QWebEngineSettings
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 
-from .cache import MemoryCache, CacheManager
-from .memory import MemoryManager, MemoryPool
-from .metrics import MetricsCollector, PerformanceMetrics
+from .cache import CacheManager
+from .memory import MemoryManager
+from .metrics import MetricsCollector
 
 
 class PerformanceLevel(Enum):

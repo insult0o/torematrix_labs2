@@ -593,6 +593,16 @@ class PDFViewer(QWebEngineView):
             config: Performance configuration dictionary
         """
         self._performance_config = config
+        
+        # Apply performance optimizations
+        if hasattr(self, '_performance_optimizer'):
+            self._performance_optimizer.update_config(config)
+        else:
+            # Import here to avoid circular dependency
+            from .performance import PerformanceOptimizer
+            self._performance_optimizer = PerformanceOptimizer(self, config)
+            self._performance_optimizer.start()
+        
         logger.info("Performance configuration set by Agent 3")
     
     def enable_features(self, features: List[str]) -> None:
@@ -603,6 +613,40 @@ class PDFViewer(QWebEngineView):
         """
         self._enabled_features = features
         logger.info(f"Features enabled by Agent 4: {features}")
+    
+    def get_performance_metrics(self) -> Dict[str, Any]:
+        """Get current performance metrics from Agent 3 optimizer.
+        
+        Returns:
+            Dictionary containing performance metrics
+        """
+        if hasattr(self, '_performance_optimizer'):
+            return self._performance_optimizer.get_current_metrics()
+        return {}
+    
+    def get_performance_recommendations(self) -> List[Dict[str, Any]]:
+        """Get performance optimization recommendations from Agent 3.
+        
+        Returns:
+            List of optimization recommendations
+        """
+        if hasattr(self, '_performance_optimizer'):
+            return self._performance_optimizer.get_optimization_recommendations()
+        return []
+    
+    def apply_performance_optimization(self, optimization_type: str, parameters: Dict[str, Any]) -> bool:
+        """Apply performance optimization from Agent 3.
+        
+        Args:
+            optimization_type: Type of optimization to apply
+            parameters: Parameters for the optimization
+            
+        Returns:
+            True if optimization was applied successfully
+        """
+        if hasattr(self, '_performance_optimizer'):
+            return self._performance_optimizer.apply_optimization(optimization_type, parameters)
+        return False
     
     # Utility methods
     def get_document_info(self) -> Optional[Dict[str, Any]]:

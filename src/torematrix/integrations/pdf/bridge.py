@@ -319,3 +319,53 @@ class PDFBridge(QObject):
             self.web_channel.deregisterObject(self)
         
         logger.info("Bridge disconnected")
+    
+    # Agent 3 Performance Integration
+    def send_performance_command(self, command: str, parameters: Dict[str, Any]) -> None:
+        """Send performance command to JavaScript (Agent 3 integration).
+        
+        Args:
+            command: Performance command to execute
+            parameters: Command parameters
+        """
+        if not self.channel:
+            return
+            
+        message = {
+            'type': 'performance_command',
+            'command': command,
+            'parameters': parameters,
+            'timestamp': time.time()
+        }
+        
+        self.channel.send_message(json.dumps(message))
+        logger.debug(f"Performance command sent: {command}")
+    
+    def handle_performance_event(self, event_type: str, data: Dict[str, Any]) -> None:
+        """Handle performance event from JavaScript (Agent 3 integration).
+        
+        Args:
+            event_type: Type of performance event
+            data: Event data
+        """
+        # Emit performance signal for Agent 3 monitoring
+        self.performance_event.emit(event_type, data)
+        
+        # Log performance events
+        if event_type in ['page_load', 'page_render', 'memory_pressure']:
+            logger.info(f"Performance event: {event_type} - {data}")
+        else:
+            logger.debug(f"Performance event: {event_type} - {data}")
+    
+    def get_performance_status(self) -> Dict[str, Any]:
+        """Get current performance status (Agent 3 integration).
+        
+        Returns:
+            Dictionary containing performance status
+        """
+        return {
+            'bridge_connected': self.channel is not None,
+            'message_queue_size': len(self.message_queue),
+            'last_message_time': self.last_message_time,
+            'performance_monitoring': True
+        }
