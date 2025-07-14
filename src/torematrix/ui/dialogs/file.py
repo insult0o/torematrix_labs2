@@ -19,7 +19,7 @@ from PyQt6.QtCore import Qt, pyqtSignal as Signal, QFileInfo, QDir
 from PyQt6.QtGui import QIcon, QPixmap
 
 from .base import BaseDialog, DialogResult, DialogButton
-from ...core.events import Event, DocumentEventTypes
+from ...core.events import Event, DocumentEventTypes as EventType
 
 logger = logging.getLogger(__name__)
 

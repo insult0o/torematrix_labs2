@@ -23,7 +23,7 @@ from torematrix.ui.dialogs import (
     NotificationPosition, NotificationData
 )
 from torematrix.core.events import EventBus, DocumentEventTypes
-from torematrix.core.state import StateManager
+from torematrix.core.state import Store as StateManager
 
 
 @pytest.fixture
