@@ -28,6 +28,13 @@ from uuid import UUID, uuid4
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QWidget
 
+try:
+    from torematrix.core.events import Event, EventBus, EventPriority
+    from torematrix.core.state import Action, Store
+except ImportError:
+    # For testing without full dependencies
+    Event = EventBus = EventPriority = Action = Store = None
+
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")
@@ -208,8 +215,8 @@ class ReactiveWidget(QWidget, metaclass=ReactiveMetaclass):
         # State management
         self._state_bindings: Set[StateBinding] = set()
         self._state_subscriptions: Dict[str, UUID] = {}
-        self._store = None
-        self._event_bus = None
+        self._store: Optional[Store] = None
+        self._event_bus: Optional[EventBus] = None
         
         # Lifecycle management
         self._is_mounted = False
@@ -360,7 +367,6 @@ class ReactiveWidget(QWidget, metaclass=ReactiveMetaclass):
             raise RuntimeError("No store connected to component")
         
         # Create action for state update
-        from torematrix.core.state import Action
         action = Action(
             type=f"UPDATE_{path.upper().replace('.', '_')}",
             payload={"path": path, "value": value}

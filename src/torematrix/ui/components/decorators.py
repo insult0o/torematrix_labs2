@@ -13,6 +13,11 @@ import logging
 from typing import Any, Callable, List, Optional, Type, TypeVar, Union, cast
 from weakref import WeakKeyDictionary
 
+# Avoid circular import - these will be imported at runtime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from torematrix.ui.components.reactive import ReactiveProperty, ReactiveWidget
 logger = logging.getLogger(__name__)
 
 T = TypeVar("T")

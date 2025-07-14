@@ -3,13 +3,58 @@ Reactive UI Components for TORE Matrix Labs V3.
 
 This package provides reactive UI components with automatic state subscription,
 efficient re-rendering, and comprehensive lifecycle management.
+
+Key Features:
+- ReactiveWidget base class for all reactive components
+- Automatic state subscription and synchronization
+- Property binding decorators for declarative syntax
+- Lifecycle management with mount/unmount/update hooks
+- Performance optimization with batched updates
+- Memory-safe cleanup mechanisms
+- Component composition patterns
+
+Example Usage:
+    from torematrix.ui.components import ReactiveWidget, bind_state, computed
+
+    class DocumentTitle(ReactiveWidget):
+        @bind_state("document.title", bidirectional=True)
+        def title(self) -> str:
+            pass
+        
+        @computed("document.metadata.author", "document.metadata.date")
+        def subtitle(self, author: str, date: str) -> str:
+            return f"By {author} - {date}"
 """
 
-# Export only the components, not the UI framework imports
+from torematrix.ui.components.decorators import (
+    bind_state,
+    computed,
+    debounce,
+    lifecycle,
+    memoize,
+    reactive_property,
+    throttle,
+    watch,
+)
+from torematrix.ui.components.lifecycle import (
+    LifecycleManager,
+    LifecycleMixin,
+    LifecyclePhase,
+    RenderMetrics,
+    get_lifecycle_manager,
+    with_lifecycle,
+)
+from torematrix.ui.components.reactive import (
+    ReactiveMetaclass,
+    ReactiveProperty,
+    ReactiveWidget,
+    StateBinding,
+)
+
 __all__ = [
     # Core classes
     "ReactiveWidget",
-    "ReactiveMetaclass", 
+    "ReactiveMetaclass",
     "ReactiveProperty",
     "StateBinding",
     # Decorators
@@ -30,15 +75,7 @@ __all__ = [
     "with_lifecycle",
 ]
 
-# Lazy imports to avoid circular dependencies
-def __getattr__(name):
-    if name in ["ReactiveWidget", "ReactiveMetaclass", "ReactiveProperty", "StateBinding"]:
-        from .reactive import ReactiveWidget, ReactiveMetaclass, ReactiveProperty, StateBinding
-        return globals()[name]
-    elif name in ["reactive_property", "bind_state", "computed", "watch", "lifecycle", "throttle", "debounce", "memoize"]:
-        from .decorators import reactive_property, bind_state, computed, watch, lifecycle, throttle, debounce, memoize
-        return globals()[name]
-    elif name in ["LifecycleManager", "LifecycleMixin", "LifecyclePhase", "RenderMetrics", "get_lifecycle_manager", "with_lifecycle"]:
-        from .lifecycle import LifecycleManager, LifecycleMixin, LifecyclePhase, RenderMetrics, get_lifecycle_manager, with_lifecycle
-        return globals()[name]
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+# Package metadata
+__version__ = "1.0.0"
+__author__ = "TORE Matrix Labs"
+__license__ = "MIT"

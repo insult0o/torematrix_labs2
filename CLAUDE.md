@@ -186,11 +186,15 @@ When this command is given, I will automatically execute the following comprehen
 - Daily progress tracking via GitHub
 - High-quality deliverables
 - Efficient 6-day development cycles
+- **MANDATORY PR workflow for ALL agents without exception**
 
-## 🏁 Agent "End Work" Routine
+## 🏁 Agent "End Work" Routine - MANDATORY FOR ALL AGENTS
 
 ### Trigger: "end work"
 When the user says "end work", execute this standardized completion routine:
+
+### ⚠️ CRITICAL WORKFLOW REQUIREMENT ⚠️
+**ALL AGENTS (1, 2, 3, 4) MUST follow this exact workflow without exception. Any agent work that bypasses the PR creation and issue closure process is inconsistent with project standards and must be corrected.**
 
 ### 1️⃣ Run All Tests
 ```bash
@@ -201,12 +205,12 @@ source .venv/bin/activate && python -m pytest tests/unit/core/[your-component]/ 
 # If any fail, fix them first
 ```
 
-### 2️⃣ Stage and Commit Changes
+### 2️⃣ Stage and Commit Changes - REQUIRED FOR ALL AGENTS
 ```bash
 # Stage all changes
 git add -A
 
-# Commit with standardized message format
+# Commit with standardized message format - MUST include sub-issue number
 git commit -m "$(cat <<'EOF'
 🚀 FEATURE: [Component Name] Implementation
 
@@ -237,12 +241,12 @@ EOF
 )"
 ```
 
-### 3️⃣ Push and Create Pull Request
+### 3️⃣ Push and Create Pull Request - MANDATORY FOR ALL AGENTS
 ```bash
-# Push the feature branch
+# Push the feature branch - REQUIRED: Must use descriptive branch name
 git push -u origin feature/[branch-name]
 
-# Create PR with detailed description
+# Create PR with detailed description - MANDATORY: Must reference sub-issue number
 gh pr create --title "🚀 FEATURE: [Component Name] (#[sub-issue-number])" --body "$(cat <<'EOF'
 ## Summary
 Implemented [component description] as requested in Issue #[sub-issue-number].
@@ -326,52 +330,57 @@ EOF
 )"
 ```
 
-### 5️⃣ Cross-Check Implementation Tasks & Acceptance Criteria
+### 5️⃣ Cross-Check Implementation Tasks & Acceptance Criteria - MANDATORY FOR ALL AGENTS
 ```bash
-# FIRST: Update issue body to tick all completed checkboxes
+# CRITICAL STEP 1: Update issue body to tick ALL completed checkboxes - REQUIRED FOR ALL AGENTS
 gh issue edit [sub-issue-number] --body "$(cat <<'EOF'
-[Copy the entire original issue body and replace all [ ] with [x] for completed tasks]
+[Copy the entire original issue body and replace ALL [ ] with [x] for completed tasks]
+[MANDATORY: Every single task checkbox MUST be ticked after implementation]
+[MANDATORY: Every single acceptance criteria checkbox MUST be ticked after testing]
 EOF
 )"
 
-# THEN: Add comprehensive implementation checklist comment
+# CRITICAL STEP 2: Add comprehensive implementation checklist comment - MANDATORY VERIFICATION
 gh issue comment [sub-issue-number] --body "$(cat <<'EOF'
-## ✅ Implementation Tasks - All Done ☑️
+## ✅ Implementation Tasks - All Done ☑️ - MANDATORY AGENT VERIFICATION
 
-### 🔧 **Core Implementation Tasks:**
-- ☑️ [Task 1 from issue requirements]
-- ☑️ [Task 2 from issue requirements]
-- ☑️ [Task 3 from issue requirements]
-- ☑️ [Additional implementation tasks...]
+### 🔧 **Core Implementation Tasks: EVERY TASK MUST BE TICKED**
+- ☑️ [Task 1 from issue requirements] - **IMPLEMENTED & TESTED**
+- ☑️ [Task 2 from issue requirements] - **IMPLEMENTED & TESTED**
+- ☑️ [Task 3 from issue requirements] - **IMPLEMENTED & TESTED**
+- ☑️ [Additional implementation tasks...] - **IMPLEMENTED & TESTED**
 
-### 🧪 **Acceptance Criteria - All Met ☑️**
-- ☑️ [Acceptance criterion 1]
-- ☑️ [Acceptance criterion 2] 
-- ☑️ [Acceptance criterion 3]
-- ☑️ [Additional acceptance criteria...]
+### 🧪 **Acceptance Criteria - EVERY CRITERION MUST BE MET & TICKED ☑️**
+- ☑️ [Acceptance criterion 1] - **TESTED & VERIFIED**
+- ☑️ [Acceptance criterion 2] - **TESTED & VERIFIED**
+- ☑️ [Acceptance criterion 3] - **TESTED & VERIFIED**
+- ☑️ [Additional acceptance criteria...] - **TESTED & VERIFIED**
 
-### 📊 **Testing Cross-Checked ☑️**
-- ☑️ [Test category 1] - **PASSING**
-- ☑️ [Test category 2] - **PASSING**
-- ☑️ [Test category 3] - **PASSING**
-- ☑️ Integration tests with other agents - **PASSING**
-- ☑️ Performance benchmarks - **PASSING**
+### 📊 **Testing Cross-Checked - ALL TESTS MUST PASS ☑️**
+- ☑️ [Test category 1] - **PASSING - VERIFIED**
+- ☑️ [Test category 2] - **PASSING - VERIFIED**
+- ☑️ [Test category 3] - **PASSING - VERIFIED**
+- ☑️ Integration tests with other agents - **PASSING - VERIFIED**
+- ☑️ Performance benchmarks - **PASSING - VERIFIED**
+- ☑️ >95% code coverage achieved - **VERIFIED**
 
-### 📋 **Reports Added to GitHub ☑️**
+### 📋 **Reports Added to GitHub - ALL DOCUMENTATION COMPLETE ☑️**
 - ☑️ Complete implementation report
-- ☑️ Test results and coverage report
+- ☑️ Test results and coverage report  
 - ☑️ Integration documentation
 - ☑️ Performance benchmarks
 - ☑️ API documentation and examples
 
-**ALL IMPLEMENTATION TASKS COMPLETED AND CROSS-CHECKED** ✅
+**ALL IMPLEMENTATION TASKS COMPLETED, TESTED, AND CROSS-CHECKED** ✅
+**ALL ACCEPTANCE CRITERIA MET, VERIFIED, AND TICKED** ✅
+**NO AGENT WORK IS COMPLETE UNTIL ALL CHECKBOXES ARE TICKED** ⚠️
 EOF
 )"
 ```
 
-### 6️⃣ Close Sub-Issue
+### 6️⃣ Close Sub-Issue - MANDATORY FOR ALL AGENTS
 ```bash
-# Close the sub-issue with final completion summary
+# Close the sub-issue with final completion summary - REQUIRED FOR ALL AGENTS
 gh issue close [sub-issue-number] --comment "$(cat <<'EOF'
 ## 🎯 Sub-Issue #[sub-issue-number] COMPLETED
 
@@ -414,16 +423,20 @@ gh issue edit [parent-issue-number] --body "$(gh issue view [parent-issue-number
 gh issue comment [parent-issue-number] --body "📋 Updated task lists to reflect Agent [X] completion of Sub-Issue #[sub-issue-number]"
 ```
 
-### 📝 Important Notes:
+### 📝 Important Notes - MANDATORY REQUIREMENTS FOR ALL AGENTS:
 - **CRITICAL**: Always complete steps 5 & 6 - cross-check tasks and close sub-issue
-- **MANDATORY**: In step 5, FIRST tick all checkboxes in the issue body, THEN add checklist comment
+- **MANDATORY**: In step 5, FIRST tick ALL checkboxes in the issue body, THEN add checklist comment
+- **REQUIRED**: EVERY SINGLE TASK checkbox [ ] MUST become [x] after implementation
+- **REQUIRED**: EVERY SINGLE ACCEPTANCE CRITERIA checkbox [ ] MUST become [x] after testing
+- **VERIFICATION**: All tests must pass BEFORE ticking acceptance criteria
 - Replace all placeholders in square brackets `[...]` with actual values
 - Ensure all tests pass before proceeding
 - Include specific metrics and achievements
 - Reference the correct issue numbers
 - Use consistent formatting across all agents
 - **Never skip the final cross-check and closure steps**
-- **Must visually tick all [ ] checkboxes to [x] in the GitHub issue**
+- **NO AGENT WORK IS COMPLETE until ALL checkboxes are visually ticked in GitHub issue**
+- **ENFORCEMENT**: Any unticked boxes indicate incomplete work**
 
 ### 🎯 This routine ensures:
 - **Complete task verification** with cross-checking
@@ -433,6 +446,44 @@ gh issue comment [parent-issue-number] --body "📋 Updated task lists to reflec
 - Clear communication to other agents
 - Professional documentation
 - Traceability of all work done
+
+## ⚠️ WORKFLOW CONSISTENCY ENFORCEMENT ⚠️
+
+### Critical Issue Identified and Resolved:
+**Previous agents may have bypassed the mandatory PR workflow.** This creates inconsistency and must be prevented:
+
+### ❌ **INCORRECT Workflow (What NOT to do):**
+- Direct commits to main/feature branches without PR
+- Closing issues without proper documentation
+- Skipping the "end work" routine
+- Not creating pull requests for agent work
+- Missing issue cross-referencing
+
+### ✅ **CORRECT Workflow (MANDATORY for ALL agents):**
+1. **Feature Branch**: Always work on feature/[component-name] branch
+2. **Commit**: Use standardized commit format with issue reference
+3. **Push**: Push feature branch to origin
+4. **Pull Request**: ALWAYS create PR with comprehensive description
+5. **Issue Updates**: Comment on parent issue with progress
+6. **Cross-Check**: Verify all tasks completed in sub-issue
+7. **Close Issue**: Close sub-issue with full completion summary
+
+### 🔒 **ENFORCEMENT RULES:**
+- **NO agent work is considered complete without a merged PR**
+- **ALL sub-issues MUST be closed through the standardized process**
+- **EVERY TASK checkbox [ ] MUST be ticked [x] after implementation**
+- **EVERY ACCEPTANCE CRITERIA checkbox [ ] MUST be ticked [x] after testing verification**
+- **NO agent work is complete until ALL checkboxes are visually ticked in GitHub**
+- **ANY deviation from this workflow is non-compliant and must be corrected**
+- **Future agents MUST follow this process without exception**
+- **Unticked checkboxes indicate incomplete work and non-compliance**
+
+### 📝 **For Project Maintainers:**
+If you find agent work that bypassed this workflow:
+1. Identify the missing PR for the sub-issue
+2. Ensure the sub-issue is properly closed
+3. Verify all acceptance criteria are documented
+4. Update this documentation if needed
 
 ## 🔨 Work Session Log
 
