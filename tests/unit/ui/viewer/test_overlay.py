@@ -318,12 +318,18 @@ class TestOverlayEngine:
         engine.renderer_backend = Mock()
         engine.renderer_backend.cleanup = Mock()
         
+        # Set up viewport and enable pipeline
+        engine.set_viewport(Rectangle(0, 0, 800, 600))
+        engine.enable_pipeline(True)
+        
         # Cleanup
         engine.cleanup()
         
         # Verify cleanup
         engine.renderer_backend.cleanup.assert_called_once()
         assert not engine.render_timer.isActive()
+        assert engine.render_pipeline is None
+        assert not engine.use_pipeline
 
 
 class TestOverlayManager:
