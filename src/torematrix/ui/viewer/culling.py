@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 
 from .coordinates import Rectangle, Point
 from .spatial import SpatialIndexManager, SpatialElement
-from .overlay_integration import OverlayElementAdapter
+# Forward reference to avoid circular imports
 
 
 class CullingStrategy(Enum):
@@ -58,7 +58,7 @@ class ViewportBounds:
 @dataclass
 class CullingResult:
     """Result of viewport culling operation."""
-    visible_elements: List[OverlayElementAdapter]
+    visible_elements: List[Any]
     culled_count: int
     total_elements: int
     culling_time_ms: float
