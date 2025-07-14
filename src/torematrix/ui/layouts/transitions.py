@@ -786,6 +786,10 @@ class LayoutTransitionManager(BaseUIComponent):
         self._default_config = config
         logger.debug(f"Updated default transition configuration: {config.transition_type.name}")
     
+    def get_default_configuration(self) -> TransitionConfiguration:
+        """Get the default transition configuration."""
+        return self._default_config
+    
     def get_current_state(self) -> TransitionState:
         """Get the current transition state."""
         return self._current_state

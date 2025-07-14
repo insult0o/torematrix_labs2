@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>TORE Matrix PDF Viewer</title>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        #viewerContainer { 
+            width: 100%; 
+            height: 100vh; 
+            overflow: auto;
+            background-color: #525659;
+        }
+        
+        #viewer { 
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .page { 
+            margin: 10px auto; 
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            background-color: white;
+            position: relative;
+        }
+        
+        canvas { 
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 18px;
+            padding: 50px;
+        }
+        
+        .error {
+            text-align: center;
+            color: #ff6b6b;
+            font-size: 16px;
+            padding: 30px;
+            background-color: #333;
+            border-radius: 8px;
+            margin: 20px;
+        }
+        
+        /* Scrollbar styling */
+        #viewerContainer::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        #viewerContainer::-webkit-scrollbar-track {
+            background: #404040;
+        }
+        
+        #viewerContainer::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 6px;
+        }
+        
+        #viewerContainer::-webkit-scrollbar-thumb:hover {
+            background: #888;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewerContainer">
+        <div id="viewer">
+            <div class="loading">Loading PDF viewer...</div>
+        </div>
+    </div>
+    
+    <script src="pdf.min.js"></script>
+    <script src="viewer.js"></script>
+</body>
+</html>

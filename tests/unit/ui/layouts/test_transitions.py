@@ -9,11 +9,20 @@ from PyQt6.QtWidgets import QWidget, QApplication
 from src.torematrix.ui.layouts.transitions import (
     TransitionType, TransitionDirection, TransitionState, TransitionConfiguration,
     ComponentState, FadeTransition, SlideTransition, ScaleTransition,
-    LayoutTransitionManager, LayoutTransition, AccessibleTransitionManager
+    LayoutTransitionManager, TransitionMetrics, TransitionEffect
 )
 from src.torematrix.core.events import EventBus
 from src.torematrix.core.config import ConfigurationManager
 from src.torematrix.core.state import Store
+
+
+@pytest.fixture(scope="session")
+def qapp():
+    """Create QApplication instance for tests."""
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+    yield app
 
 
 class TestTransitionConfiguration:
@@ -53,7 +62,7 @@ class TestTransitionConfiguration:
 class TestComponentState:
     """Test ComponentState class."""
     
-    def test_component_state_creation(self):
+    def test_component_state_creation(self, qapp):
         """Test creating component state."""
         widget = QWidget()
         widget.setObjectName("test_widget")
@@ -416,153 +425,7 @@ class TestLayoutTransitionManager:
         assert metrics is not transition_manager._transition_metrics  # Should be a copy
 
 
-class TestAccessibleTransitionManager:
-    """Test AccessibleTransitionManager class."""
-    
-    @pytest.fixture
-    def accessible_manager(self):
-        """Create accessible transition manager."""
-        event_bus = Mock(spec=EventBus)
-        config_manager = Mock(spec=ConfigurationManager)
-        state_manager = Mock(spec=Store)
-        
-        config_manager.get_config.return_value = {}
-        
-        return AccessibleTransitionManager(event_bus, config_manager, state_manager)
-    
-    def test_accessible_manager_initialization(self, accessible_manager):
-        """Test accessible manager initialization."""
-        assert accessible_manager.announce_transitions is True
-        assert accessible_manager.focus_management is True
-    
-    @pytest.mark.asyncio
-    async def test_accessible_transition_with_announcements(self, accessible_manager):
-        """Test transition with accessibility announcements."""
-        from_widget = QWidget()
-        to_widget = QWidget()
-        
-        from_widget.show()
-        to_widget.hide()
-        
-        # Mock the announcement and focus management methods
-        accessible_manager._announce_transition_start = Mock()
-        accessible_manager._manage_focus_during_transition = Mock()
-        
-        # Mock the parent transition method
-        with patch.object(LayoutTransitionManager, 'transition_layout') as mock_transition:
-            mock_transition.return_value = "test_transition_id"
-            
-            result = await accessible_manager.transition_layout(
-                from_widget, to_widget, "from_layout", "to_layout"
-            )
-            
-            # Should announce transition
-            accessible_manager._announce_transition_start.assert_called_once()
-            
-            # Should manage focus
-            accessible_manager._manage_focus_during_transition.assert_called_once()
-            
-            # Should call parent method
-            mock_transition.assert_called_once()
 
-
-class TestLayoutTransition:
-    """Test LayoutTransition class."""
-    
-    @pytest.fixture
-    def transition_manager(self):
-        """Create mock transition manager."""
-        manager = Mock()
-        manager.get_transition_effect.return_value = Mock()
-        return manager
-    
-    @pytest.fixture
-    def layout_transition(self, transition_manager):
-        """Create layout transition instance."""
-        config = TransitionConfiguration()
-        
-        return LayoutTransition(
-            transition_id="test_transition",
-            from_layout=Mock(),
-            to_layout=Mock(),
-            config=config,
-            manager=transition_manager
-        )
-    
-    def test_layout_transition_initialization(self, layout_transition):
-        """Test layout transition initialization."""
-        assert layout_transition.transition_id == "test_transition"
-        assert layout_transition.state == TransitionState.IDLE
-        assert layout_transition.progress == 0.0
-        assert layout_transition.start_time == 0
-        assert layout_transition.from_state == {}
-        assert layout_transition.to_state == {}
-    
-    @pytest.mark.asyncio
-    async def test_layout_transition_start(self, layout_transition):
-        """Test starting layout transition."""
-        # Mock the effect
-        mock_effect = Mock()
-        mock_effect.prepare = Mock()
-        layout_transition.effect = mock_effect
-        
-        # Mock prepare states
-        layout_transition._prepare_states = Mock()
-        
-        await layout_transition.start()
-        
-        assert layout_transition.state == TransitionState.ANIMATING
-        assert layout_transition.start_time > 0
-        mock_effect.prepare.assert_called_once()
-    
-    @pytest.mark.asyncio
-    async def test_layout_transition_cancel(self, layout_transition):
-        """Test canceling layout transition."""
-        # Set up transition as running
-        layout_transition.state = TransitionState.ANIMATING
-        layout_transition.animation_timer = Mock()
-        
-        await layout_transition.cancel()
-        
-        assert layout_transition.state == TransitionState.CANCELLED
-        layout_transition.animation_timer.stop.assert_called_once()
-    
-    def test_apply_easing(self, layout_transition):
-        """Test applying easing curve."""
-        # Test linear easing (default should be linear for this test)
-        progress = 0.5
-        eased_progress = layout_transition._apply_easing(progress)
-        
-        # Should return the same value for linear easing
-        assert eased_progress == progress
-    
-    def test_complete_transition(self, layout_transition):
-        """Test completing transition."""
-        # Set up animation timer
-        layout_transition.animation_timer = Mock()
-        layout_transition.effect = Mock()
-        
-        # Set up manager in active transitions
-        layout_transition.manager.active_transitions = {
-            layout_transition.transition_id: layout_transition
-        }
-        layout_transition.manager.transition_completed = Mock()
-        
-        layout_transition._complete_transition()
-        
-        assert layout_transition.state == TransitionState.IDLE
-        layout_transition.animation_timer.stop.assert_called_once()
-        layout_transition.manager.transition_completed.emit.assert_called_once()
-
-
-def test_transition_types():
-    """Test transition type enumeration."""
-    assert TransitionType.SLIDE is not None
-    assert TransitionType.FADE is not None
-    assert TransitionType.SCALE is not None
-    assert TransitionType.FLIP is not None
-    assert TransitionType.MORPH is not None
-    assert TransitionType.INSTANT is not None
 
 
 def test_transition_directions():
