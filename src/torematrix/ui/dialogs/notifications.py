@@ -10,16 +10,16 @@ from datetime import datetime, timedelta
 from enum import Enum, auto
 import logging
 
-from PySide6.QtWidgets import (
+from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QFrame, QGraphicsOpacityEffect,
     QApplication, QStyle
 )
-from PySide6.QtCore import (
-    Qt, Signal, QTimer, QPropertyAnimation,
+from PyQt6.QtCore import (
+    Qt, pyqtSignal as Signal, QTimer, QPropertyAnimation,
     QRect, QPoint, QEasingCurve, QParallelAnimationGroup
 )
-from PySide6.QtGui import QPainter, QColor, QPalette, QBrush
+from PyQt6.QtGui import QPainter, QColor, QPalette, QBrush
 
 logger = logging.getLogger(__name__)
 
