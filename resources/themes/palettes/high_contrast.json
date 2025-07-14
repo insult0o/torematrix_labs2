@@ -1,0 +1,59 @@
+{
+  "name": "High Contrast",
+  "metadata": {
+    "name": "High Contrast",
+    "description": "Maximum contrast theme for accessibility",
+    "author": "TORE Matrix Labs",
+    "version": "1.0.0",
+    "category": "high_contrast",
+    "accessibility_level": "AAA",
+    "harmony_type": null
+  },
+  "colors": {
+    "primary": {
+      "500": "#0000FF"
+    },
+    "neutral": {
+      "0": "#FFFFFF",
+      "1000": "#000000"
+    },
+    "success": "#00FF00",
+    "warning": "#FFFF00",
+    "error": "#FF0000",
+    "info": "#00FFFF",
+    "background": "#FFFFFF"
+  },
+  "derived": {
+    "background_primary": "#FFFFFF",
+    "background_secondary": "#F0F0F0",
+    "background_tertiary": "#E0E0E0",
+    "text_primary": "#000000",
+    "text_secondary": "#404040",
+    "text_disabled": "#808080",
+    "border_primary": "#000000",
+    "border_secondary": "#808080",
+    "accent_primary": "#0000FF",
+    "accent_hover": "#0000CC",
+    "accent_pressed": "#000099"
+  },
+  "accessibility": {
+    "text_primary_on_background_primary": {
+      "ratio": 21.0,
+      "aa_pass": true,
+      "aaa_pass": true,
+      "level": "AAA"
+    },
+    "text_secondary_on_background_primary": {
+      "ratio": 12.6,
+      "aa_pass": true,
+      "aaa_pass": true,
+      "level": "AAA"
+    },
+    "accent_primary_on_background_primary": {
+      "ratio": 8.6,
+      "aa_pass": true,
+      "aaa_pass": true,
+      "level": "AAA"
+    }
+  }
+}

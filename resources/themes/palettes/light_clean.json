@@ -1,0 +1,77 @@
+{
+  "name": "Light Clean",
+  "metadata": {
+    "name": "Light Clean",
+    "description": "Clean light theme for professional applications",
+    "author": "TORE Matrix Labs",
+    "version": "1.0.0",
+    "category": "light",
+    "accessibility_level": "AAA",
+    "harmony_type": "monochromatic"
+  },
+  "colors": {
+    "primary": {
+      "50": "#E8F5E8",
+      "100": "#C8E6C8",
+      "200": "#A5D6A5",
+      "300": "#81C784",
+      "400": "#66BB6A",
+      "500": "#4CAF50",
+      "600": "#43A047",
+      "700": "#388E3C",
+      "800": "#2E7D32",
+      "900": "#1B5E20"
+    },
+    "neutral": {
+      "0": "#FFFFFF",
+      "50": "#FAFAFA",
+      "100": "#F5F5F5",
+      "200": "#EEEEEE",
+      "300": "#E0E0E0",
+      "400": "#BDBDBD",
+      "500": "#9E9E9E",
+      "600": "#757575",
+      "700": "#616161",
+      "800": "#424242",
+      "900": "#212121"
+    },
+    "success": "#4CAF50",
+    "warning": "#FF9800",
+    "error": "#F44336",
+    "info": "#2196F3",
+    "background": "#FFFFFF"
+  },
+  "derived": {
+    "background_primary": "#FFFFFF",
+    "background_secondary": "#FAFAFA",
+    "background_tertiary": "#F5F5F5",
+    "text_primary": "#212121",
+    "text_secondary": "#757575",
+    "text_disabled": "#BDBDBD",
+    "border_primary": "#E0E0E0",
+    "border_secondary": "#EEEEEE",
+    "accent_primary": "#4CAF50",
+    "accent_hover": "#43A047",
+    "accent_pressed": "#388E3C"
+  },
+  "accessibility": {
+    "text_primary_on_background_primary": {
+      "ratio": 16.1,
+      "aa_pass": true,
+      "aaa_pass": true,
+      "level": "AAA"
+    },
+    "text_secondary_on_background_primary": {
+      "ratio": 7.2,
+      "aa_pass": true,
+      "aaa_pass": true,
+      "level": "AAA"
+    },
+    "accent_primary_on_background_primary": {
+      "ratio": 6.8,
+      "aa_pass": true,
+      "aaa_pass": false,
+      "level": "AA"
+    }
+  }
+}

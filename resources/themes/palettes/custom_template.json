@@ -1,0 +1,60 @@
+{
+  "name": "Custom Theme Template",
+  "metadata": {
+    "name": "Custom Theme Template",
+    "description": "Template for creating custom color themes",
+    "author": "Your Name",
+    "version": "1.0.0",
+    "category": "custom",
+    "accessibility_level": "AA",
+    "harmony_type": null
+  },
+  "colors": {
+    "primary": {
+      "50": "#E3F2FD",
+      "100": "#BBDEFB",
+      "200": "#90CAF9",
+      "300": "#64B5F6",
+      "400": "#42A5F5",
+      "500": "#2196F3",
+      "600": "#1E88E5",
+      "700": "#1976D2",
+      "800": "#1565C0",
+      "900": "#0D47A1"
+    },
+    "neutral": {
+      "0": "#FFFFFF",
+      "50": "#FAFAFA",
+      "100": "#F5F5F5",
+      "200": "#EEEEEE",
+      "300": "#E0E0E0",
+      "400": "#BDBDBD",
+      "500": "#9E9E9E",
+      "600": "#757575",
+      "700": "#616161",
+      "800": "#424242",
+      "900": "#212121"
+    },
+    "success": "#4CAF50",
+    "warning": "#FF9800",
+    "error": "#F44336",
+    "info": "#2196F3",
+    "background": "#FFFFFF"
+  },
+  "derived": {
+    "background_primary": "${colors.background}",
+    "background_secondary": "${colors.neutral.50}",
+    "background_tertiary": "${colors.neutral.100}",
+    "text_primary": "${colors.neutral.900}",
+    "text_secondary": "${colors.neutral.600}",
+    "text_disabled": "${colors.neutral.400}",
+    "border_primary": "${colors.neutral.300}",
+    "border_secondary": "${colors.neutral.200}",
+    "accent_primary": "${colors.primary.500}",
+    "accent_hover": "${colors.primary.600}",
+    "accent_pressed": "${colors.primary.700}"
+  },
+  "accessibility": {
+    "notes": "This is a template. Run accessibility validation after customization."
+  }
+}
