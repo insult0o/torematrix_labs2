@@ -1,49 +1,59 @@
-"""Metadata processing and relationship detection for document elements.
+"""Metadata extraction package initialization and exports."""
 
-This package provides comprehensive metadata extraction and relationship detection
-capabilities for document processing, including spatial, content-based, and
-semantic relationship analysis.
-
-Note: Import modules individually to avoid dependency issues during testing.
-"""
-
-# Import modules individually as needed to avoid loading all dependencies
-# from .relationships import RelationshipDetectionEngine, RelationshipConfig, DocumentContext
-# from .graph import ElementRelationshipGraph
-# from .models.relationship import Relationship, RelationshipType
-# from .extractors.reading_order import ReadingOrderExtractor, ReadingOrder, Column
-# from .extractors.semantic import SemanticRoleExtractor, SemanticRole, SemanticConfig
-# from .algorithms.spatial import SpatialAnalyzer
-# from .algorithms.content import ContentAnalyzer
-# from .storage.graph_storage import GraphStorage, RelationshipQuery
-# from .storage.validators import RelationshipValidator, ValidationResult
+from .engine import MetadataExtractionEngine
+from .schema import (
+    MetadataSchema, DocumentMetadata, PageMetadata, 
+    ElementMetadata, RelationshipMetadata, BaseMetadata
+)
+from .types import (
+    MetadataType, LanguageCode, EncodingType, ExtractionMethod,
+    ConfidenceLevel, ExtractionContext, MetadataValidationResult,
+    ExtractorConfig, MetadataConfig
+)
+from .confidence import ConfidenceScorer
+from .extractors import (
+    BaseExtractor, ExtractorRegistry, DocumentMetadataExtractor, 
+    PageMetadataExtractor, ExtractorError, ExtractionTimeoutError,
+    ValidationError
+)
 
 __all__ = [
     # Core engine
-    'RelationshipDetectionEngine',
-    'RelationshipConfig',
-    'DocumentContext',
+    "MetadataExtractionEngine",
     
-    # Graph structure
-    'ElementRelationshipGraph',
-    'Relationship',
-    'RelationshipType',
+    # Schema definitions
+    "MetadataSchema",
+    "DocumentMetadata", 
+    "PageMetadata",
+    "ElementMetadata",
+    "RelationshipMetadata",
+    "BaseMetadata",
+    
+    # Type definitions
+    "MetadataType",
+    "LanguageCode",
+    "EncodingType", 
+    "ExtractionMethod",
+    "ConfidenceLevel",
+    "ExtractionContext",
+    "MetadataValidationResult",
+    "ExtractorConfig",
+    "MetadataConfig",
+    
+    # Confidence scoring
+    "ConfidenceScorer",
     
     # Extractors
-    'ReadingOrderExtractor',
-    'ReadingOrder',
-    'Column',
-    'SemanticRoleExtractor',
-    'SemanticRole',
-    'SemanticConfig',
-    
-    # Analyzers
-    'SpatialAnalyzer',
-    'ContentAnalyzer',
-    
-    # Storage
-    'GraphStorage',
-    'RelationshipQuery',
-    'RelationshipValidator',
-    'ValidationResult'
+    "BaseExtractor",
+    "ExtractorRegistry",
+    "DocumentMetadataExtractor",
+    "PageMetadataExtractor",
+    "ExtractorError",
+    "ExtractionTimeoutError", 
+    "ValidationError"
 ]
+
+# Package metadata
+__version__ = "1.0.0"
+__author__ = "TORE Matrix Labs"
+__description__ = "Core metadata extraction engine with pluggable extractors"

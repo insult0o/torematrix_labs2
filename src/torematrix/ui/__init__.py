@@ -1,22 +1,22 @@
 """ToreMatrix UI Framework.
 
-This module provides the user interface components for ToreMatrix V3,
-built on PyQt6 with modern patterns and cross-platform support.
+This module provides the user interface components for ToreMatrix,
+including dialogs, widgets, themes, and layouts.
 """
 
-from .main_window import MainWindow, create_application
-from .base import BaseUIComponent, BaseUIWidget, UIError
+from .dialogs import *
 
 __all__ = [
-    # Main window
-    'MainWindow',
-    'create_application',
-    
-    # Base components
-    'BaseUIComponent',
-    'BaseUIWidget', 
-    'UIError',
+    # Dialog exports
+    'BaseDialog',
+    'DialogResult', 
+    'DialogButton',
+    'FileDialog',
+    'FileFilter',
+    'ConfirmationDialog',
+    'ProgressDialog',
+    'FormDialog',
+    'FormField',
+    'NotificationManager',
+    'ToastNotification'
 ]
-
-# Version info
-__version__ = '3.0.0'
