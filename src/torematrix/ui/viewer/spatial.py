@@ -13,7 +13,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 from .coordinates import Rectangle, Point
-from .overlay_integration import OverlayElementAdapter
+# Forward reference to avoid circular imports
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .overlay_integration import OverlayElementAdapter
 
 
 @dataclass
@@ -75,7 +79,7 @@ class SpatialElement:
     """Wrapper for elements in spatial index."""
     element_id: str
     bounds: SpatialBounds
-    element: OverlayElementAdapter
+    element: Any  # OverlayElementAdapter
     last_updated: datetime = field(default_factory=datetime.now)
     z_index: int = 0
     layer_name: str = ""
@@ -561,7 +565,7 @@ class SpatialIndexManager:
         self.element_layers: Dict[str, Set[str]] = {}  # layer_name -> element_ids
         self.element_types: Dict[str, Set[str]] = {}   # element_type -> element_ids
     
-    def add_element(self, element: OverlayElementAdapter) -> bool:
+    def add_element(self, element: Any) -> bool:
         """Add element to spatial index."""
         try:
             # Convert to spatial element
@@ -623,7 +627,7 @@ class SpatialIndexManager:
         except Exception:
             return False
     
-    def query_region(self, bounds: Rectangle) -> List[OverlayElementAdapter]:
+    def query_region(self, bounds: Rectangle) -> List[Any]:
         """Query elements in a region."""
         try:
             spatial_bounds = SpatialBounds.from_rectangle(bounds)
@@ -632,7 +636,7 @@ class SpatialIndexManager:
         except Exception:
             return []
     
-    def query_point(self, point: Point) -> List[OverlayElementAdapter]:
+    def query_point(self, point: Point) -> List[Any]:
         """Query elements at a point."""
         try:
             spatial_elements = self.spatial_index.query_point(point)
@@ -640,7 +644,7 @@ class SpatialIndexManager:
         except Exception:
             return []
     
-    def query_nearest(self, point: Point, max_distance: float = 50.0, max_results: int = 10) -> List[Tuple[OverlayElementAdapter, float]]:
+    def query_nearest(self, point: Point, max_distance: float = 50.0, max_results: int = 10) -> List[Tuple[Any, float]]:
         """Query nearest elements to a point."""
         try:
             spatial_results = self.spatial_index.query_nearest(point, max_distance, max_results)
@@ -648,7 +652,7 @@ class SpatialIndexManager:
         except Exception:
             return []
     
-    def query_by_layer(self, layer_name: str) -> List[OverlayElementAdapter]:
+    def query_by_layer(self, layer_name: str) -> List[Any]:
         """Query all elements in a layer."""
         try:
             if layer_name not in self.element_layers:
@@ -664,7 +668,7 @@ class SpatialIndexManager:
         except Exception:
             return []
     
-    def query_by_type(self, element_type: str) -> List[OverlayElementAdapter]:
+    def query_by_type(self, element_type: str) -> List[Any]:
         """Query all elements of a type."""
         try:
             if element_type not in self.element_types:
