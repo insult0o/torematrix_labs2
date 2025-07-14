@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from .manager import ParseResponse
 
-from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
+from ....models.element import Element as UnifiedElement
 from ..base import ParserResult, ParserMetadata
 # ParseResponse will be imported where needed to avoid circular imports
 

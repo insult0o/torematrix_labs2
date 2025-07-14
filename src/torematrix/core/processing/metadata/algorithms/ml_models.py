@@ -10,7 +10,7 @@ import numpy as np
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-from ....models.element import UnifiedElement
+from ....models.element import Element as UnifiedElement
 from ..extractors.semantic import SemanticRole
 
 logger = logging.getLogger(__name__)

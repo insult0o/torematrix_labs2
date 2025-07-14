@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass, field
 from pydantic import BaseModel, Field
 
-from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
+from ...models.element import Element as UnifiedElement
 from .types import ElementType, ParserConfig, ParserCapabilities, ProcessingHints
 from .exceptions import (
     ParserError, ValidationError, UnsupportedElementError, 

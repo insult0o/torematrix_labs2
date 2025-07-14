@@ -11,7 +11,7 @@ from enum import Enum
 
 from ..models.relationship import Relationship, RelationshipType
 from ..graph import ElementRelationshipGraph
-from ....models.element import UnifiedElement
+from ....models.element import Element as UnifiedElement
 
 logger = logging.getLogger(__name__)
 

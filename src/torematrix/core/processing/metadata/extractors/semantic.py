@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 import asyncio
 
-from ....models.element import UnifiedElement
+from ....models.element import Element as UnifiedElement
 
 logger = logging.getLogger(__name__)
 

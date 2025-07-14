@@ -6,7 +6,7 @@ import inspect
 from typing import Dict, Type, List, Optional, Set
 from pathlib import Path
 
-from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
+from ...models.element import Element as UnifiedElement
 from .base import BaseParser
 from .types import ElementType, ParserConfig, ProcessingHints
 from .exceptions import ParserError, UnsupportedElementError

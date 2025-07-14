@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional, Set
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 
-from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
+from ....models.element import Element as UnifiedElement
 from ..base import ParserResult
 from ..exceptions import CacheError
 

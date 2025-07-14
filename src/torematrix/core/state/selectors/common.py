@@ -123,52 +123,52 @@ get_validation_status = create_selector(
 
 get_validation_progress = create_selector(
     get_validation_status,
-    lambda status: (status['validated'] / status['total'] * 100) if status['total'] > 0 else 0,
+    output_fn=lambda status: (status['validated'] / status['total'] * 100) if status['total'] > 0 else 0,
     name='get_validation_progress'
 )
 
 get_elements_with_errors = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('validation_error')],
+    output_fn=lambda elements: [e for e in elements if e.get('validation_error')],
     name='get_elements_with_errors'
 )
 
 get_elements_with_warnings = create_selector(
     get_elements,
-    lambda elements: [e for e in elements if e.get('validation_warning')],
+    output_fn=lambda elements: [e for e in elements if e.get('validation_warning')],
     name='get_elements_with_warnings'
 )
 
 # Processing selectors
 get_processing_status = create_selector(
     get_processing_state,
-    lambda processing: processing.get('status', 'idle'),
+    output_fn=lambda processing: processing.get('status', 'idle'),
     name='get_processing_status'
 )
 
 get_processing_progress = create_selector(
     get_processing_state,
-    lambda processing: processing.get('progress', 0),
+    output_fn=lambda processing: processing.get('progress', 0),
     name='get_processing_progress'
 )
 
 get_processing_errors = create_selector(
     get_processing_state,
-    lambda processing: processing.get('errors', []),
+    output_fn=lambda processing: processing.get('errors', []),
     name='get_processing_errors'
 )
 
 # UI state selectors
 get_selected_element_id = create_selector(
     get_ui_state,
-    lambda ui: ui.get('selected_element_id'),
+    output_fn=lambda ui: ui.get('selected_element_id'),
     name='get_selected_element_id'
 )
 
 get_selected_element = create_selector(
     get_elements,
     get_selected_element_id,
-    lambda elements, element_id: next(
+    output_fn=lambda elements, element_id: next(
         (e for e in elements if e.get('id') == element_id),
         None
     ) if element_id else None,
@@ -177,19 +177,19 @@ get_selected_element = create_selector(
 
 get_view_mode = create_selector(
     get_ui_state,
-    lambda ui: ui.get('view_mode', 'document'),
+    output_fn=lambda ui: ui.get('view_mode', 'document'),
     name='get_view_mode'
 )
 
 get_zoom_level = create_selector(
     get_ui_state,
-    lambda ui: ui.get('zoom_level', 1.0),
+    output_fn=lambda ui: ui.get('zoom_level', 1.0),
     name='get_zoom_level'
 )
 
 get_sidebar_visible = create_selector(
     get_ui_state,
-    lambda ui: ui.get('sidebar_visible', True),
+    output_fn=lambda ui: ui.get('sidebar_visible', True),
     name='get_sidebar_visible'
 )
 
@@ -206,7 +206,7 @@ get_page_elements = create_parametric_selector(
 
 get_element_statistics = create_selector(
     get_elements,
-    lambda elements: {
+    output_fn=lambda elements: {
         'by_type': _count_by_field(elements, 'type'),
         'by_page': _count_by_field(elements, 'page'),
         'by_status': _count_by_field(elements, 'status'),
@@ -234,7 +234,7 @@ get_visible_page_elements = create_selector(
     get_elements,
     get_current_page,
     get_ui_state,
-    lambda elements, current_page, ui: [
+    output_fn=lambda elements, current_page, ui: [
         e for e in elements
         if (e.get('page', 0) == current_page and 
             e.get('visible', True) and

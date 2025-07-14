@@ -10,7 +10,7 @@ from typing import List, Optional, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
-from ....models.element import UnifiedElement
+from ....models.element import Element as UnifiedElement
 from ..models.relationship import Relationship, RelationshipType
 
 logger = logging.getLogger(__name__)

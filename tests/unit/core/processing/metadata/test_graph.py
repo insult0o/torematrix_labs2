@@ -9,7 +9,7 @@ from src.torematrix.core.processing.metadata.models.relationship import (
     Relationship,
     RelationshipType
 )
-from src.torematrix.core.models.element import UnifiedElement
+from src.torematrix.core.models.element import Element as UnifiedElement
 from src.torematrix.core.models.metadata import ElementMetadata
 from src.torematrix.core.models.coordinates import Coordinates
 

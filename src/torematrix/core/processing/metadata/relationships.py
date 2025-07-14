@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 import networkx as nx
 
-from ...models.element import UnifiedElement
+from ...models.element import Element as UnifiedElement
 from ...models.metadata import ElementMetadata
 from .models.relationship import Relationship, RelationshipType
 from .graph import ElementRelationshipGraph
