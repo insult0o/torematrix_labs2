@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from typing import List, Optional
+from typing import List, Optional, Dict
 from dataclasses import dataclass
 
 from torematrix.core.events.event_bus import EventBus

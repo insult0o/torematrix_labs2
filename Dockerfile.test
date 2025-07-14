@@ -1,0 +1,98 @@
+# Multi-stage Docker build for TORE Matrix Labs V3 Testing
+FROM python:3.11-slim as base
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    libpq-dev \
+    libmagic1 \
+    libmagic-dev \
+    poppler-utils \
+    tesseract-ocr \
+    libreoffice \
+    pandoc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create application directory
+WORKDIR /app
+
+# Copy requirements first for better Docker layer caching
+COPY requirements*.txt ./
+COPY pyproject.toml setup.py ./
+
+# Install Python dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt && \
+    pip install pytest pytest-asyncio pytest-cov pytest-mock pytest-xdist && \
+    pip install uvicorn[standard] fastapi && \
+    pip install psutil memory-profiler
+
+# Development stage with additional tools
+FROM base as development
+
+# Install development dependencies
+RUN pip install black isort flake8 mypy pre-commit && \
+    pip install jupyter notebook ipython
+
+# Copy application code
+COPY . .
+
+# Create necessary directories
+RUN mkdir -p uploads logs test-results perf-results && \
+    chmod 755 uploads logs test-results perf-results
+
+# Install application in development mode
+RUN pip install -e .
+
+# Testing stage
+FROM development as testing
+
+# Set testing environment variables
+ENV TOREMATRIX_ENV=testing \
+    PYTHONPATH=/app/src:/app
+
+# Create test user (non-root for security)
+RUN useradd --create-home --shell /bin/bash testuser && \
+    chown -R testuser:testuser /app
+
+USER testuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Default command
+CMD ["python", "-m", "pytest", "tests/", "-v"]
+
+# Production-like stage for realistic testing
+FROM base as production-test
+
+# Copy only necessary files
+COPY src/ ./src/
+COPY requirements.txt ./
+COPY setup.py pyproject.toml ./
+
+# Install application
+RUN pip install .
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash torematrix && \
+    mkdir -p uploads logs && \
+    chown -R torematrix:torematrix /app
+
+USER torematrix
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Default command for API server
+CMD ["python", "-m", "uvicorn", "src.torematrix.api.main:app", "--host", "0.0.0.0", "--port", "8080"]
