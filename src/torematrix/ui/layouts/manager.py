@@ -14,8 +14,8 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal, QSize
 from PyQt6.QtGui import QResizeEvent
 
 from ...core.events import EventBus
-from ...core.config import ConfigManager
-from ...core.state import StateManager
+from ...core.config import ConfigurationManager
+from ...core.state import Store
 from ..base import BaseUIComponent
 from .base import (
     BaseLayout, LayoutConfiguration, LayoutItem, LayoutType, LayoutState,
@@ -58,8 +58,8 @@ class LayoutManager(BaseUIComponent):
         self,
         main_window: QMainWindow,
         event_bus: EventBus,
-        config_manager: ConfigManager,
-        state_manager: StateManager,
+        config_manager: ConfigurationManager,
+        state_manager: Store,
         parent: Optional[QObject] = None
     ):
         super().__init__(event_bus, config_manager, state_manager, parent)

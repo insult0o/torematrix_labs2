@@ -13,7 +13,7 @@ from src.torematrix.ui.layouts.performance import (
     performance_timer, LayoutCache, WidgetPool, LazyLoader, MemoryOptimizer,
     RenderOptimizer, PerformanceOptimizer
 )
-from src.torematrix.core.config import ConfigManager
+from src.torematrix.core.config import ConfigurationManager
 
 
 @pytest.fixture

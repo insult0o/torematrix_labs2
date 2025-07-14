@@ -18,8 +18,8 @@ from PyQt6.QtGui import QScreen
 
 from ..base import BaseUIComponent
 from ...core.events import EventBus
-from ...core.config import ConfigManager  
-from ...core.state import StateManager
+from ...core.config import ConfigurationManager  
+from ...core.state import Store
 from .serialization import (
     LayoutSerializer, LayoutDeserializer, SerializedLayout,
     LayoutMetadata, SerializationError, DeserializationError
@@ -81,7 +81,7 @@ class LayoutBackup:
 class LayoutConfigManager:
     """Manages layout configuration settings and preferences."""
     
-    def __init__(self, config_manager: ConfigManager):
+    def __init__(self, config_manager: ConfigurationManager):
         self._config = config_manager
         self._layout_config_section = "layouts"
         
@@ -203,8 +203,8 @@ class LayoutPersistence(BaseUIComponent):
     def __init__(
         self,
         event_bus: EventBus,
-        config_manager: ConfigManager,
-        state_manager: StateManager,
+        config_manager: ConfigurationManager,
+        state_manager: Store,
         storage_path: Optional[Path] = None,
         parent: Optional[QObject] = None
     ):

@@ -20,7 +20,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QPropertyAnimation, QRect, QEas
 from PyQt6.QtGui import QKeyEvent, QCloseEvent, QPalette
 
 from ...core.events import Event, DocumentEventTypes, EventBus
-from ...core.state import StateManager
+from ...core.state import Store
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +73,9 @@ class BaseDialog(QDialog):
     """
     
     # Signals
-    dialog_opened = Signal(str)  # dialog_id
-    dialog_closed = Signal(str, DialogResult)  # dialog_id, result
-    state_changed = Signal(dict)  # state data
+    dialog_opened = pyqtSignal(str)  # dialog_id
+    dialog_closed = pyqtSignal(str, DialogResult)  # dialog_id, result
+    state_changed = pyqtSignal(dict)  # state data
     
     def __init__(
         self,
@@ -86,7 +86,7 @@ class BaseDialog(QDialog):
         height: int = 300,
         dialog_id: Optional[str] = None,
         event_bus: Optional[EventBus] = None,
-        state_manager: Optional[StateManager] = None
+        state_manager: Optional[Store] = None
     ):
         """Initialize the base dialog.
         

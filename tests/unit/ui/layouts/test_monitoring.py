@@ -16,7 +16,7 @@ from src.torematrix.ui.layouts.monitoring import (
     MetricCollector, AlertManager, BottleneckDetector, PerformanceMonitor
 )
 from src.torematrix.ui.layouts.performance import PerformanceProfiler, PerformanceMetrics
-from src.torematrix.core.config import ConfigManager
+from src.torematrix.core.config import ConfigurationManager
 
 
 @pytest.fixture
