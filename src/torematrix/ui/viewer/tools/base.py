@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
-from PyQt6.QtCore import QObject, pyqtSignal, QPoint, QRect
-from PyQt6.QtGui import QPainter, QCursor, Qt
+from PyQt6.QtCore import QObject, pyqtSignal, QPoint, QRect, Qt
+from PyQt6.QtGui import QPainter, QCursor
 
 from ..coordinates import Rectangle, Point
 from ..layers import LayerElement
@@ -76,7 +76,12 @@ class SelectionResult:
         return Rectangle(min_x, min_y, max_x - min_x, max_y - min_y)
 
 
-class SelectionTool(QObject, ABC):
+class QObjectMeta(type(QObject), type(ABC)):
+    """Metaclass to resolve conflicts between QObject and ABC."""
+    pass
+
+
+class SelectionTool(QObject, ABC, metaclass=QObjectMeta):
     """
     Abstract base class for all selection tools.
     

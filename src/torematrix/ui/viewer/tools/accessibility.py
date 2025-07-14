@@ -12,7 +12,21 @@ from enum import Enum
 from typing import Dict, List, Optional, Set, Callable, Any
 
 from PyQt6.QtCore import QObject, pyqtSignal, QTimer, Qt, QEvent
-from PyQt6.QtGui import QKeyEvent, QAccessible, QColor, QPalette, QFont
+from PyQt6.QtGui import QKeyEvent, QColor, QPalette, QFont
+try:
+    from PyQt6.QtGui import QAccessible
+except ImportError:
+    # QAccessible might be in a different module in some PyQt6 versions
+    try:
+        from PyQt6.QtCore import QAccessible
+    except ImportError:
+        # Create a mock if not available
+        class QAccessible:
+            class Event:
+                Announcement = "announcement"
+            @staticmethod
+            def updateAccessibility(event):
+                pass
 from PyQt6.QtWidgets import QWidget, QApplication
 
 from .base import SelectionTool, ToolState
