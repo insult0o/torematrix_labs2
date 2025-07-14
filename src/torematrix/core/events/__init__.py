@@ -1,7 +1,7 @@
 from .event_bus import EventBus
 from .event_types import (
-    Event, EventPriority, DocumentEventTypes,
-    DocumentEvent, ValidationEvent, ErrorEvent
+    Event, EventPriority, DocumentEventTypes, ProcessingEventTypes,
+    DocumentEvent, ValidationEvent, ErrorEvent, ProcessingEvent
 )
 from .middleware import (
     BaseMiddleware, ValidationMiddleware,
@@ -14,9 +14,11 @@ __all__ = [
     'Event',
     'EventPriority',
     'DocumentEventTypes',
+    'ProcessingEventTypes',
     'DocumentEvent',
     'ValidationEvent',
     'ErrorEvent',
+    'ProcessingEvent',
     'BaseMiddleware',
     'ValidationMiddleware',
     'LoggingMiddleware',

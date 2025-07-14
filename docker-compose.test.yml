@@ -1,0 +1,327 @@
+version: '3.8'
+
+services:
+  # Redis for queue management
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - torematrix-test
+
+  # PostgreSQL for metadata storage
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: torematrix
+      POSTGRES_PASSWORD: testpass123
+      POSTGRES_DB: torematrix_test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U torematrix"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - torematrix-test
+
+  # MinIO for S3-compatible object storage testing
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - torematrix-test
+
+  # Unstructured.io API server for document processing
+  unstructured:
+    image: downloads.unstructured.io/unstructured-io/unstructured-api:latest
+    ports:
+      - "8000:8000"
+    environment:
+      UNSTRUCTURED_API_KEY: test-key-123
+      UNSTRUCTURED_PARALLEL_MODE_ENABLED: "true"
+      UNSTRUCTURED_PARALLEL_MODE_THREADS: 2
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/general/docs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - torematrix-test
+
+  # TORE Matrix Ingestion System
+  torematrix-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      unstructured:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql://torematrix:testpass123@postgres:5432/torematrix_test
+      
+      # Redis
+      REDIS_URL: redis://redis:6379/0
+      
+      # Unstructured.io
+      UNSTRUCTURED_API_URL: http://unstructured:8000
+      UNSTRUCTURED_API_KEY: test-key-123
+      
+      # S3/MinIO
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin123
+      S3_BUCKET: test-documents
+      S3_REGION: us-east-1
+      
+      # Application settings
+      TOREMATRIX_ENV: testing
+      TOREMATRIX_LOG_LEVEL: DEBUG
+      API_HOST: 0.0.0.0
+      API_PORT: 8080
+      
+      # Upload settings
+      UPLOAD_DIR: /app/uploads
+      MAX_FILE_SIZE: 104857600  # 100MB
+      
+      # Queue settings
+      QUEUE_MAX_WORKERS: 5
+      QUEUE_JOB_TIMEOUT: 3600
+      QUEUE_MAX_RETRIES: 3
+      
+      # Performance settings
+      MAX_CONCURRENT_UPLOADS: 50
+      ENABLE_METRICS: "true"
+      
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    command: >
+      sh -c "
+        echo 'Waiting for services to be ready...' &&
+        sleep 10 &&
+        echo 'Initializing MinIO bucket...' &&
+        python scripts/setup-minio.py &&
+        echo 'Running database migrations...' &&
+        python scripts/migrate-db.py &&
+        echo 'Starting TORE Matrix API...' &&
+        python -m uvicorn src.torematrix.api.main:app --host 0.0.0.0 --port 8080 --reload
+      "
+    networks:
+      - torematrix-test
+    restart: unless-stopped
+
+  # Queue Worker for processing documents
+  torematrix-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      torematrix-api:
+        condition: service_started
+    environment:
+      # Same environment as API
+      DATABASE_URL: postgresql://torematrix:testpass123@postgres:5432/torematrix_test
+      REDIS_URL: redis://redis:6379/0
+      UNSTRUCTURED_API_URL: http://unstructured:8000
+      UNSTRUCTURED_API_KEY: test-key-123
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin123
+      S3_BUCKET: test-documents
+      TOREMATRIX_ENV: testing
+      TOREMATRIX_LOG_LEVEL: DEBUG
+      
+      # Worker-specific settings
+      WORKER_CONCURRENCY: 3
+      WORKER_MAX_JOBS: 100
+      WORKER_POLL_INTERVAL: 1.0
+      
+    volumes:
+      - ./src:/app/src:ro
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    command: >
+      sh -c "
+        echo 'Waiting for API to be ready...' &&
+        sleep 20 &&
+        echo 'Starting TORE Matrix Worker...' &&
+        python -m src.torematrix.ingestion.worker
+      "
+    networks:
+      - torematrix-test
+    restart: unless-stopped
+    scale: 2  # Run 2 worker instances
+
+  # Test Runner - runs the test suite
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      torematrix-api:
+        condition: service_started
+    environment:
+      # Test environment
+      DATABASE_URL: postgresql://torematrix:testpass123@postgres:5432/torematrix_test
+      REDIS_URL: redis://redis:6379/1  # Different DB for tests
+      UNSTRUCTURED_API_URL: http://unstructured:8000
+      UNSTRUCTURED_API_KEY: test-key-123
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin123
+      S3_BUCKET: test-documents
+      TOREMATRIX_ENV: testing
+      TOREMATRIX_LOG_LEVEL: INFO
+      
+      # Test-specific settings
+      TEST_API_BASE_URL: http://torematrix-api:8080
+      TEST_TIMEOUT: 300
+      PYTEST_ARGS: "-v --tb=short"
+      
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./test-results:/app/test-results
+    command: >
+      sh -c "
+        echo 'Waiting for services to be fully ready...' &&
+        sleep 30 &&
+        echo 'Running health checks...' &&
+        python scripts/health-check.py &&
+        echo 'Running test suite...' &&
+        pytest tests/ $$PYTEST_ARGS --junit-xml=/app/test-results/results.xml --cov=src/torematrix --cov-report=html:/app/test-results/coverage-html --cov-report=term-missing
+      "
+    networks:
+      - torematrix-test
+    profiles:
+      - testing  # Only run when explicitly requested
+
+  # Performance Test Runner
+  perf-test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    depends_on:
+      torematrix-api:
+        condition: service_started
+    environment:
+      # Performance test environment
+      DATABASE_URL: postgresql://torematrix:testpass123@postgres:5432/torematrix_test
+      REDIS_URL: redis://redis:6379/2  # Different DB for perf tests
+      UNSTRUCTURED_API_URL: http://unstructured:8000
+      UNSTRUCTURED_API_KEY: test-key-123
+      TOREMATRIX_ENV: performance
+      TOREMATRIX_LOG_LEVEL: WARNING
+      
+      # Performance test settings
+      TEST_API_BASE_URL: http://torematrix-api:8080
+      PERF_TEST_DURATION: 300  # 5 minutes
+      PERF_TEST_CONCURRENT: 10
+      PERF_TEST_FILES: 100
+      
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./perf-results:/app/perf-results
+    command: >
+      sh -c "
+        echo 'Waiting for services to be ready for performance testing...' &&
+        sleep 45 &&
+        echo 'Running performance tests...' &&
+        pytest tests/performance/ -v --tb=short -m performance
+      "
+    networks:
+      - torematrix-test
+    profiles:
+      - performance  # Only run when explicitly requested
+
+  # Monitoring and Metrics (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - torematrix-test
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - torematrix-test
+    profiles:
+      - monitoring
+
+volumes:
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  minio_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  torematrix-test:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

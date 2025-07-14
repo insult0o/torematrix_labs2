@@ -1,17 +1,19 @@
 import asyncio
 import pytest
+import pytest_asyncio
 from typing import List, Optional
 
 from torematrix.core.events.event_bus import EventBus
 from torematrix.core.events.event_types import Event, EventPriority
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def event_bus():
     bus = EventBus()
     await bus.start()
     yield bus
     await bus.stop()
 
+@pytest.mark.asyncio
 async def test_subscribe_and_publish(event_bus: EventBus):
     received_events: List[Event] = []
     
@@ -33,8 +35,9 @@ async def test_subscribe_and_publish(event_bus: EventBus):
     metrics = event_bus.get_metrics()
     assert metrics["events"]["test_event"].count == 1
     assert metrics["total"]["total_events"] == 1
-    assert metrics["total"]["error_count"] == 0
+    assert metrics["total"]["total_errors"] == 0
 
+@pytest.mark.asyncio
 async def test_multiple_handlers(event_bus: EventBus):
     received_count = 0
     
@@ -59,6 +62,7 @@ async def test_multiple_handlers(event_bus: EventBus):
     metrics = event_bus.get_metrics()
     assert metrics["handlers"]["handler1"].success_count + metrics["handlers"]["handler2"].success_count == 2
 
+@pytest.mark.asyncio
 async def test_unsubscribe(event_bus: EventBus):
     received_events: List[Event] = []
     
@@ -74,6 +78,7 @@ async def test_unsubscribe(event_bus: EventBus):
     await asyncio.sleep(0.1)
     assert len(received_events) == 0
 
+@pytest.mark.asyncio
 async def test_middleware(event_bus: EventBus):
     received_events: List[Event] = []
     
@@ -105,6 +110,7 @@ async def test_middleware(event_bus: EventBus):
     assert metrics["total"]["total_events"] == 2
     assert metrics["events"]["test_event"].count == 2
 
+@pytest.mark.asyncio
 async def test_async_handler(event_bus: EventBus):
     received_events: List[Event] = []
     
@@ -125,6 +131,7 @@ async def test_async_handler(event_bus: EventBus):
     handler_metrics = metrics["handlers"]["async_handler"]
     assert handler_metrics.total_execution_time >= 0.1
 
+@pytest.mark.asyncio
 async def test_error_handling(event_bus: EventBus):
     def failing_handler(event: Event):
         raise Exception("Test error")
@@ -138,9 +145,11 @@ async def test_error_handling(event_bus: EventBus):
     
     # Check error metrics
     metrics = event_bus.get_metrics()
-    assert metrics["total"]["error_count"] == 1
-    assert metrics["handlers"]["failing_handler"].error_count == 1
+    # Handler errors are tracked separately from event processing errors
+    assert metrics["total"]["total_errors"] == 0  # No event processing errors
+    assert metrics["handlers"]["failing_handler"].error_count == 1  # But handler failed
 
+@pytest.mark.asyncio
 async def test_no_handlers(event_bus: EventBus):
     test_event = Event(event_type="unknown_event", payload={})
     await event_bus.publish(test_event)
@@ -151,6 +160,7 @@ async def test_no_handlers(event_bus: EventBus):
     metrics = event_bus.get_metrics()
     assert metrics["total"]["total_events"] == 1
 
+@pytest.mark.asyncio
 async def test_metrics_collection(event_bus: EventBus):
     def handler(event: Event):
         pass

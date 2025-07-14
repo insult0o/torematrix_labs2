@@ -1,0 +1,313 @@
+# TORE Matrix Labs V3 - Docker Compose Configuration
+# Complete development and production environment setup
+
+version: '3.8'
+
+services:
+  # Main processing service
+  torematrix-pipeline:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE:-}
+        VERSION: ${VERSION:-3.0.0}
+    container_name: torematrix-pipeline
+    hostname: torematrix-pipeline
+    restart: unless-stopped
+    
+    environment:
+      # Application configuration
+      - TOREMATRIX_ENV=${TOREMATRIX_ENV:-production}
+      - TOREMATRIX_LOG_LEVEL=${TOREMATRIX_LOG_LEVEL:-INFO}
+      - TOREMATRIX_CONFIG_PATH=/app/config
+      - TOREMATRIX_DATA_PATH=/app/data
+      
+      # Database configuration
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-torematrix}
+      - POSTGRES_USER=${POSTGRES_USER:-torematrix}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-torematrix_pass}
+      
+      # Redis configuration  
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      
+      # Monitoring configuration
+      - PROMETHEUS_ENABLED=true
+      - PROMETHEUS_PORT=9090
+      - GRAFANA_ENABLED=true
+      
+      # Processing configuration
+      - ASYNC_WORKERS=${ASYNC_WORKERS:-4}
+      - THREAD_WORKERS=${THREAD_WORKERS:-2}
+      - MAX_CPU_PERCENT=${MAX_CPU_PERCENT:-80}
+      - MAX_MEMORY_PERCENT=${MAX_MEMORY_PERCENT:-75}
+      
+      # Unstructured.io configuration
+      - UNSTRUCTURED_API_URL=${UNSTRUCTURED_API_URL:-}
+      - UNSTRUCTURED_API_KEY=${UNSTRUCTURED_API_KEY:-}
+    
+    volumes:
+      - torematrix-data:/app/data
+      - torematrix-logs:/app/logs
+      - torematrix-config:/app/config
+      - ./../../sample-documents:/app/sample-documents:ro
+    
+    ports:
+      - "8000:8000"  # Main API
+      - "9090:9090"  # Prometheus metrics
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    networks:
+      - torematrix-network
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: torematrix-postgres
+    hostname: postgres
+    restart: unless-stopped
+    
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-torematrix}
+      - POSTGRES_USER=${POSTGRES_USER:-torematrix}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-torematrix_pass}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    
+    ports:
+      - "5432:5432"
+    
+    networks:
+      - torematrix-network
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-torematrix} -d ${POSTGRES_DB:-torematrix}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Redis cache
+  redis:
+    image: redis:7-alpine
+    container_name: torematrix-redis
+    hostname: redis
+    restart: unless-stopped
+    
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    
+    volumes:
+      - redis-data:/data
+    
+    ports:
+      - "6379:6379"
+    
+    networks:
+      - torematrix-network
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Prometheus monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: torematrix-prometheus
+    hostname: prometheus
+    restart: unless-stopped
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    
+    ports:
+      - "9091:9090"  # Avoid conflict with pipeline metrics port
+    
+    networks:
+      - torematrix-network
+      - monitoring-network
+    
+    depends_on:
+      - torematrix-pipeline
+    
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Grafana dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: torematrix-grafana
+    hostname: grafana
+    restart: unless-stopped
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    
+    ports:
+      - "3000:3000"
+    
+    networks:
+      - monitoring-network
+    
+    depends_on:
+      - prometheus
+    
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Nginx reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: torematrix-nginx
+    hostname: nginx
+    restart: unless-stopped
+    
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    networks:
+      - torematrix-network
+    
+    depends_on:
+      - torematrix-pipeline
+    
+    profiles:
+      - production
+    
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.1'
+
+# Development services
+  torematrix-dev:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+      target: development
+    container_name: torematrix-dev
+    hostname: torematrix-dev
+    
+    environment:
+      - TOREMATRIX_ENV=development
+      - TOREMATRIX_LOG_LEVEL=DEBUG
+      - TOREMATRIX_CONFIG_PATH=/app/config
+      - TOREMATRIX_DATA_PATH=/app/data
+    
+    volumes:
+      - ../../src:/app/src:rw
+      - ../../tests:/app/tests:rw
+      - ../../deployment/config:/app/config:ro
+      - torematrix-dev-data:/app/data
+      - torematrix-dev-logs:/app/logs
+    
+    ports:
+      - "8001:8000"  # Dev API
+      - "9091:9090"  # Dev metrics
+      - "8888:8888"  # Jupyter
+    
+    networks:
+      - torematrix-network
+    
+    profiles:
+      - development
+    
+    command: ["/app/scripts/start-dev.sh"]
+
+# Volumes
+volumes:
+  postgres-data:
+    name: torematrix-postgres-data
+  redis-data:
+    name: torematrix-redis-data
+  prometheus-data:
+    name: torematrix-prometheus-data
+  grafana-data:
+    name: torematrix-grafana-data
+  torematrix-data:
+    name: torematrix-data
+  torematrix-logs:
+    name: torematrix-logs
+  torematrix-config:
+    name: torematrix-config
+  torematrix-dev-data:
+    name: torematrix-dev-data
+  torematrix-dev-logs:
+    name: torematrix-dev-logs
+
+# Networks
+networks:
+  torematrix-network:
+    name: torematrix-network
+    driver: bridge
+  monitoring-network:
+    name: torematrix-monitoring
+    driver: bridge
