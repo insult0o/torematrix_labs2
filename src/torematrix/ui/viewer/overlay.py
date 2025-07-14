@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import QWidget
 from .coordinates import CoordinateTransform, Rectangle, Point
 from .layers import LayerManager, OverlayLayer
 from .renderer import RendererBackend, CanvasRenderer, SVGRenderer
+from .pipeline import RenderPipeline, RenderOperation, RenderPriority
 
 
 class RenderBackend(Enum):
@@ -117,6 +118,10 @@ class OverlayEngine:
         self.render_timer = QTimer()
         self.render_timer.setSingleShot(True)
         self.render_timer.timeout.connect(self._execute_render)
+        
+        # Pipeline integration
+        self.render_pipeline: Optional[RenderPipeline] = None
+        self.use_pipeline = False
         
         # Initialize backend
         self.set_backend(backend)
@@ -408,15 +413,148 @@ class OverlayEngine:
         
         return hit_elements
     
+    def render_layer_to_buffer(self, layer_name: str, buffer_size: Optional[Tuple[int, int]] = None) -> Optional[bytes]:
+        """Render a specific layer to a buffer for caching or export."""
+        layer = self.layer_manager.get_layer(layer_name)
+        if not layer or not layer.is_visible():
+            return None
+        
+        # Create temporary renderer for buffer rendering
+        if buffer_size:
+            # Create a temporary widget for rendering
+            temp_widget = QWidget()
+            temp_widget.resize(buffer_size[0], buffer_size[1])
+            temp_renderer = CanvasRenderer(temp_widget)
+        else:
+            temp_renderer = self.renderer_backend
+        
+        if not temp_renderer:
+            return None
+        
+        # Create context for buffer rendering
+        viewport_bounds = Rectangle(0, 0, buffer_size[0] if buffer_size else 800, buffer_size[1] if buffer_size else 600)
+        context = RenderContext(
+            viewport=ViewportInfo(
+                bounds=viewport_bounds,
+                zoom_level=1.0,
+                center=Point(viewport_bounds.width/2, viewport_bounds.height/2)
+            ),
+            coordinate_transform=self.coordinate_transform,
+            dirty_regions=[],
+            performance_metrics={}
+        )
+        
+        try:
+            temp_renderer.begin_render(context)
+            self._render_layer(layer, context)
+            temp_renderer.end_render()
+            
+            # Extract buffer data (implementation depends on renderer type)
+            return None  # Would return actual buffer data
+        except Exception as e:
+            print(f"Layer buffer rendering error: {e}")
+            return None
+        finally:
+            if buffer_size and temp_renderer != self.renderer_backend:
+                temp_renderer.cleanup()
+    
+    def invalidate_layer(self, layer_name: str) -> None:
+        """Invalidate a specific layer for re-rendering."""
+        layer = self.layer_manager.get_layer(layer_name)
+        if layer:
+            layer_bounds = layer.get_bounds()
+            if layer_bounds:
+                self._mark_dirty(layer_bounds)
+    
+    def invalidate_element(self, element: OverlayElement) -> None:
+        """Invalidate a specific element for re-rendering."""
+        element_bounds = element.get_bounds()
+        if element_bounds:
+            self._mark_dirty(element_bounds)
+    
+    def enable_pipeline(self, enable: bool = True) -> None:
+        """Enable or disable pipeline rendering."""
+        if enable and not self.render_pipeline:
+            if self.viewport_info:
+                self.render_pipeline = RenderPipeline(self.renderer_backend, self.viewport_info.bounds)
+                self.render_pipeline.start()
+                self.use_pipeline = True
+        elif not enable and self.render_pipeline:
+            self.render_pipeline.stop()
+            self.render_pipeline = None
+            self.use_pipeline = False
+    
+    def schedule_pipeline_render(self, layer_name: Optional[str] = None, 
+                                priority: RenderPriority = RenderPriority.NORMAL) -> None:
+        """Schedule a render operation through the pipeline."""
+        if not self.render_pipeline or not self.viewport_info:
+            return
+        
+        if layer_name:
+            layer = self.layer_manager.get_layer(layer_name)
+            if layer:
+                layer_bounds = layer.get_bounds()
+                if layer_bounds:
+                    self.render_pipeline.schedule_layer_render(layer_name, layer_bounds, priority)
+        else:
+            self.render_pipeline.schedule_full_render(priority)
+    
+    def get_pipeline_performance(self) -> Dict[str, Any]:
+        """Get pipeline performance metrics."""
+        if self.render_pipeline:
+            return self.render_pipeline.get_performance_metrics()
+        return {}
+    
+    def get_render_statistics(self) -> Dict[str, Any]:
+        """Get detailed rendering statistics."""
+        stats = {
+            'total_layers': len(self.layer_manager.get_all_layers()),
+            'visible_layers': len([l for l in self.layer_manager.get_all_layers() if l.is_visible()]),
+            'total_elements': sum(len(l.get_elements()) for l in self.layer_manager.get_all_layers()),
+            'visible_elements': len(self.get_visible_elements()),
+            'current_backend': self.current_backend.value,
+            'dirty_regions': len(self.dirty_regions),
+            'performance_metrics': self.performance_metrics.copy(),
+            'use_pipeline': self.use_pipeline
+        }
+        
+        # Add pipeline statistics
+        if self.render_pipeline:
+            stats['pipeline_metrics'] = self.render_pipeline.get_performance_metrics()
+            stats['pipeline_frame_history'] = len(self.render_pipeline.get_frame_history())
+        
+        # Add layer-specific statistics
+        layer_stats = {}
+        for layer in self.layer_manager.get_all_layers():
+            layer_stats[layer.name] = {
+                'visible': layer.is_visible(),
+                'element_count': len(layer.get_elements()),
+                'bounds': layer.get_bounds(),
+                'z_index': layer.get_z_index()
+            }
+        stats['layer_details'] = layer_stats
+        
+        return stats
+    
     def cleanup(self) -> None:
         """Clean up resources."""
         if self.render_timer:
             self.render_timer.stop()
         
+        if self.render_pipeline:
+            self.render_pipeline.cleanup()
+            self.render_pipeline = None
+        
         if self.renderer_backend:
             self.renderer_backend.cleanup()
+            self.renderer_backend = None
         
         self.layer_manager.cleanup()
+        self.dirty_regions.clear()
+        self.performance_metrics.clear()
+        self.coordinate_transform = None
+        self.viewport_info = None
+        self.use_pipeline = False
 
 
 class OverlayManager:

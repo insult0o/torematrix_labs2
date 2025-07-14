@@ -205,6 +205,9 @@ class TestOverlayEngine:
         engine.renderer_backend = Mock()
         engine.renderer_backend.begin_render = Mock()
         engine.renderer_backend.end_render = Mock()
+        engine.renderer_backend.save_state = Mock()
+        engine.renderer_backend.restore_state = Mock()
+        engine.renderer_backend.set_clip_region = Mock()
         
         # Mock viewport
         engine.viewport_info = ViewportInfo(
@@ -221,6 +224,92 @@ class TestOverlayEngine:
         engine.render_now()
         engine.renderer_backend.begin_render.assert_called_once()
         engine.renderer_backend.end_render.assert_called_once()
+    
+    def test_layer_invalidation(self, engine):
+        """Test layer invalidation."""
+        # Create test layer
+        layer = engine.create_layer("test_layer")
+        
+        # Mock layer bounds
+        layer.get_bounds = Mock(return_value=Rectangle(0, 0, 100, 100))
+        
+        # Test layer invalidation
+        engine.invalidate_layer("test_layer")
+        assert len(engine.dirty_regions) > 0
+    
+    def test_element_invalidation(self, engine):
+        """Test element invalidation."""
+        # Create test element
+        element = Mock()
+        element.get_bounds.return_value = Rectangle(10, 10, 100, 100)
+        
+        # Test element invalidation
+        engine.invalidate_element(element)
+        assert len(engine.dirty_regions) > 0
+    
+    def test_render_statistics(self, engine):
+        """Test render statistics."""
+        # Create test layer and element
+        layer = engine.create_layer("test_layer")
+        element = Mock()
+        element.get_bounds.return_value = Rectangle(10, 10, 100, 100)
+        element.is_visible.return_value = True
+        engine.add_element("test_layer", element)
+        
+        # Get statistics
+        stats = engine.get_render_statistics()
+        
+        assert stats['total_layers'] == 1
+        assert stats['total_elements'] == 1
+        assert 'test_layer' in stats['layer_details']
+        assert stats['layer_details']['test_layer']['element_count'] == 1
+    
+    def test_pipeline_integration(self, engine):
+        """Test pipeline integration."""
+        # Mock renderer backend
+        engine.renderer_backend = Mock()
+        
+        # Set up viewport
+        engine.set_viewport(Rectangle(0, 0, 800, 600))
+        
+        # Enable pipeline
+        engine.enable_pipeline(True)
+        assert engine.use_pipeline
+        assert engine.render_pipeline is not None
+        
+        # Test pipeline render scheduling
+        engine.schedule_pipeline_render()
+        
+        # Get pipeline performance
+        pipeline_perf = engine.get_pipeline_performance()
+        assert isinstance(pipeline_perf, dict)
+        
+        # Disable pipeline
+        engine.enable_pipeline(False)
+        assert not engine.use_pipeline
+        assert engine.render_pipeline is None
+    
+    def test_enhanced_statistics(self, engine):
+        """Test enhanced statistics with pipeline."""
+        # Create test layer
+        layer = engine.create_layer("test_layer")
+        
+        # Mock renderer backend
+        engine.renderer_backend = Mock()
+        
+        # Set up viewport
+        engine.set_viewport(Rectangle(0, 0, 800, 600))
+        
+        # Enable pipeline
+        engine.enable_pipeline(True)
+        
+        # Get statistics
+        stats = engine.get_render_statistics()
+        
+        assert 'use_pipeline' in stats
+        assert stats['use_pipeline'] == True
+        assert 'pipeline_metrics' in stats
+        assert 'pipeline_frame_history' in stats
     
     def test_cleanup(self, engine):
         """Test cleanup functionality."""
