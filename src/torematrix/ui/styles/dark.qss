@@ -1,0 +1,89 @@
+/* Dark theme for ToreMatrix V3 */
+
+QMainWindow {
+    background-color: #2b2b2b;
+    color: #ffffff;
+}
+
+QMenuBar {
+    background-color: #3c3c3c;
+    border-bottom: 1px solid #555555;
+    color: #ffffff;
+}
+
+QMenuBar::item:selected {
+    background-color: #0e639c;
+    color: #ffffff;
+}
+
+QMenuBar::item:pressed {
+    background-color: #0a4d79;
+    color: #ffffff;
+}
+
+QMenu {
+    background-color: #3c3c3c;
+    border: 1px solid #555555;
+    color: #ffffff;
+}
+
+QMenu::item:selected {
+    background-color: #0e639c;
+    color: #ffffff;
+}
+
+QMenu::separator {
+    background-color: #555555;
+}
+
+QToolBar {
+    background-color: #3c3c3c;
+    border-bottom: 1px solid #555555;
+}
+
+QToolBar::handle {
+    background-color: #555555;
+}
+
+QToolBar QToolButton:hover {
+    background-color: #4a4a4a;
+}
+
+QToolBar QToolButton:pressed {
+    background-color: #555555;
+}
+
+QToolBar QToolButton:checked {
+    background-color: #0e639c;
+    color: #ffffff;
+}
+
+QStatusBar {
+    background-color: #3c3c3c;
+    border-top: 1px solid #555555;
+    color: #ffffff;
+}
+
+QPushButton {
+    background-color: #3c3c3c;
+    border: 1px solid #555555;
+    color: #ffffff;
+}
+
+QPushButton:hover {
+    background-color: #4a4a4a;
+}
+
+QPushButton:pressed {
+    background-color: #555555;
+}
+
+QPushButton:disabled {
+    background-color: #2b2b2b;
+    color: #888888;
+    border-color: #444444;
+}
+
+QFrame[frameShape="4"], QFrame[frameShape="5"] {
+    background-color: #555555;
+}
