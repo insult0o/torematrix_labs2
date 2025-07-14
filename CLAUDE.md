@@ -1,5 +1,20 @@
 # CLAUDE.md - Context File
 
+## 🚨 CRITICAL: Multi-Agent Branch Management
+**MANDATORY for ALL agents before starting work:**
+
+1. **Create unique feature branch** → `git checkout -b feature/[component]-agent[N]-issue[number]`
+2. **Never share branches between agents** → Each agent MUST work on separate branch
+3. **Verify branch before starting** → `git branch --show-current`
+
+**Examples:**
+- Agent 1: `git checkout -b feature/reactive-components-agent1-issue108`
+- Agent 2: `git checkout -b feature/state-integration-agent2-issue109`
+- Agent 3: `git checkout -b feature/performance-agent3-issue110`
+- Agent 4: `git checkout -b feature/components-agent4-issue111`
+
+**ENFORCEMENT**: Branch sharing causes PR conflicts and is NON-COMPLIANT.
+
 ## Current Work Status
 - Working on new page-by-page corrections interface design
 - Replacing problematic coordinate-based highlighting with side-by-side approach
