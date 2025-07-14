@@ -343,6 +343,40 @@ class OverlayEngine:
         if len(self.performance_metrics['render_times']) >= 2:
             avg_render_time = sum(self.performance_metrics['render_times']) / len(self.performance_metrics['render_times'])
             self.performance_metrics['last_fps'] = 1000.0 / avg_render_time if avg_render_time > 0 else 0
+            
+        # Update pipeline performance if enabled
+        if self.render_pipeline:
+            pipeline_metrics = self.render_pipeline.get_performance_metrics()
+            self.performance_metrics['pipeline_fps'] = pipeline_metrics.get('average_fps', 0)
+            self.performance_metrics['pipeline_frame_time'] = pipeline_metrics.get('average_frame_time', 0)
+            self.performance_metrics['pipeline_queue_size'] = pipeline_metrics.get('render_queue_size', 0)
+        
+        # Trigger performance hooks
+        self._trigger_performance_hooks('render_complete', {
+            'render_time': render_time,
+            'frame_count': self.performance_metrics['frame_count'],
+            'fps': self.performance_metrics['last_fps']
+        })
+    
+    def add_performance_hook(self, hook_name: str, callback: callable) -> None:
+        """Add a performance monitoring hook."""
+        if 'performance_hooks' not in self.performance_metrics:
+            self.performance_metrics['performance_hooks'] = {}
+        self.performance_metrics['performance_hooks'][hook_name] = callback
+    
+    def remove_performance_hook(self, hook_name: str) -> None:
+        """Remove a performance monitoring hook."""
+        if 'performance_hooks' in self.performance_metrics:
+            self.performance_metrics['performance_hooks'].pop(hook_name, None)
+    
+    def _trigger_performance_hooks(self, event_type: str, data: Dict[str, Any]) -> None:
+        """Trigger performance hooks with event data."""
+        if 'performance_hooks' in self.performance_metrics:
+            for hook_name, callback in self.performance_metrics['performance_hooks'].items():
+                try:
+                    callback(event_type, data)
+                except Exception as e:
+                    print(f"Performance hook '{hook_name}' failed: {e}")
     
     def _initialize_viewport(self) -> None:
         """Initialize default viewport."""
