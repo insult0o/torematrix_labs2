@@ -24,12 +24,12 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import (
     QObject, QTimer, QThread, QMutex, QWaitCondition, pyqtSignal,
-    QPropertyAnimation, QEasingCurve, QParallelAnimationGroup, QSize
+    QPropertyAnimation, QEasingCurve, QParallelAnimationGroup, QSize, QRect
 )
 from PyQt6.QtGui import QPainter, QPixmap, QPaintDevice
 
 from ...core.events import EventBus
-from ...core.config import ConfigManager
+from ...core.config import ConfigurationManager
 
 logger = logging.getLogger(__name__)
 
@@ -594,7 +594,7 @@ class PerformanceOptimizer(QObject):
     
     def __init__(
         self,
-        config_manager: ConfigManager,
+        config_manager: ConfigurationManager,
         performance_level: PerformanceLevel = PerformanceLevel.STANDARD,
         parent: Optional[QObject] = None
     ):

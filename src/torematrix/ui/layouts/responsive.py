@@ -24,8 +24,8 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import QResizeEvent, QScreen
 
 from ...core.events import EventBus
-from ...core.config import ConfigManager  
-from ...core.state import StateManager
+from ...core.config import ConfigurationManager  
+from ...core.state import Store
 from ..base import BaseUIComponent
 
 logger = logging.getLogger(__name__)

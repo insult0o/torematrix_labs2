@@ -1,0 +1,135 @@
+{
+  "name": "Default Icon Set",
+  "version": "1.0.0",
+  "description": "Default icon set for TORE Matrix Labs applications",
+  "author": "TORE Matrix Labs",
+  "license": "MIT",
+  "style": "outline",
+  "categories": {
+    "actions": {
+      "name": "Actions",
+      "description": "Common user actions and operations",
+      "icons": {
+        "save": {
+          "file": "actions/save.svg",
+          "keywords": ["save", "disk", "storage", "persist"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "open": {
+          "file": "actions/open.svg",
+          "keywords": ["open", "file", "document", "load"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "copy": {
+          "file": "actions/copy.svg",
+          "keywords": ["copy", "duplicate", "clone"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "paste": {
+          "file": "actions/paste.svg",
+          "keywords": ["paste", "insert", "clipboard"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "delete": {
+          "file": "actions/delete.svg",
+          "keywords": ["delete", "remove", "trash", "bin"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        }
+      }
+    },
+    "navigation": {
+      "name": "Navigation",
+      "description": "Navigation and movement controls",
+      "icons": {
+        "home": {
+          "file": "navigation/home.svg",
+          "keywords": ["home", "main", "start", "house"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "back": {
+          "file": "navigation/back.svg",
+          "keywords": ["back", "previous", "return", "left"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "forward": {
+          "file": "navigation/forward.svg",
+          "keywords": ["forward", "next", "continue", "right"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "menu": {
+          "file": "navigation/menu.svg",
+          "keywords": ["menu", "hamburger", "options", "list"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "close": {
+          "file": "navigation/close.svg",
+          "keywords": ["close", "cancel", "x", "exit"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        }
+      }
+    },
+    "interface": {
+      "name": "Interface",
+      "description": "User interface elements and status indicators",
+      "icons": {
+        "settings": {
+          "file": "interface/settings.svg",
+          "keywords": ["settings", "preferences", "config", "gear"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "search": {
+          "file": "interface/search.svg",
+          "keywords": ["search", "find", "magnifying glass", "lookup"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "help": {
+          "file": "interface/help.svg",
+          "keywords": ["help", "question", "support", "assistance"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "info": {
+          "file": "interface/info.svg",
+          "keywords": ["info", "information", "details", "about"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "warning": {
+          "file": "interface/warning.svg",
+          "keywords": ["warning", "caution", "alert", "attention"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "error": {
+          "file": "interface/error.svg",
+          "keywords": ["error", "failure", "problem", "issue"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        },
+        "success": {
+          "file": "interface/success.svg",
+          "keywords": ["success", "complete", "done", "check"],
+          "variants": ["normal", "hover", "pressed", "disabled"]
+        }
+      }
+    }
+  },
+  "theming": {
+    "colorizable": true,
+    "supports_states": true,
+    "color_properties": [
+      "stroke",
+      "fill"
+    ],
+    "state_colors": {
+      "normal": "icon_primary",
+      "hover": "icon_accent",
+      "pressed": "icon_primary",
+      "disabled": "icon_disabled",
+      "selected": "icon_accent"
+    }
+  },
+  "accessibility": {
+    "high_contrast_compatible": true,
+    "minimum_size": "16px",
+    "recommended_size": "24px",
+    "scalable": true,
+    "screen_reader_friendly": true
+  }
+}

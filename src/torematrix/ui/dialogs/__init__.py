@@ -16,6 +16,10 @@ from .confirmation import ConfirmationDialog, MessageType, confirm, alert, error
 from .progress import ProgressDialog, ProgressInfo, ProgressWorker
 from .forms import FormDialog, FormField, FieldType, ValidationRule
 from .notifications import NotificationManager, ToastNotification, NotificationType, NotificationPosition, NotificationData
+# Theme dialogs temporarily commented due to missing dependencies
+# from .theme_selector_dialog import ThemeSelectorDialog
+# from .theme_customizer_dialog import ThemeCustomizerDialog
+# from .theme_accessibility_dialog import AccessibilityDialog
 
 __all__ = [
     'BaseDialog',
@@ -41,5 +45,8 @@ __all__ = [
     'ToastNotification',
     'NotificationType',
     'NotificationPosition',
-    'NotificationData'
+    'NotificationData',
+    # 'ThemeSelectorDialog',
+    # 'ThemeCustomizerDialog',
+    # 'AccessibilityDialog'
 ]

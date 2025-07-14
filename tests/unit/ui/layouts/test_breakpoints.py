@@ -9,7 +9,7 @@ from src.torematrix.ui.layouts.breakpoints import (
     BreakpointType, DeviceClass, BreakpointDefinition, BreakpointEvent,
     DeviceProfile, BreakpointCalculator, BreakpointManager
 )
-from src.torematrix.core.config import ConfigManager
+from src.torematrix.core.config import ConfigurationManager
 
 
 @pytest.fixture

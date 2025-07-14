@@ -20,8 +20,8 @@ from PyQt6.QtGui import QScreen
 
 from ..base import BaseUIComponent
 from ...core.events import EventBus
-from ...core.config import ConfigManager  
-from ...core.state import StateManager
+from ...core.config import ConfigurationManager  
+from ...core.state import Store
 
 logger = logging.getLogger(__name__)
 
@@ -131,8 +131,8 @@ class LayoutSerializer:
     def __init__(
         self,
         event_bus: Optional[EventBus] = None,
-        config_manager: Optional[ConfigManager] = None,
-        state_manager: Optional[StateManager] = None
+        config_manager: Optional[ConfigurationManager] = None,
+        state_manager: Optional[Store] = None
     ):
         self._event_bus = event_bus
         self._config_manager = config_manager
@@ -533,8 +533,8 @@ class LayoutDeserializer:
     def __init__(
         self,
         event_bus: Optional[EventBus] = None,
-        config_manager: Optional[ConfigManager] = None,
-        state_manager: Optional[StateManager] = None
+        config_manager: Optional[ConfigurationManager] = None,
+        state_manager: Optional[Store] = None
     ):
         self._event_bus = event_bus
         self._config_manager = config_manager

@@ -9,9 +9,9 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
 import asyncio
 
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtTest import QTest
+from PyQt6.QtWidgets import QApplication, QWidget, QPushButton
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtTest import QTest
 
 from torematrix.ui.dialogs import (
     BaseDialog, DialogResult, DialogButton, DialogManager,
@@ -258,8 +258,8 @@ class TestFileDialog:
         assert len(selected) == 3
         assert "/test/file1.txt" in selected
     
-    @patch('PySide6.QtWidgets.QFileDialog.exec')
-    @patch('PySide6.QtWidgets.QFileDialog.selectedFiles')
+    @patch('PyQt6.QtWidgets.QFileDialog.exec')
+    @patch('PyQt6.QtWidgets.QFileDialog.selectedFiles')
     def test_native_dialog_integration(self, mock_selected, mock_exec, parent_widget):
         """Test native file dialog integration."""
         mock_exec.return_value = True
@@ -509,7 +509,7 @@ class TestFormDialog:
         dialog = FormDialog(parent_widget, fields=fields)
         
         # Verify widget types
-        from PySide6.QtWidgets import (
+        from PyQt6.QtWidgets import (
             QLineEdit, QSpinBox, QDoubleSpinBox, 
             QCheckBox, QComboBox, QDateEdit, QTimeEdit
         )
@@ -619,7 +619,7 @@ class TestFormDialog:
         )
         
         # Check group boxes exist
-        from PySide6.QtWidgets import QGroupBox
+        from PyQt6.QtWidgets import QGroupBox
         group_boxes = dialog.findChildren(QGroupBox)
         group_names = [box.title() for box in group_boxes]
         

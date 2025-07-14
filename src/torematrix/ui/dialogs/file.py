@@ -420,8 +420,8 @@ Modified: {path.stat().st_mtime}
             # TODO: Save to settings
             if self.event_bus:
                 self.event_bus.emit(Event(
-                    type=EventType.UI_STATE_CHANGED,
-                    data={
+                    event_type="ui.state.changed",
+                    payload={
                         'action': 'recent_file_added',
                         'file': file_path
                     }

@@ -20,8 +20,8 @@ from PyQt6.QtCore import QObject, QSize, QTimer, pyqtSignal, QSettings
 from PyQt6.QtGui import QScreen
 
 from ...core.events import EventBus
-from ...core.config import ConfigManager
-from ...core.state import StateManager
+from ...core.config import ConfigurationManager
+from ...core.state import Store
 
 logger = logging.getLogger(__name__)
 
@@ -204,7 +204,7 @@ class BreakpointManager(QObject):
     breakpoints_updated = pyqtSignal()
     device_profile_changed = pyqtSignal(DeviceProfile)
     
-    def __init__(self, config_manager: ConfigManager, parent: Optional[QObject] = None):
+    def __init__(self, config_manager: ConfigurationManager, parent: Optional[QObject] = None):
         super().__init__(parent)
         
         self._config_manager = config_manager

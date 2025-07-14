@@ -25,8 +25,8 @@ from PyQt6.QtGui import QScreen, QResizeEvent, QMoveEvent
 
 from ..base import BaseUIComponent
 from ...core.events import EventBus
-from ...core.config import ConfigManager  
-from ...core.state import StateManager
+from ...core.config import ConfigurationManager  
+from ...core.state import Store
 from .serialization import DisplayGeometry, LayoutSerializer, LayoutDeserializer
 from .persistence import LayoutPersistence
 
@@ -683,8 +683,8 @@ class MultiMonitorManager(BaseUIComponent):
     def __init__(
         self,
         event_bus: EventBus,
-        config_manager: ConfigManager,
-        state_manager: StateManager,
+        config_manager: ConfigurationManager,
+        state_manager: Store,
         persistence: LayoutPersistence,
         parent: Optional[QObject] = None
     ):

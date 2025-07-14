@@ -73,9 +73,9 @@ class BaseDialog(QDialog):
     """
     
     # Signals
-    dialog_opened = Signal(str)  # dialog_id
-    dialog_closed = Signal(str, DialogResult)  # dialog_id, result
-    state_changed = Signal(dict)  # state data
+    dialog_opened = pyqtSignal(str)  # dialog_id
+    dialog_closed = pyqtSignal(str, DialogResult)  # dialog_id, result
+    state_changed = pyqtSignal(dict)  # state data
     
     def __init__(
         self,
