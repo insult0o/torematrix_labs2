@@ -1,0 +1,1 @@
+"""Tests for worker pool and progress tracking system."""

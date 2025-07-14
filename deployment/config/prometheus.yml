@@ -1,0 +1,120 @@
+# Prometheus Configuration for TORE Matrix Labs V3
+# Monitors processing pipeline metrics and system health
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'torematrix-v3'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load alerting rules
+rule_files:
+  - "alert_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # TORE Matrix Pipeline metrics
+  - job_name: 'torematrix-pipeline'
+    static_configs:
+      - targets: ['torematrix-pipeline:9090']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    honor_labels: true
+    
+    # Relabeling for better organization
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'torematrix_(.+)'
+        target_label: 'component'
+        replacement: 'pipeline'
+      
+      # Add environment label
+      - target_label: 'environment'
+        replacement: 'production'
+
+  # System metrics (if node_exporter is available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    honor_labels: true
+
+  # PostgreSQL metrics (if postgres_exporter is available)
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis metrics (if redis_exporter is available)
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Docker metrics (if available)
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    scrape_interval: 30s
+
+# Recording rules for better performance
+recording_rules:
+  - name: torematrix.pipeline.rules
+    rules:
+      # Task processing rate
+      - record: torematrix:task_processing_rate
+        expr: rate(torematrix_tasks_total[5m])
+      
+      # Average task duration
+      - record: torematrix:task_duration_avg
+        expr: rate(torematrix_task_duration_seconds_sum[5m]) / rate(torematrix_task_duration_seconds_count[5m])
+      
+      # Pipeline success rate
+      - record: torematrix:pipeline_success_rate
+        expr: |
+          (
+            rate(torematrix_tasks_total{status="success"}[5m]) /
+            rate(torematrix_tasks_total[5m])
+          ) * 100
+      
+      # Resource utilization
+      - record: torematrix:resource_utilization_avg
+        expr: avg(torematrix_resource_usage_percent) by (resource_type)
+      
+      # Queue depth trend
+      - record: torematrix:queue_depth_trend
+        expr: avg_over_time(torematrix_queue_size[5m])
+
+  - name: torematrix.alerts.rules
+    rules:
+      # High error rate
+      - record: torematrix:error_rate_5m
+        expr: |
+          (
+            rate(torematrix_tasks_total{status="failure"}[5m]) /
+            rate(torematrix_tasks_total[5m])
+          ) * 100
+      
+      # System health score
+      - record: torematrix:health_score
+        expr: |
+          (
+            (torematrix:pipeline_success_rate > 95) * 0.4 +
+            (torematrix:resource_utilization_avg{resource_type="cpu"} < 80) * 0.3 +
+            (torematrix:resource_utilization_avg{resource_type="memory"} < 75) * 0.3
+          ) * 100
