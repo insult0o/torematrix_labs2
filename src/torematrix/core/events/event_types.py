@@ -19,6 +19,7 @@ class DocumentEventTypes(Enum):
     VALIDATION_REQUIRED = "document.validation.required"
     VALIDATION_COMPLETED = "document.validation.completed"
     ERROR_OCCURRED = "document.error.occurred"
+    UI_STATE_CHANGED = "ui.state.changed"
 
 @dataclass
 class Event:
