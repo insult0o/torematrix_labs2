@@ -1,0 +1,661 @@
+openapi: 3.0.3
+info:
+  title: TORE Matrix Labs - Metadata Extraction API
+  description: |
+    Comprehensive metadata extraction and relationship detection API for document processing.
+    
+    This API provides:
+    - Document metadata extraction with semantic analysis
+    - Element relationship detection and graph construction
+    - Real-time processing progress via WebSockets
+    - Performance optimization and caching
+    - Production monitoring and observability
+    
+    ## Features
+    - **Async Processing**: All extraction operations are asynchronous
+    - **Real-time Updates**: WebSocket progress updates for long-running operations
+    - **Relationship Detection**: Advanced spatial, semantic, and hierarchical relationships
+    - **Performance Optimized**: Multi-level caching and parallel processing
+    - **Production Ready**: Comprehensive monitoring, health checks, and error handling
+    
+  version: 1.0.0
+  contact:
+    name: TORE Matrix Labs
+    email: support@torematrix.com
+    url: https://torematrix.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.torematrix.com/v1
+    description: Production server
+  - url: https://staging-api.torematrix.com/v1
+    description: Staging server
+  - url: http://localhost:8080/api/v1
+    description: Development server
+
+paths:
+  /metadata/extract:
+    post:
+      summary: Extract metadata from document
+      description: |
+        Start asynchronous metadata extraction process for a document.
+        Returns immediately with a session ID for tracking progress.
+      operationId: extractMetadata
+      tags:
+        - Metadata Extraction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetadataExtractionRequest'
+            examples:
+              basic_extraction:
+                summary: Basic extraction
+                value:
+                  document_id: "doc_123"
+                  user_id: "user_456"
+                  enable_relationships: true
+                  enable_semantic_analysis: true
+              advanced_extraction:
+                summary: Advanced extraction with options
+                value:
+                  document_id: "doc_789"
+                  user_id: "user_101"
+                  options:
+                    enable_caching: true
+                    timeout: 300
+                    quality_threshold: 0.8
+                  enable_relationships: true
+                  enable_semantic_analysis: true
+      responses:
+        '202':
+          description: Extraction started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetadataExtractionResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /metadata/{document_id}:
+    get:
+      summary: Get document metadata
+      description: Retrieve extracted metadata for a specific document
+      operationId: getMetadata
+      tags:
+        - Metadata Retrieval
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique document identifier
+          example: "doc_123"
+      responses:
+        '200':
+          description: Document metadata retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMetadata'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /metadata/{document_id}/relationships:
+    get:
+      summary: Get document relationships
+      description: Retrieve element relationships for a document, optionally filtered by type
+      operationId: getRelationships
+      tags:
+        - Relationship Retrieval
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique document identifier
+          example: "doc_123"
+        - name: relationship_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [spatial, semantic, hierarchical, temporal, content]
+          description: Filter relationships by type
+          example: "spatial"
+      responses:
+        '200':
+          description: Relationships retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Relationship'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /metadata/sessions/{session_id}/status:
+    get:
+      summary: Get processing status
+      description: Get current status and progress of metadata extraction session
+      operationId: getProcessingStatus
+      tags:
+        - Session Management
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Processing session identifier
+          example: "session_123"
+      responses:
+        '200':
+          description: Processing status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcessingStatus'
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /metadata/sessions/{session_id}/cancel:
+    post:
+      summary: Cancel processing session
+      description: Cancel an active metadata extraction session
+      operationId: cancelProcessing
+      tags:
+        - Session Management
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Processing session identifier
+          example: "session_123"
+      responses:
+        '200':
+          description: Session cancelled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    description: Session identifier
+                  status:
+                    type: string
+                    description: Current status
+                    example: "cancelled"
+                  message:
+                    type: string
+                    description: Cancellation message
+                    example: "Processing cancelled successfully"
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /metadata/batch/extract:
+    post:
+      summary: Batch metadata extraction
+      description: Start metadata extraction for multiple documents
+      operationId: batchExtractMetadata
+      tags:
+        - Batch Operations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/MetadataExtractionRequest'
+              maxItems: 100
+            example:
+              - document_id: "doc_1"
+                user_id: "user_123"
+                enable_relationships: true
+              - document_id: "doc_2"
+                user_id: "user_123"
+                enable_semantic_analysis: true
+      responses:
+        '202':
+          description: Batch extraction started successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MetadataExtractionResponse'
+        '400':
+          description: Invalid request or batch too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /metadata/health:
+    get:
+      summary: API health check
+      description: Get API and system health status
+      operationId: getHealth
+      tags:
+        - Monitoring
+      responses:
+        '200':
+          description: Health status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+
+  /metadata/metrics:
+    get:
+      summary: Get system metrics
+      description: Get performance and monitoring metrics
+      operationId: getMetrics
+      tags:
+        - Monitoring
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemMetrics'
+
+  /metadata/documents/{document_id}/summary:
+    get:
+      summary: Get document summary
+      description: Get comprehensive document metadata summary
+      operationId: getDocumentSummary
+      tags:
+        - Document Analysis
+      parameters:
+        - name: document_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique document identifier
+      responses:
+        '200':
+          description: Document summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentSummary'
+
+components:
+  schemas:
+    MetadataExtractionRequest:
+      type: object
+      required:
+        - document_id
+        - user_id
+      properties:
+        document_id:
+          type: string
+          description: Unique document identifier
+          example: "doc_123"
+        user_id:
+          type: string
+          description: User requesting extraction
+          example: "user_456"
+        options:
+          type: object
+          description: Extraction options
+          additionalProperties: true
+          example:
+            enable_caching: true
+            timeout: 300
+        enable_relationships:
+          type: boolean
+          description: Enable relationship detection
+          default: true
+        enable_semantic_analysis:
+          type: boolean
+          description: Enable semantic analysis
+          default: true
+
+    MetadataExtractionResponse:
+      type: object
+      required:
+        - session_id
+        - status
+        - message
+      properties:
+        session_id:
+          type: string
+          description: Processing session identifier
+          example: "session_123"
+        status:
+          type: string
+          description: Processing status
+          enum: [processing, completed, failed, cancelled]
+          example: "processing"
+        estimated_time:
+          type: integer
+          description: Estimated completion time in seconds
+          example: 120
+        message:
+          type: string
+          description: Status message
+          example: "Metadata extraction started successfully"
+
+    DocumentMetadata:
+      type: object
+      required:
+        - document_id
+        - metadata
+        - relationships
+        - extraction_stats
+        - extraction_time
+      properties:
+        document_id:
+          type: string
+          description: Document identifier
+          example: "doc_123"
+        metadata:
+          type: object
+          description: Extracted metadata
+          additionalProperties: true
+          example:
+            semantic_roles:
+              title: ["Title Element"]
+              paragraph: ["Body Text"]
+            reading_order:
+              columns: 2
+              flow: "top-to-bottom"
+            document_structure:
+              total_pages: 5
+              element_types:
+                paragraph: 20
+                title: 5
+                table: 3
+        relationships:
+          type: array
+          items:
+            $ref: '#/components/schemas/Relationship'
+          description: Element relationships
+        extraction_stats:
+          type: object
+          description: Extraction statistics
+          example:
+            total_elements: 28
+            metadata_fields: 15
+            relationships_found: 42
+            processing_time: 2.5
+        extraction_time:
+          type: string
+          format: date-time
+          description: When extraction completed
+          example: "2023-07-13T14:30:00Z"
+
+    Relationship:
+      type: object
+      required:
+        - id
+        - source_element_id
+        - target_element_id
+        - relationship_type
+        - confidence
+      properties:
+        id:
+          type: string
+          description: Relationship identifier
+          example: "rel_123"
+        source_element_id:
+          type: string
+          description: Source element ID
+          example: "elem_1"
+        target_element_id:
+          type: string
+          description: Target element ID
+          example: "elem_2"
+        relationship_type:
+          type: string
+          description: Type of relationship
+          enum: [spatial, semantic, hierarchical, temporal, content]
+          example: "spatial"
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Confidence score
+          example: 0.85
+        metadata:
+          type: object
+          description: Additional metadata
+          additionalProperties: true
+          example:
+            spatial_distance: 15.5
+            direction: "below"
+
+    ProcessingStatus:
+      type: object
+      required:
+        - session_id
+        - status
+        - progress
+        - created_at
+        - updated_at
+      properties:
+        session_id:
+          type: string
+          description: Session identifier
+          example: "session_123"
+        status:
+          type: string
+          description: Current status
+          enum: [starting, processing, completed, failed, cancelled]
+          example: "processing"
+        progress:
+          type: object
+          description: Progress information
+          example:
+            current_stage: "relationship_detection"
+            completion_percentage: 75
+            estimated_time_remaining: 30
+        created_at:
+          type: string
+          format: date-time
+          description: Session creation time
+          example: "2023-07-13T14:25:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update time
+          example: "2023-07-13T14:27:30Z"
+
+    HealthStatus:
+      type: object
+      properties:
+        api:
+          type: object
+          description: API health status
+          example:
+            status: "healthy"
+            active_sessions: 15
+            version: "1.0.0"
+        system:
+          type: object
+          description: System health status
+          example:
+            system_healthy: true
+            error_rate: 0.02
+            average_response_time: 1.2
+        overall_status:
+          type: string
+          description: Overall system status
+          enum: [healthy, unhealthy]
+          example: "healthy"
+
+    SystemMetrics:
+      type: object
+      properties:
+        total_extractions:
+          type: integer
+          description: Total number of extractions
+          example: 1250
+        average_duration:
+          type: number
+          format: float
+          description: Average extraction duration in seconds
+          example: 2.3
+        success_rate:
+          type: number
+          format: float
+          description: Success rate percentage
+          example: 0.98
+        error_rates:
+          type: object
+          description: Error rates by component
+          example:
+            extraction: 0.01
+            relationships: 0.02
+            storage: 0.005
+        active_extractions:
+          type: integer
+          description: Currently active extractions
+          example: 5
+
+    DocumentSummary:
+      type: object
+      properties:
+        document_id:
+          type: string
+          example: "doc_123"
+        extraction_time:
+          type: string
+          format: date-time
+        total_metadata_fields:
+          type: integer
+          example: 15
+        total_relationships:
+          type: integer
+          example: 42
+        relationship_types:
+          type: array
+          items:
+            type: string
+          example: ["spatial", "semantic", "hierarchical"]
+        extraction_stats:
+          type: object
+        structure_analysis:
+          type: object
+        semantic_summary:
+          type: object
+
+    Error:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Error message
+          example: "Document not found"
+        code:
+          type: string
+          description: Error code
+          example: "DOCUMENT_NOT_FOUND"
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: "2023-07-13T14:30:00Z"
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+tags:
+  - name: Metadata Extraction
+    description: Core metadata extraction operations
+  - name: Metadata Retrieval
+    description: Retrieve extracted metadata and results
+  - name: Relationship Retrieval
+    description: Retrieve element relationships and graph data
+  - name: Session Management
+    description: Manage processing sessions and progress tracking
+  - name: Batch Operations
+    description: Batch processing operations
+  - name: Monitoring
+    description: System monitoring and health checks
+  - name: Document Analysis
+    description: Document analysis and summary operations

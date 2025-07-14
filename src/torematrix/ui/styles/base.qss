@@ -1,0 +1,139 @@
+/* Base stylesheet for ToreMatrix V3 UI Framework */
+
+/* Main Window */
+QMainWindow {
+    background-color: @background-color;
+    color: @text-color;
+}
+
+/* Menu Bar */
+QMenuBar {
+    background-color: @primary-background;
+    border-bottom: 1px solid @border-color;
+    padding: 2px;
+}
+
+QMenuBar::item {
+    padding: 4px 8px;
+    margin: 1px;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected {
+    background-color: @accent-color;
+}
+
+QMenuBar::item:pressed {
+    background-color: @accent-color-dark;
+}
+
+/* Menu */
+QMenu {
+    background-color: @menu-background;
+    border: 1px solid @border-color;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+QMenu::item {
+    padding: 6px 20px;
+    margin: 1px;
+    border-radius: 4px;
+}
+
+QMenu::item:selected {
+    background-color: @accent-color;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: @border-color;
+    margin: 4px 8px;
+}
+
+/* Tool Bar */
+QToolBar {
+    background-color: @primary-background;
+    border-bottom: 1px solid @border-color;
+    padding: 4px;
+    spacing: 2px;
+}
+
+QToolBar::handle {
+    background-color: @border-color;
+    width: 8px;
+    margin: 4px 2px;
+}
+
+QToolBar QToolButton {
+    padding: 4px;
+    margin: 1px;
+    border-radius: 4px;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+QToolBar QToolButton:hover {
+    background-color: @button-hover;
+}
+
+QToolBar QToolButton:pressed {
+    background-color: @button-pressed;
+}
+
+QToolBar QToolButton:checked {
+    background-color: @accent-color;
+}
+
+/* Status Bar */
+QStatusBar {
+    background-color: @primary-background;
+    border-top: 1px solid @border-color;
+    padding: 2px;
+}
+
+QStatusBar::item {
+    border: none;
+}
+
+/* Buttons */
+QPushButton {
+    background-color: @button-background;
+    border: 1px solid @button-border;
+    border-radius: 4px;
+    padding: 6px 12px;
+    min-width: 80px;
+}
+
+QPushButton:hover {
+    background-color: @button-hover;
+}
+
+QPushButton:pressed {
+    background-color: @button-pressed;
+}
+
+QPushButton:disabled {
+    background-color: @button-disabled;
+    color: @text-color-disabled;
+}
+
+/* Actions */
+QAction {
+    padding: 4px 8px;
+}
+
+/* Separators */
+QFrame[frameShape="4"] { /* HLine */
+    border: none;
+    background-color: @border-color;
+    height: 1px;
+    margin: 4px 0px;
+}
+
+QFrame[frameShape="5"] { /* VLine */
+    border: none;
+    background-color: @border-color;
+    width: 1px;
+    margin: 0px 4px;
+}

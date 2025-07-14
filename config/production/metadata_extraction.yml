@@ -1,0 +1,215 @@
+# Production Configuration for Metadata Extraction System
+# TORE Matrix Labs V3 - Agent 4 Integration
+
+# System Configuration
+system:
+  name: "tore-matrix-metadata-extraction"
+  version: "1.0.0"
+  environment: "production"
+  
+# Metadata Extraction Configuration
+metadata_extraction:
+  # Core Engine Settings
+  engine:
+    max_concurrent_extractions: 50
+    timeout_seconds: 300
+    enable_caching: true
+    cache_ttl_seconds: 3600
+    batch_size: 100
+    
+  # Relationship Detection Settings
+  relationships:
+    enable_detection: true
+    confidence_threshold: 0.7
+    max_relationships_per_document: 1000
+    spatial_analysis_enabled: true
+    semantic_analysis_enabled: true
+    
+  # Performance Optimization Settings
+  performance:
+    enable_optimization: true
+    memory_limit_mb: 4096
+    worker_pool_size: 20
+    enable_gpu_acceleration: false
+    optimization_level: "aggressive"
+    
+# Storage Configuration
+storage:
+  # Primary Storage
+  primary:
+    type: "postgresql"
+    host: "${POSTGRES_HOST}"
+    port: 5432
+    database: "${POSTGRES_DB}"
+    username: "${POSTGRES_USER}"
+    password: "${POSTGRES_PASSWORD}"
+    pool_size: 20
+    max_overflow: 50
+    
+  # Cache Storage
+  cache:
+    type: "redis"
+    host: "${REDIS_HOST}"
+    port: 6379
+    password: "${REDIS_PASSWORD}"
+    db: 0
+    max_connections: 100
+    
+  # Graph Storage
+  graph:
+    type: "neo4j"
+    uri: "${NEO4J_URI}"
+    username: "${NEO4J_USER}"
+    password: "${NEO4J_PASSWORD}"
+    max_connection_pool_size: 50
+
+# API Configuration
+api:
+  host: "0.0.0.0"
+  port: 8080
+  workers: 4
+  max_request_size: 100MB
+  timeout: 300
+  cors_enabled: true
+  cors_origins:
+    - "https://app.torematrix.com"
+    - "https://admin.torematrix.com"
+    
+# WebSocket Configuration
+websocket:
+  enabled: true
+  max_connections: 1000
+  heartbeat_interval: 30
+  message_size_limit: 1MB
+  
+# Security Configuration
+security:
+  # Authentication
+  auth:
+    enabled: true
+    jwt_secret: "${JWT_SECRET}"
+    jwt_algorithm: "HS256"
+    token_expiry_hours: 24
+    
+  # Rate Limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 100
+    burst_size: 200
+    
+  # API Security
+  api_security:
+    enable_https: true
+    ssl_cert_path: "/etc/ssl/certs/torematrix.crt"
+    ssl_key_path: "/etc/ssl/private/torematrix.key"
+    require_api_key: true
+    
+# Monitoring Configuration
+monitoring:
+  # Metrics
+  metrics:
+    enabled: true
+    prometheus_port: 9090
+    collection_interval: 30
+    retention_days: 30
+    
+  # Logging
+  logging:
+    level: "INFO"
+    format: "json"
+    file_path: "/var/log/torematrix/metadata-extraction.log"
+    max_file_size: "100MB"
+    backup_count: 10
+    
+  # Health Checks
+  health:
+    enabled: true
+    endpoint: "/health"
+    check_interval: 60
+    timeout: 10
+    
+  # Alerting
+  alerting:
+    enabled: true
+    webhook_url: "${ALERT_WEBHOOK_URL}"
+    error_threshold: 0.05
+    response_time_threshold: 5.0
+    
+# Resource Limits
+resources:
+  cpu:
+    request: "2"
+    limit: "4"
+  memory:
+    request: "4Gi"
+    limit: "8Gi"
+  storage:
+    request: "10Gi"
+    limit: "50Gi"
+    
+# Scaling Configuration
+scaling:
+  horizontal:
+    enabled: true
+    min_replicas: 2
+    max_replicas: 10
+    target_cpu_utilization: 70
+    target_memory_utilization: 80
+    
+  vertical:
+    enabled: false
+    update_mode: "Auto"
+    
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  storage_location: "${BACKUP_LOCATION}"
+  
+# Environment Variables
+environment_variables:
+  # Database
+  POSTGRES_HOST: "postgres.torematrix.internal"
+  POSTGRES_DB: "torematrix_metadata"
+  POSTGRES_USER: "metadata_service"
+  
+  # Cache
+  REDIS_HOST: "redis.torematrix.internal"
+  
+  # Graph Database
+  NEO4J_URI: "bolt://neo4j.torematrix.internal:7687"
+  NEO4J_USER: "neo4j"
+  
+  # External Services
+  UNSTRUCTURED_API_URL: "https://api.unstructured.io"
+  
+  # Monitoring
+  PROMETHEUS_URL: "http://prometheus.torematrix.internal:9090"
+  GRAFANA_URL: "http://grafana.torematrix.internal:3000"
+  
+# Development and Testing Overrides
+development:
+  metadata_extraction:
+    engine:
+      max_concurrent_extractions: 10
+      timeout_seconds: 60
+  storage:
+    primary:
+      host: "localhost"
+      pool_size: 5
+  api:
+    workers: 1
+    
+testing:
+  metadata_extraction:
+    engine:
+      max_concurrent_extractions: 5
+      timeout_seconds: 30
+  storage:
+    primary:
+      host: "localhost"
+      database: "torematrix_test"
+  monitoring:
+    logging:
+      level: "DEBUG"

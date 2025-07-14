@@ -1,0 +1,81 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/icons">
+        <!-- Application Icon -->
+        <file>icons/app_icon.svg</file>
+        
+        <!-- Light Theme Icons -->
+        <file>icons/light/new.svg</file>
+        <file>icons/light/open.svg</file>
+        <file>icons/light/save.svg</file>
+        <file>icons/light/save-as.svg</file>
+        <file>icons/light/export.svg</file>
+        <file>icons/light/exit.svg</file>
+        <file>icons/light/undo.svg</file>
+        <file>icons/light/redo.svg</file>
+        <file>icons/light/cut.svg</file>
+        <file>icons/light/copy.svg</file>
+        <file>icons/light/paste.svg</file>
+        <file>icons/light/select-all.svg</file>
+        <file>icons/light/preferences.svg</file>
+        <file>icons/light/zoom-in.svg</file>
+        <file>icons/light/zoom-out.svg</file>
+        <file>icons/light/zoom-reset.svg</file>
+        <file>icons/light/fullscreen.svg</file>
+        <file>icons/light/sidebar.svg</file>
+        <file>icons/light/process.svg</file>
+        <file>icons/light/validate.svg</file>
+        <file>icons/light/export-data.svg</file>
+        <file>icons/light/help.svg</file>
+        <file>icons/light/shortcuts.svg</file>
+        <file>icons/light/about.svg</file>
+        
+        <!-- Dark Theme Icons -->
+        <file>icons/dark/new.svg</file>
+        <file>icons/dark/open.svg</file>
+        <file>icons/dark/save.svg</file>
+        <file>icons/dark/save-as.svg</file>
+        <file>icons/dark/export.svg</file>
+        <file>icons/dark/exit.svg</file>
+        <file>icons/dark/undo.svg</file>
+        <file>icons/dark/redo.svg</file>
+        <file>icons/dark/cut.svg</file>
+        <file>icons/dark/copy.svg</file>
+        <file>icons/dark/paste.svg</file>
+        <file>icons/dark/select-all.svg</file>
+        <file>icons/dark/preferences.svg</file>
+        <file>icons/dark/zoom-in.svg</file>
+        <file>icons/dark/zoom-out.svg</file>
+        <file>icons/dark/zoom-reset.svg</file>
+        <file>icons/dark/fullscreen.svg</file>
+        <file>icons/dark/sidebar.svg</file>
+        <file>icons/dark/process.svg</file>
+        <file>icons/dark/validate.svg</file>
+        <file>icons/dark/export-data.svg</file>
+        <file>icons/dark/help.svg</file>
+        <file>icons/dark/shortcuts.svg</file>
+        <file>icons/dark/about.svg</file>
+        
+        <!-- Size-specific Icons -->
+        <file>icons/16x16/new.svg</file>
+        <file>icons/16x16/open.svg</file>
+        <file>icons/16x16/save.svg</file>
+        <file>icons/24x24/new.svg</file>
+        <file>icons/24x24/open.svg</file>
+        <file>icons/24x24/save.svg</file>
+        <file>icons/32x32/new.svg</file>
+        <file>icons/32x32/open.svg</file>
+        <file>icons/32x32/save.svg</file>
+    </qresource>
+    
+    <qresource prefix="/styles">
+        <file>styles/light.qss</file>
+        <file>styles/dark.qss</file>
+        <file>styles/base.qss</file>
+    </qresource>
+    
+    <qresource prefix="/images">
+        <file>images/splash.png</file>
+        <file>images/logo.png</file>
+    </qresource>
+</RCC>

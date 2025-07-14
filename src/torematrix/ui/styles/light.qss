@@ -1,0 +1,106 @@
+/* Light theme for ToreMatrix V3 */
+
+/* Color Variables */
+/* 
+@background-color: #ffffff;
+@primary-background: #f8f9fa;
+@text-color: #212529;
+@text-color-disabled: #6c757d;
+@border-color: #dee2e6;
+@accent-color: #007bff;
+@accent-color-dark: #0056b3;
+@button-background: #ffffff;
+@button-border: #ced4da;
+@button-hover: #e9ecef;
+@button-pressed: #dee2e6;
+@button-disabled: #f8f9fa;
+@menu-background: #ffffff;
+*/
+
+QMainWindow {
+    background-color: #ffffff;
+    color: #212529;
+}
+
+QMenuBar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    color: #212529;
+}
+
+QMenuBar::item:selected {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+QMenuBar::item:pressed {
+    background-color: #0056b3;
+    color: #ffffff;
+}
+
+QMenu {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    color: #212529;
+}
+
+QMenu::item:selected {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+QMenu::separator {
+    background-color: #dee2e6;
+}
+
+QToolBar {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+QToolBar::handle {
+    background-color: #dee2e6;
+}
+
+QToolBar QToolButton:hover {
+    background-color: #e9ecef;
+}
+
+QToolBar QToolButton:pressed {
+    background-color: #dee2e6;
+}
+
+QToolBar QToolButton:checked {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+QStatusBar {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    color: #212529;
+}
+
+QPushButton {
+    background-color: #ffffff;
+    border: 1px solid #ced4da;
+    color: #212529;
+}
+
+QPushButton:hover {
+    background-color: #e9ecef;
+}
+
+QPushButton:pressed {
+    background-color: #dee2e6;
+}
+
+QPushButton:disabled {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+QFrame[frameShape="4"], QFrame[frameShape="5"] {
+    background-color: #dee2e6;
+}
