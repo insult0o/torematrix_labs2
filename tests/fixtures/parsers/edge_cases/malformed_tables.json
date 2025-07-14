@@ -1,0 +1,52 @@
+{
+  "inconsistent_columns": {
+    "text": "Name | Age\nJohn | 25 | Extra\nJane | 30",
+    "description": "Table with inconsistent column counts across rows",
+    "expected_issues": ["Row length mismatch", "Structure inconsistency"]
+  },
+  "missing_separators": {
+    "text": "Name Age City\nJohn 25 New York\nJane 30 London",
+    "description": "Table without clear separators",
+    "expected_issues": ["Separator detection difficulty", "Column boundary ambiguity"]
+  },
+  "empty_rows": {
+    "text": "Name | Age | City\n\nJohn | 25 | New York\n\nJane | 30 | London",
+    "description": "Table with empty rows",
+    "expected_issues": ["Empty row handling"]
+  },
+  "only_headers": {
+    "text": "Name | Age | City",
+    "description": "Table with only header row",
+    "expected_issues": ["No data rows", "Insufficient content"]
+  },
+  "no_headers": {
+    "text": "John | 25 | New York\nJane | 30 | London",
+    "description": "Table without clear headers",
+    "expected_issues": ["Header detection challenge"]
+  },
+  "mixed_separators": {
+    "text": "Name | Age, City\nJohn | 25, New York\nJane | 30, London",
+    "description": "Table with mixed separator types",
+    "expected_issues": ["Separator pattern inconsistency"]
+  },
+  "special_characters": {
+    "text": "Name | Age | City\nJohñ | 25 | Neẅ Yörk\nJāne | 30 | Löndøn",
+    "description": "Table with special characters and accents",
+    "expected_issues": ["Character encoding handling"]
+  },
+  "very_long_content": {
+    "text": "Name | Description\nProduct1 | This is an extremely long description that goes on and on and contains lots of detailed information about the product including specifications features benefits and more\nProduct2 | Another very long description with multiple sentences. It contains various details. And it keeps going with more information.",
+    "description": "Table with very long cell content",
+    "expected_issues": ["Content length handling", "Text wrapping"]
+  },
+  "numeric_headers": {
+    "text": "1 | 2 | 3\nA | B | C\nX | Y | Z",
+    "description": "Table with numeric headers",
+    "expected_issues": ["Header type detection difficulty"]
+  },
+  "single_column": {
+    "text": "Items\nFirst\nSecond\nThird",
+    "description": "Single column table (might be mistaken for list)",
+    "expected_issues": ["Table vs list ambiguity"]
+  }
+}

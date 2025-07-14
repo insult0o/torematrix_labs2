@@ -1,0 +1,92 @@
+{
+  "simple_ordered_list": {
+    "text": "1. First item\n2. Second item\n3. Third item\n4. Fourth item",
+    "expected": {
+      "total_items": 4,
+      "max_depth": 0,
+      "list_type": "ordered",
+      "has_mixed_content": false
+    }
+  },
+  "simple_unordered_list": {
+    "text": "• First bullet point\n• Second bullet point\n• Third bullet point",
+    "expected": {
+      "total_items": 3,
+      "max_depth": 0,
+      "list_type": "unordered",
+      "has_mixed_content": false
+    }
+  },
+  "nested_ordered_list": {
+    "text": "1. First level item\n   a. Second level item\n   b. Another second level\n      i. Third level item\n      ii. Another third level\n2. Another first level\n   a. More second level",
+    "expected": {
+      "total_items": 7,
+      "max_depth": 2,
+      "list_type": "ordered",
+      "has_mixed_content": false
+    }
+  },
+  "nested_unordered_list": {
+    "text": "• Top level\n  - Second level\n    • Third level\n    • Another third\n  - Back to second\n• Another top level",
+    "expected": {
+      "total_items": 6,
+      "max_depth": 2,
+      "list_type": "unordered",
+      "has_mixed_content": false
+    }
+  },
+  "mixed_list": {
+    "text": "1. Ordered item\n• Unordered item\n  - Nested unordered\n2. Back to ordered\n   a. Nested ordered",
+    "expected": {
+      "total_items": 5,
+      "max_depth": 1,
+      "list_type": "mixed",
+      "has_mixed_content": true
+    }
+  },
+  "definition_list": {
+    "text": "Term 1: Definition of the first term goes here\nTerm 2: Definition of the second term\nLong Term Name: A much longer definition that explains the concept in detail",
+    "expected": {
+      "total_items": 3,
+      "max_depth": 0,
+      "list_type": "definition",
+      "has_mixed_content": false
+    }
+  },
+  "deep_nested_list": {
+    "text": "1. Level 1\n  a. Level 2\n    i. Level 3\n      - Level 4\n        • Level 5\n          * Level 6",
+    "expected": {
+      "total_items": 6,
+      "max_depth": 5,
+      "list_type": "mixed",
+      "has_mixed_content": true
+    }
+  },
+  "alphanumeric_list": {
+    "text": "a. First alphabetic\nb. Second alphabetic\nc. Third alphabetic\n   1. Nested numeric\n   2. Another numeric\nd. Fourth alphabetic",
+    "expected": {
+      "total_items": 6,
+      "max_depth": 1,
+      "list_type": "ordered",
+      "has_mixed_content": false
+    }
+  },
+  "roman_numeral_list": {
+    "text": "I. First roman\nII. Second roman\nIII. Third roman\n    a. Nested alpha\n    b. Another alpha\nIV. Fourth roman",
+    "expected": {
+      "total_items": 6,
+      "max_depth": 1,
+      "list_type": "ordered",
+      "has_mixed_content": false
+    }
+  },
+  "dash_list": {
+    "text": "- First dash item\n- Second dash item\n  - Nested dash\n  - Another nested\n- Third dash item",
+    "expected": {
+      "total_items": 5,
+      "max_depth": 1,
+      "list_type": "unordered",
+      "has_mixed_content": false
+    }
+  }
+}

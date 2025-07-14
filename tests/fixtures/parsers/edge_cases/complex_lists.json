@@ -1,0 +1,52 @@
+{
+  "irregular_numbering": {
+    "text": "1. First item\n3. Third item (skipped 2)\n5. Fifth item\n2. Out of order item",
+    "description": "List with irregular or out-of-order numbering",
+    "expected_issues": ["Non-sequential numbering", "Order validation"]
+  },
+  "mixed_indentation": {
+    "text": "1. First level\n  a. Two spaces\n    b. Four spaces\n\tc. Tab character\n      d. Six spaces",
+    "description": "List with mixed indentation styles",
+    "expected_issues": ["Indentation inconsistency", "Level detection difficulty"]
+  },
+  "excessive_nesting": {
+    "text": "1. Level 1\n  a. Level 2\n    i. Level 3\n      - Level 4\n        • Level 5\n          * Level 6\n            + Level 7\n              > Level 8",
+    "description": "List with excessive nesting beyond reasonable limits",
+    "expected_issues": ["Depth limit exceeded", "Structure complexity"]
+  },
+  "no_content": {
+    "text": "1. \n2. \n3. ",
+    "description": "List with numbered items but no content",
+    "expected_issues": ["Empty content", "Validation failure"]
+  },
+  "inconsistent_markers": {
+    "text": "1. First\n• Second\na. Third\n- Fourth\nI. Fifth",
+    "description": "List with completely inconsistent markers at same level",
+    "expected_issues": ["Marker consistency", "Type classification"]
+  },
+  "paragraph_content": {
+    "text": "1. This is a very long list item that contains multiple sentences. It goes on and on with detailed explanations. The content is so long it might span multiple lines when displayed.\n\n2. Another long item with paragraph breaks.\n\nThis continues the same item but with a line break that might be confused as a separate item.",
+    "description": "List with paragraph-style content and line breaks",
+    "expected_issues": ["Content boundary detection", "Multi-line item handling"]
+  },
+  "embedded_lists": {
+    "text": "1. Main item with embedded list:\n   • Sub-bullet 1\n   • Sub-bullet 2\n2. Another main item:\n   a. Sub-item A\n   b. Sub-item B with its own list:\n      - Deep item 1\n      - Deep item 2",
+    "description": "List with multiple embedded sublists",
+    "expected_issues": ["Complex nesting", "Multiple list type handling"]
+  },
+  "special_characters_markers": {
+    "text": "◆ Diamond marker\n▲ Triangle marker\n★ Star marker\n→ Arrow marker\n※ Special note marker",
+    "description": "List with non-standard Unicode markers",
+    "expected_issues": ["Unicode marker recognition", "Non-standard patterns"]
+  },
+  "malformed_definition": {
+    "text": "Term 1: Definition\nTerm 2 Definition without colon\nTerm 3:: Double colon\n: No term definition",
+    "description": "Malformed definition list",
+    "expected_issues": ["Definition format validation", "Colon handling"]
+  },
+  "single_item": {
+    "text": "1. Only one item in the list",
+    "description": "List with only one item (might not qualify as a list)",
+    "expected_issues": ["Minimum item count", "List vs text distinction"]
+  }
+}
