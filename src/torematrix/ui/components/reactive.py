@@ -28,8 +28,12 @@ from uuid import UUID, uuid4
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from PyQt6.QtWidgets import QWidget
 
-from torematrix.core.events import Event, EventBus, EventPriority
-from torematrix.core.state import Action, Store
+try:
+    from torematrix.core.events import Event, EventBus, EventPriority
+    from torematrix.core.state import Action, Store
+except ImportError:
+    # For testing without full dependencies
+    Event = EventBus = EventPriority = Action = Store = None
 
 logger = logging.getLogger(__name__)
 

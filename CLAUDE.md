@@ -135,11 +135,15 @@ When this command is given, I will automatically execute the following comprehen
 - Daily progress tracking via GitHub
 - High-quality deliverables
 - Efficient 6-day development cycles
+- **MANDATORY PR workflow for ALL agents without exception**
 
-## 🏁 Agent "End Work" Routine
+## 🏁 Agent "End Work" Routine - MANDATORY FOR ALL AGENTS
 
 ### Trigger: "end work"
 When the user says "end work", execute this standardized completion routine:
+
+### ⚠️ CRITICAL WORKFLOW REQUIREMENT ⚠️
+**ALL AGENTS (1, 2, 3, 4) MUST follow this exact workflow without exception. Any agent work that bypasses the PR creation and issue closure process is inconsistent with project standards and must be corrected.**
 
 ### 1️⃣ Run All Tests
 ```bash
@@ -150,12 +154,12 @@ source .venv/bin/activate && python -m pytest tests/unit/core/[your-component]/ 
 # If any fail, fix them first
 ```
 
-### 2️⃣ Stage and Commit Changes
+### 2️⃣ Stage and Commit Changes - REQUIRED FOR ALL AGENTS
 ```bash
 # Stage all changes
 git add -A
 
-# Commit with standardized message format
+# Commit with standardized message format - MUST include sub-issue number
 git commit -m "$(cat <<'EOF'
 🚀 FEATURE: [Component Name] Implementation
 
@@ -186,12 +190,12 @@ EOF
 )"
 ```
 
-### 3️⃣ Push and Create Pull Request
+### 3️⃣ Push and Create Pull Request - MANDATORY FOR ALL AGENTS
 ```bash
-# Push the feature branch
+# Push the feature branch - REQUIRED: Must use descriptive branch name
 git push -u origin feature/[branch-name]
 
-# Create PR with detailed description
+# Create PR with detailed description - MANDATORY: Must reference sub-issue number
 gh pr create --title "🚀 FEATURE: [Component Name] (#[sub-issue-number])" --body "$(cat <<'EOF'
 ## Summary
 Implemented [component description] as requested in Issue #[sub-issue-number].
@@ -318,9 +322,9 @@ EOF
 )"
 ```
 
-### 6️⃣ Close Sub-Issue
+### 6️⃣ Close Sub-Issue - MANDATORY FOR ALL AGENTS
 ```bash
-# Close the sub-issue with final completion summary
+# Close the sub-issue with final completion summary - REQUIRED FOR ALL AGENTS
 gh issue close [sub-issue-number] --comment "$(cat <<'EOF'
 ## 🎯 Sub-Issue #[sub-issue-number] COMPLETED
 
@@ -382,6 +386,40 @@ gh issue comment [parent-issue-number] --body "📋 Updated task lists to reflec
 - Clear communication to other agents
 - Professional documentation
 - Traceability of all work done
+
+## ⚠️ WORKFLOW CONSISTENCY ENFORCEMENT ⚠️
+
+### Critical Issue Identified and Resolved:
+**Previous agents may have bypassed the mandatory PR workflow.** This creates inconsistency and must be prevented:
+
+### ❌ **INCORRECT Workflow (What NOT to do):**
+- Direct commits to main/feature branches without PR
+- Closing issues without proper documentation
+- Skipping the "end work" routine
+- Not creating pull requests for agent work
+- Missing issue cross-referencing
+
+### ✅ **CORRECT Workflow (MANDATORY for ALL agents):**
+1. **Feature Branch**: Always work on feature/[component-name] branch
+2. **Commit**: Use standardized commit format with issue reference
+3. **Push**: Push feature branch to origin
+4. **Pull Request**: ALWAYS create PR with comprehensive description
+5. **Issue Updates**: Comment on parent issue with progress
+6. **Cross-Check**: Verify all tasks completed in sub-issue
+7. **Close Issue**: Close sub-issue with full completion summary
+
+### 🔒 **ENFORCEMENT RULES:**
+- **NO agent work is considered complete without a merged PR**
+- **ALL sub-issues MUST be closed through the standardized process**
+- **ANY deviation from this workflow is non-compliant and must be corrected**
+- **Future agents MUST follow this process without exception**
+
+### 📝 **For Project Maintainers:**
+If you find agent work that bypassed this workflow:
+1. Identify the missing PR for the sub-issue
+2. Ensure the sub-issue is properly closed
+3. Verify all acceptance criteria are documented
+4. Update this documentation if needed
 
 ## 🔨 Work Session Log
 

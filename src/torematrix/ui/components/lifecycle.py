@@ -27,7 +27,13 @@ from typing import (
 
 from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 
-from torematrix.ui.components.reactive import ReactiveWidget
+# Avoid circular import
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from torematrix.ui.components.reactive import ReactiveWidget
+else:
+    ReactiveWidget = None
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +118,7 @@ class LifecycleManager(QObject):
         self._performance_enabled = True
         self._slow_render_threshold_ms = 50.0
     
-    def register_component(self, component: ReactiveWidget) -> None:
+    def register_component(self, component: "ReactiveWidget") -> None:
         """
         Register a component with the lifecycle manager.
         
@@ -140,7 +146,7 @@ class LifecycleManager(QObject):
         
         logger.debug(f"Unregistered component {component_id}")
     
-    def mount_component(self, component: ReactiveWidget) -> None:
+    def mount_component(self, component: "ReactiveWidget") -> None:
         """
         Mount a component and its children.
         
@@ -181,7 +187,7 @@ class LifecycleManager(QObject):
             self._handle_error(component_id, e, LifecyclePhase.MOUNTING)
             raise
     
-    def unmount_component(self, component: ReactiveWidget) -> None:
+    def unmount_component(self, component: "ReactiveWidget") -> None:
         """
         Unmount a component and its children.
         
@@ -385,7 +391,7 @@ class LifecycleManager(QObject):
         if self._update_queue:
             self._update_timer.start(self._update_delay_ms)
     
-    def _update_component(self, component: ReactiveWidget) -> None:
+    def _update_component(self, component: "ReactiveWidget") -> None:
         """Update a single component."""
         component_id = component.component_id
         
@@ -406,7 +412,7 @@ class LifecycleManager(QObject):
     def _call_global_hooks(
         self,
         phase: LifecyclePhase,
-        component: ReactiveWidget
+        component: "ReactiveWidget"
     ) -> None:
         """Call global lifecycle hooks."""
         for hook in self._global_hooks[phase]:

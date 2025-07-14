@@ -13,7 +13,11 @@ import logging
 from typing import Any, Callable, List, Optional, Type, TypeVar, Union, cast
 from weakref import WeakKeyDictionary
 
-from torematrix.ui.components.reactive import ReactiveProperty, ReactiveWidget
+# Avoid circular import - these will be imported at runtime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from torematrix.ui.components.reactive import ReactiveProperty, ReactiveWidget
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +41,18 @@ class PropertyDescriptor:
         self.transformer = transformer
         self._values: WeakKeyDictionary = WeakKeyDictionary()
     
-    def __set_name__(self, owner: Type[ReactiveWidget], name: str) -> None:
+    def __set_name__(self, owner: Type[Any], name: str) -> None:
         """Set descriptor name when attached to class."""
         self.name = name
     
-    def __get__(self, instance: ReactiveWidget, owner: Type[ReactiveWidget]) -> Any:
+    def __get__(self, instance: Any, owner: Type[Any]) -> Any:
         """Get property value."""
         if instance is None:
             return self
         
         return self._values.get(instance, self.default)
     
-    def __set__(self, instance: ReactiveWidget, value: Any) -> None:
+    def __set__(self, instance: Any, value: Any) -> None:
         """Set property value with validation and transformation."""
         # Validate
         if self.validator and not self.validator(value):
@@ -138,7 +142,7 @@ def computed(
         func._is_computed = True
         
         @functools.wraps(func)
-        def wrapper(self: ReactiveWidget) -> T:
+        def wrapper(self: Any) -> T:
             # Register as computed property if not already done
             prop_name = func.__name__
             if prop_name not in self._reactive_properties:
@@ -198,7 +202,7 @@ def bind_state(
         }
         
         @functools.wraps(func)
-        def wrapper(self: ReactiveWidget, *args: Any, **kwargs: Any) -> Any:
+        def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
             # Auto-bind on first access
             prop_name = func.__name__
             binding_key = f"_bound_{prop_name}"
@@ -247,7 +251,7 @@ def watch(
         func._watch_immediate = immediate
         
         @functools.wraps(func)
-        def wrapper(self: ReactiveWidget, *args: Any, **kwargs: Any) -> None:
+        def wrapper(self: Any, *args: Any, **kwargs: Any) -> None:
             # Auto-register watcher on first call
             watch_key = f"_watching_{func.__name__}"
             
@@ -310,7 +314,7 @@ def lifecycle(
         func._lifecycle_hook = f"on_{hook}"
         
         @functools.wraps(func)
-        def wrapper(self: ReactiveWidget, *args: Any, **kwargs: Any) -> None:
+        def wrapper(self: Any, *args: Any, **kwargs: Any) -> None:
             return func(self, *args, **kwargs)
         
         # Mark for metaclass processing
