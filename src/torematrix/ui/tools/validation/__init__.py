@@ -14,6 +14,17 @@ from .drawing_state import (
     DrawingSession
 )
 
+# Agent 2 - OCR service integration for manual validation (Issue #27)
+from .ocr_service import (
+    ValidationOCRService,
+    ValidationOCRRequest,
+    ValidationOCRResponse,
+    OCRWorkerThread,
+    OCREngine,
+    OCRStatus,
+    OCRValidationHelper
+)
+
 # Agent 1 + Agent 2 - Area selection tools (Issue #26)
 try:
     from .area_select import (
@@ -52,6 +63,15 @@ __all__ = [
     'DrawingState',
     'DrawingArea',
     'DrawingSession',
+    
+    # OCR service integration - Agent 2 (Issue #27)
+    'ValidationOCRService',
+    'ValidationOCRRequest',
+    'ValidationOCRResponse',
+    'OCRWorkerThread',
+    'OCREngine',
+    'OCRStatus',
+    'OCRValidationHelper',
 ]
 
 # Add area selection tools if available (Issue #26)
