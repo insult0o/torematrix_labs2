@@ -49,6 +49,21 @@ try:
 except ImportError:
     _drawing_available = False
 
+# Agent 2 - OCR service integration for manual validation (Issue #27)
+try:
+    from .ocr_service import (
+        ValidationOCRService,
+        ValidationOCRRequest,
+        ValidationOCRResponse,
+        OCRWorkerThread,
+        OCREngine,
+        OCRStatus,
+        OCRValidationHelper
+    )
+    _ocr_available = True
+except ImportError:
+    _ocr_available = False
+
 # Agent 1 + Agent 2 - Area selection tools (Issue #26)
 try:
     from .area_select import (
@@ -93,6 +108,18 @@ if _drawing_available:
         'DrawingState',
         'DrawingArea',
         'DrawingSession',
+    ])
+
+# Add OCR service integration if available (Issue #27)
+if _ocr_available:
+    __all__.extend([
+        'ValidationOCRService',
+        'ValidationOCRRequest',
+        'ValidationOCRResponse',
+        'OCRWorkerThread',
+        'OCREngine',
+        'OCRStatus',
+        'OCRValidationHelper',
     ])
 
 # Add area selection tools if available (Issue #26)
