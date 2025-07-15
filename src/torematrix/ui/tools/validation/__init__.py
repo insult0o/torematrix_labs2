@@ -1,0 +1,83 @@
+"""
+Manual validation tools for document processing.
+
+This package provides tools for manual validation of document elements,
+including drawing interfaces and element creation workflows.
+"""
+
+# Agent 1 - Drawing state management for manual validation (Issue #27)
+from .drawing_state import (
+    DrawingStateManager,
+    DrawingMode,
+    DrawingState,
+    DrawingArea,
+    DrawingSession
+)
+
+# Agent 1 + Agent 2 - Area selection tools (Issue #26)
+try:
+    from .area_select import (
+        ValidationAreaSelector,
+        AreaSelectionMode,
+        SelectionConstraint,
+        ValidationSelectionConfig,
+    )
+    from .shapes import (
+        SelectionShape,
+        RectangleShape,
+        PolygonShape,
+        FreehandShape,
+        RectangleSelectionTool,
+        PolygonSelectionTool,
+        FreehandSelectionTool,
+    )
+    # Agent 2 - Advanced snapping algorithms
+    from .snapping import (
+        SnapEngine,
+        SnapTarget,
+        SnapResult,
+        SnapType,
+        SnapConfiguration,
+        MagneticField,
+        EdgeDetector,
+    )
+    _area_tools_available = True
+except ImportError:
+    _area_tools_available = False
+
+__all__ = [
+    # Drawing state management - Agent 1 (Issue #27)
+    'DrawingStateManager',
+    'DrawingMode',
+    'DrawingState',
+    'DrawingArea',
+    'DrawingSession',
+]
+
+# Add area selection tools if available (Issue #26)
+if _area_tools_available:
+    __all__.extend([
+        # Area selection - Agent 1
+        'ValidationAreaSelector',
+        'AreaSelectionMode',
+        'SelectionConstraint',
+        'ValidationSelectionConfig',
+        
+        # Shape tools - Agent 1
+        'SelectionShape',
+        'RectangleShape',
+        'PolygonShape', 
+        'FreehandShape',
+        'RectangleSelectionTool',
+        'PolygonSelectionTool',
+        'FreehandSelectionTool',
+        
+        # Snapping algorithms - Agent 2
+        'SnapEngine',
+        'SnapTarget',
+        'SnapResult',
+        'SnapType',
+        'SnapConfiguration',
+        'MagneticField',
+        'EdgeDetector',
+    ])
