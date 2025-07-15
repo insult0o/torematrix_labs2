@@ -7,10 +7,10 @@ screen reader support, and WCAG compliance for the property panel.
 from typing import Dict, List, Any, Optional, Callable
 from PyQt6.QtWidgets import (
     QWidget, QApplication, QLabel, QFrame, QVBoxLayout,
-    QHBoxLayout, QToolTip, QSizePolicy, QShortcut
+    QHBoxLayout, QToolTip, QSizePolicy
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QEvent, QTimer, QRect
-from PyQt6.QtGui import QKeySequence, QFont, QFontMetrics, QPalette, QColor, QPainter, QPen
+from PyQt6.QtGui import QKeySequence, QFont, QFontMetrics, QPalette, QColor, QPainter, QPen, QShortcut
 
 try:
     from PyQt6.QtGui import QAccessible
