@@ -11,7 +11,7 @@ from enum import Enum
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QLabel,
     QSplitter, QFrame, QProgressBar, QToolButton, QMenu, QAction,
-    QStatusBar, QGroupBox, QTabWidget, QScrollArea, QSizePolicy
+    QStatusBar, QGroupBox, QTabWidget, QScrollArea, QSizePolicy, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QThread, QSize
 from PyQt6.QtGui import QIcon, QFont, QPalette, QPixmap, QKeySequence
@@ -22,6 +22,7 @@ from ..search.analytics import SearchAnalyticsEngine, QueryMetrics, QueryType
 from ..search.suggestions import SearchSuggestionEngine
 from ..search.monitoring import PerformanceMonitor
 from .highlighting import SearchHighlighter, HighlightConfig, create_highlighter, HighlightedElement
+from .export import ExportDialog, show_export_dialog
 
 logger = logging.getLogger(__name__)
 
@@ -487,7 +488,7 @@ class SearchWidget(QWidget):
     
     def _simulate_search_completion(self, query: str):
         """Simulate search completion (placeholder)"""
-        # Simulate results
+        # Simulate results - in real implementation this would come from search engine
         mock_results = []
         
         # Update search state
@@ -495,19 +496,39 @@ class SearchWidget(QWidget):
         self._search_state.execution_time = 0.035  # 35ms
         self._search_state.is_searching = False
         
+        # Perform highlighting if we have results and query
+        if mock_results and query.strip():
+            search_terms = query.split()  # Simple term splitting
+            self._highlighter.highlight_elements(mock_results, search_terms)
+        else:
+            # No results or query, update UI immediately
+            self._update_search_completion()
+        
+        logger.debug(f"Search completed: {len(mock_results)} results in {self._search_state.execution_time*1000:.0f}ms")
+    
+    def _on_highlighting_completed(self, highlighted_elements: List[HighlightedElement]):
+        """Handle completion of highlighting process"""
+        self._highlighted_results = highlighted_elements
+        self._update_search_completion()
+        
+        # Log highlighting statistics
+        stats = self._highlighter.get_highlight_statistics(highlighted_elements)
+        logger.debug(f"Highlighting completed: {stats['total_matches']} matches in {stats['total_elements']} elements")
+    
+    def _update_search_completion(self):
+        """Update UI after search and highlighting completion"""
         # Update UI
         self.search_bar.show_progress(False)
         self.status_widget.update_search_state(self._search_state)
-        self.export_button.setEnabled(len(mock_results) > 0)
+        self.export_button.setEnabled(len(self._current_results) > 0)
         
-        # Emit completion signal
-        self.search_completed.emit(mock_results, self._search_state)
-        
-        logger.debug(f"Search completed: {len(mock_results)} results in {self._search_state.execution_time*1000:.0f}ms")
+        # Emit completion signal with highlighted results
+        self.search_completed.emit(self._current_results, self._search_state)
     
     def _handle_clear_request(self):
         """Handle clear request"""
         self._current_results.clear()
+        self._highlighted_results.clear()
         self._search_state = SearchState()
         
         self.status_widget.update_search_state(self._search_state)
@@ -528,10 +549,25 @@ class SearchWidget(QWidget):
     
     def _handle_export_request(self):
         """Handle export request"""
-        if self._current_results:
-            # TODO: Show export dialog
-            self.export_requested.emit(self._current_results, "json")
-            logger.info(f"Export requested for {len(self._current_results)} results")
+        if not self._current_results and not self._highlighted_results:
+            QMessageBox.information(self, "No Results", "No search results to export.")
+            return
+        
+        # Use highlighted results if available, otherwise use regular results
+        elements_to_export = self._highlighted_results if self._highlighted_results else self._current_results
+        
+        # Show export dialog
+        dialog = show_export_dialog(elements_to_export, self)
+        if dialog:
+            dialog.export_started.connect(self._on_export_started)
+            dialog.exec()
+        
+        logger.info(f"Export dialog opened for {len(elements_to_export)} results")
+    
+    def _on_export_started(self, config):
+        """Handle export started"""
+        logger.info(f"Export started with format: {config.format.value}")
+        # Could show a notification or update status
     
     def _update_view_mode(self):
         """Update view mode based on button state"""
@@ -584,6 +620,38 @@ class SearchWidget(QWidget):
         """Perform search programmatically"""
         self.search_bar.set_query(query)
         self._handle_search_request(query, mode)
+    
+    def get_highlighted_results(self) -> List[HighlightedElement]:
+        """Get current highlighted search results"""
+        return self._highlighted_results.copy()
+    
+    def update_highlight_config(self, config: HighlightConfig):
+        """Update highlighting configuration"""
+        self._highlighter.set_config(config)
+        logger.debug("Highlight configuration updated")
+    
+    def get_highlight_statistics(self) -> Dict[str, Any]:
+        """Get statistics about current highlighting"""
+        return self._highlighter.get_highlight_statistics(self._highlighted_results)
+    
+    def set_highlight_style(self, style_name: str):
+        """Set predefined highlight style"""
+        styles = self._highlighter.get_predefined_styles()
+        if style_name in styles:
+            style_updates = styles[style_name]
+            self._highlighter.update_highlight_style(style_updates)
+            logger.debug(f"Applied highlight style: {style_name}")
+        else:
+            logger.warning(f"Unknown highlight style: {style_name}")
+    
+    def toggle_highlighting(self, enabled: bool):
+        """Enable or disable search result highlighting"""
+        if hasattr(self, '_highlighting_enabled'):
+            self._highlighting_enabled = enabled
+        else:
+            self._highlighting_enabled = enabled
+        
+        logger.debug(f"Search highlighting {'enabled' if enabled else 'disabled'}")
 
 
 # Factory function for easy instantiation
