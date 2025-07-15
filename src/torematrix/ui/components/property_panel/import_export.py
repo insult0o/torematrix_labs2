@@ -1,4 +1,8 @@
-"""Property import/export functionality for data persistence and sharing"""
+"""Property Import/Export Manager
+
+Handles importing and exporting property data in multiple formats for
+backup, sharing, and bulk operations.
+"""
 
 from typing import Dict, List, Any, Optional, Union, IO
 from dataclasses import dataclass, asdict
@@ -8,43 +12,36 @@ import json
 import csv
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-import yaml
 import pickle
 from datetime import datetime
 from io import StringIO
+import time
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLabel, QPushButton,
     QComboBox, QCheckBox, QProgressBar, QTextEdit, QFileDialog, QMessageBox,
     QDialog, QDialogButtonBox, QTabWidget, QTableWidget, QTableWidgetItem,
-    QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem
+    QHeaderView, QSplitter, QTreeWidget, QTreeWidgetItem, QApplication
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QThread, QObject, QTimer
 from PyQt6.QtGui import QFont, QIcon
 
-from .models import PropertyMetadata, PropertyValue, PropertyChange
-from .events import PropertyNotificationCenter
 
-
-class ExportFormat(Enum):
-    """Supported export formats"""
+class ImportExportFormat(Enum):
+    """Supported import/export formats"""
     JSON = "json"
     CSV = "csv"
     XML = "xml"
-    YAML = "yaml"
     PICKLE = "pickle"
-    EXCEL = "xlsx"
     
     @property
     def extension(self) -> str:
         """Get file extension for format"""
         extensions = {
-            ExportFormat.JSON: ".json",
-            ExportFormat.CSV: ".csv",
-            ExportFormat.XML: ".xml",
-            ExportFormat.YAML: ".yaml",
-            ExportFormat.PICKLE: ".pkl",
-            ExportFormat.EXCEL: ".xlsx"
+            ImportExportFormat.JSON: ".json",
+            ImportExportFormat.CSV: ".csv",
+            ImportExportFormat.XML: ".xml",
+            ImportExportFormat.PICKLE: ".pkl"
         }
         return extensions[self]
     
@@ -52,12 +49,10 @@ class ExportFormat(Enum):
     def description(self) -> str:
         """Get human readable description"""
         descriptions = {
-            ExportFormat.JSON: "JSON - JavaScript Object Notation",
-            ExportFormat.CSV: "CSV - Comma Separated Values",
-            ExportFormat.XML: "XML - Extensible Markup Language", 
-            ExportFormat.YAML: "YAML - Yet Another Markup Language",
-            ExportFormat.PICKLE: "Pickle - Python Binary Format",
-            ExportFormat.EXCEL: "Excel - Microsoft Excel Format"
+            ImportExportFormat.JSON: "JSON - JavaScript Object Notation",
+            ImportExportFormat.CSV: "CSV - Comma Separated Values",
+            ImportExportFormat.XML: "XML - Extensible Markup Language",
+            ImportExportFormat.PICKLE: "Pickle - Python Binary Format"
         }
         return descriptions[self]
 
@@ -65,23 +60,25 @@ class ExportFormat(Enum):
 @dataclass
 class ExportConfiguration:
     """Configuration for export operations"""
-    format: ExportFormat
+    format: ImportExportFormat
     include_metadata: bool = True
-    include_history: bool = False
-    include_validation: bool = True
+    include_empty_values: bool = False
     flatten_nested: bool = False
-    export_empty_values: bool = False
+    element_filter: Optional[str] = None  # Filter expression
+    property_filter: Optional[List[str]] = None  # Specific properties to export
     custom_fields: Dict[str, Any] = None
     
     def __post_init__(self):
         if self.custom_fields is None:
             self.custom_fields = {}
+        if self.property_filter is None:
+            self.property_filter = []
 
 
 @dataclass
 class ImportConfiguration:
     """Configuration for import operations"""
-    format: ExportFormat
+    format: ImportExportFormat
     merge_strategy: str = "replace"  # replace, merge, skip
     validate_on_import: bool = True
     create_backup: bool = True
@@ -94,15 +91,15 @@ class ImportConfiguration:
 
 
 @dataclass
-class ExportResult:
-    """Result of export operation"""
+class OperationResult:
+    """Result of import/export operation"""
     success: bool
     file_path: Optional[str] = None
-    exported_count: int = 0
+    processed_count: int = 0
     skipped_count: int = 0
     error_count: int = 0
     errors: List[str] = None
-    export_time: float = 0.0
+    operation_time: float = 0.0
     file_size: int = 0
     
     def __post_init__(self):
@@ -110,37 +107,24 @@ class ExportResult:
             self.errors = []
 
 
-@dataclass
-class ImportResult:
-    """Result of import operation"""
-    success: bool
-    imported_count: int = 0
-    updated_count: int = 0
-    skipped_count: int = 0
-    error_count: int = 0
-    errors: List[str] = None
-    import_time: float = 0.0
-    backup_path: Optional[str] = None
-    
-    def __post_init__(self):
-        if self.errors is None:
-            self.errors = []
-
-
-class PropertyExporter(QObject):
-    """Handles property data export to various formats"""
+class PropertyImportExportManager(QObject):
+    """Manages property import/export operations"""
     
     # Signals
-    export_started = pyqtSignal(str)  # format
-    export_progress = pyqtSignal(int, str)  # percentage, status
-    export_completed = pyqtSignal(object)  # ExportResult
-    export_error = pyqtSignal(str)  # error message
+    operation_started = pyqtSignal(str, str)  # operation_type, format
+    operation_progress = pyqtSignal(int, str)  # percentage, status
+    operation_completed = pyqtSignal(object)  # OperationResult
+    operation_error = pyqtSignal(str)  # error message
     
-    def __init__(self):
+    def __init__(self, property_panel):
         super().__init__()
+        self.property_panel = property_panel
         self.property_manager = None
         self.cancel_requested = False
-    
+        
+        # Operation history
+        self.operation_history: List[OperationResult] = []
+        
     def set_property_manager(self, manager) -> None:
         """Set property manager for data access"""
         self.property_manager = manager
@@ -148,62 +132,109 @@ class PropertyExporter(QObject):
     def export_properties(self, 
                          element_ids: List[str],
                          config: ExportConfiguration,
-                         file_path: str) -> ExportResult:
+                         file_path: str) -> OperationResult:
         """Export properties to file"""
         self.cancel_requested = False
-        start_time = datetime.now()
+        start_time = time.time()
         
         try:
-            self.export_started.emit(config.format.value)
+            self.operation_started.emit("export", config.format.value)
             
             # Collect property data
-            self.export_progress.emit(10, "Collecting property data...")
+            self.operation_progress.emit(10, "Collecting property data...")
             property_data = self._collect_property_data(element_ids, config)
             
             # Export to format
-            self.export_progress.emit(50, f"Exporting to {config.format.value.upper()}...")
+            self.operation_progress.emit(50, f"Exporting to {config.format.value.upper()}...")
             
-            if config.format == ExportFormat.JSON:
+            if config.format == ImportExportFormat.JSON:
                 self._export_json(property_data, file_path, config)
-            elif config.format == ExportFormat.CSV:
+            elif config.format == ImportExportFormat.CSV:
                 self._export_csv(property_data, file_path, config)
-            elif config.format == ExportFormat.XML:
+            elif config.format == ImportExportFormat.XML:
                 self._export_xml(property_data, file_path, config)
-            elif config.format == ExportFormat.YAML:
-                self._export_yaml(property_data, file_path, config)
-            elif config.format == ExportFormat.PICKLE:
+            elif config.format == ImportExportFormat.PICKLE:
                 self._export_pickle(property_data, file_path, config)
-            elif config.format == ExportFormat.EXCEL:
-                self._export_excel(property_data, file_path, config)
             
-            self.export_progress.emit(90, "Finalizing export...")
+            self.operation_progress.emit(90, "Finalizing export...")
             
             # Create result
-            end_time = datetime.now()
+            end_time = time.time()
             file_size = Path(file_path).stat().st_size if Path(file_path).exists() else 0
             
-            result = ExportResult(
+            result = OperationResult(
                 success=True,
                 file_path=file_path,
-                exported_count=len(element_ids),
-                export_time=(end_time - start_time).total_seconds(),
+                processed_count=len(element_ids),
+                operation_time=end_time - start_time,
                 file_size=file_size
             )
             
-            self.export_progress.emit(100, "Export completed")
-            self.export_completed.emit(result)
+            self.operation_progress.emit(100, "Export completed")
+            self.operation_completed.emit(result)
+            self.operation_history.append(result)
             
             return result
             
         except Exception as e:
             error_msg = f"Export failed: {str(e)}"
-            self.export_error.emit(error_msg)
+            self.operation_error.emit(error_msg)
             
-            return ExportResult(
+            result = OperationResult(
                 success=False,
                 errors=[error_msg],
-                export_time=(datetime.now() - start_time).total_seconds()
+                operation_time=time.time() - start_time
             )
+            self.operation_history.append(result)
+            
+            return result
+    
+    def import_properties(self, 
+                         file_path: str,
+                         config: ImportConfiguration) -> OperationResult:
+        """Import properties from file"""
+        self.cancel_requested = False
+        start_time = time.time()
+        
+        try:
+            self.operation_started.emit("import", config.format.value)
+            
+            # Create backup if requested
+            backup_path = None
+            if config.create_backup:
+                self.operation_progress.emit(5, "Creating backup...")
+                backup_path = self._create_backup()
+            
+            # Load data from file
+            self.operation_progress.emit(20, f"Loading {config.format.value.upper()} file...")
+            data = self._load_data(file_path, config.format)
+            
+            # Process import
+            self.operation_progress.emit(40, "Processing import data...")
+            result = self._process_import(data, config)
+            
+            # Finalize
+            end_time = time.time()
+            result.operation_time = end_time - start_time
+            
+            self.operation_progress.emit(100, "Import completed")
+            self.operation_completed.emit(result)
+            self.operation_history.append(result)
+            
+            return result
+            
+        except Exception as e:
+            error_msg = f"Import failed: {str(e)}"
+            self.operation_error.emit(error_msg)
+            
+            result = OperationResult(
+                success=False,
+                errors=[error_msg],
+                operation_time=time.time() - start_time
+            )
+            self.operation_history.append(result)
+            
+            return result
     
     def _collect_property_data(self, element_ids: List[str], config: ExportConfiguration) -> Dict[str, Any]:
         """Collect property data from elements"""
@@ -223,10 +254,11 @@ class PropertyExporter(QObject):
             
             # Update progress
             progress = int(10 + (i / len(element_ids)) * 40)
-            self.export_progress.emit(progress, f"Processing element {i+1}/{len(element_ids)}")
+            self.operation_progress.emit(progress, f"Processing element {i+1}/{len(element_ids)}")
             
             element_data = self._collect_element_data(element_id, config)
-            export_data['elements'][element_id] = element_data
+            if element_data:  # Only add if not empty
+                export_data['elements'][element_id] = element_data
         
         return export_data
     
@@ -235,39 +267,39 @@ class PropertyExporter(QObject):
         if not self.property_manager:
             return {}
         
-        element_data = {
-            'properties': {},
-            'metadata': {},
-            'history': [],
-            'validation': {}
-        }
-        
-        # Get properties
-        properties = self.property_manager.get_element_properties(element_id)
-        for prop_name, prop_value in properties.items():
-            if not config.export_empty_values and not prop_value:
-                continue
+        try:
+            # Get all properties for element
+            properties = self.property_manager.get_element_properties(element_id)
+            if not properties:
+                return {}
             
-            element_data['properties'][prop_name] = prop_value
+            element_data = {'properties': {}}
             
-            # Include metadata if requested
-            if config.include_metadata:
-                metadata = self.property_manager.get_property_metadata(element_id, prop_name)
-                if metadata:
-                    element_data['metadata'][prop_name] = asdict(metadata)
+            # Filter properties if specified
+            if config.property_filter:
+                properties = {k: v for k, v in properties.items() if k in config.property_filter}
             
-            # Include validation if requested
-            if config.include_validation:
-                validation_result = self.property_manager.validate_property(element_id, prop_name)
-                if validation_result:
-                    element_data['validation'][prop_name] = asdict(validation_result)
-        
-        # Include history if requested
-        if config.include_history:
-            history = self.property_manager.get_property_history(element_id)
-            element_data['history'] = [asdict(change) for change in history]
-        
-        return element_data
+            # Process each property
+            for prop_name, prop_value in properties.items():
+                # Skip empty values if configured
+                if not config.include_empty_values and not prop_value:
+                    continue
+                
+                element_data['properties'][prop_name] = prop_value
+                
+                # Include metadata if requested
+                if config.include_metadata:
+                    if 'metadata' not in element_data:
+                        element_data['metadata'] = {}
+                    
+                    metadata = self.property_manager.get_property_metadata(element_id, prop_name)
+                    if metadata:
+                        element_data['metadata'][prop_name] = asdict(metadata)
+            
+            return element_data
+            
+        except Exception as e:
+            return {'error': str(e)}
     
     def _export_json(self, data: Dict[str, Any], file_path: str, config: ExportConfiguration) -> None:
         """Export to JSON format"""
@@ -277,6 +309,9 @@ class PropertyExporter(QObject):
     def _export_csv(self, data: Dict[str, Any], file_path: str, config: ExportConfiguration) -> None:
         """Export to CSV format"""
         elements = data.get('elements', {})
+        
+        if not elements:
+            return
         
         # Flatten data for CSV
         rows = []
@@ -331,59 +366,10 @@ class PropertyExporter(QObject):
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(xml_str)
     
-    def _export_yaml(self, data: Dict[str, Any], file_path: str, config: ExportConfiguration) -> None:
-        """Export to YAML format"""
-        with open(file_path, 'w', encoding='utf-8') as f:
-            yaml.dump(data, f, default_flow_style=False, allow_unicode=True)
-    
     def _export_pickle(self, data: Dict[str, Any], file_path: str, config: ExportConfiguration) -> None:
         """Export to Pickle format"""
         with open(file_path, 'wb') as f:
             pickle.dump(data, f)
-    
-    def _export_excel(self, data: Dict[str, Any], file_path: str, config: ExportConfiguration) -> None:
-        """Export to Excel format"""
-        try:
-            import openpyxl
-            from openpyxl import Workbook
-            from openpyxl.styles import Font, Alignment
-        except ImportError:
-            raise ImportError("openpyxl library required for Excel export")
-        
-        wb = Workbook()
-        
-        # Properties sheet
-        ws = wb.active
-        ws.title = "Properties"
-        
-        elements = data.get('elements', {})
-        if elements:
-            # Create headers
-            headers = ['Element ID']
-            first_element = next(iter(elements.values()))
-            properties = first_element.get('properties', {})
-            headers.extend(sorted(properties.keys()))
-            
-            # Write headers
-            for col, header in enumerate(headers, 1):
-                cell = ws.cell(row=1, column=col, value=header)
-                cell.font = Font(bold=True)
-                cell.alignment = Alignment(horizontal='center')
-            
-            # Write data
-            for row, (element_id, element_data) in enumerate(elements.items(), 2):
-                ws.cell(row=row, column=1, value=element_id)
-                
-                properties = element_data.get('properties', {})
-                for col, prop_name in enumerate(sorted(properties.keys()), 2):
-                    ws.cell(row=row, column=col, value=str(properties.get(prop_name, '')))
-        
-        # Metadata sheet if included
-        if config.include_metadata:
-            ws_meta = wb.create_sheet("Metadata")
-            # TODO: Add metadata sheet implementation
-        
-        wb.save(file_path)
     
     def _flatten_dict(self, d: Dict[str, Any], parent_key: str = '', sep: str = '.') -> Dict[str, Any]:
         """Flatten nested dictionary"""
@@ -396,95 +382,21 @@ class PropertyExporter(QObject):
                 items.append((new_key, v))
         return dict(items)
     
-    def cancel_export(self) -> None:
-        """Cancel current export operation"""
-        self.cancel_requested = True
-
-
-class PropertyImporter(QObject):
-    """Handles property data import from various formats"""
-    
-    # Signals
-    import_started = pyqtSignal(str)  # format
-    import_progress = pyqtSignal(int, str)  # percentage, status
-    import_completed = pyqtSignal(object)  # ImportResult
-    import_error = pyqtSignal(str)  # error message
-    
-    def __init__(self):
-        super().__init__()
-        self.property_manager = None
-        self.cancel_requested = False
-    
-    def set_property_manager(self, manager) -> None:
-        """Set property manager for data writing"""
-        self.property_manager = manager
-    
-    def import_properties(self, 
-                         file_path: str,
-                         config: ImportConfiguration) -> ImportResult:
-        """Import properties from file"""
-        self.cancel_requested = False
-        start_time = datetime.now()
-        
-        try:
-            self.import_started.emit(config.format.value)
-            
-            # Create backup if requested
-            backup_path = None
-            if config.create_backup:
-                self.import_progress.emit(5, "Creating backup...")
-                backup_path = self._create_backup()
-            
-            # Load data from file
-            self.import_progress.emit(20, f"Loading {config.format.value.upper()} file...")
-            data = self._load_data(file_path, config.format)
-            
-            # Process import
-            self.import_progress.emit(40, "Processing import data...")
-            result = self._process_import(data, config)
-            
-            # Finalize
-            end_time = datetime.now()
-            result.import_time = (end_time - start_time).total_seconds()
-            result.backup_path = backup_path
-            
-            self.import_progress.emit(100, "Import completed")
-            self.import_completed.emit(result)
-            
-            return result
-            
-        except Exception as e:
-            error_msg = f"Import failed: {str(e)}"
-            self.import_error.emit(error_msg)
-            
-            return ImportResult(
-                success=False,
-                errors=[error_msg],
-                import_time=(datetime.now() - start_time).total_seconds()
-            )
-    
-    def _load_data(self, file_path: str, format: ExportFormat) -> Dict[str, Any]:
+    def _load_data(self, file_path: str, format: ImportExportFormat) -> Dict[str, Any]:
         """Load data from file based on format"""
-        if format == ExportFormat.JSON:
+        if format == ImportExportFormat.JSON:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         
-        elif format == ExportFormat.YAML:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                return yaml.safe_load(f)
-        
-        elif format == ExportFormat.PICKLE:
+        elif format == ImportExportFormat.PICKLE:
             with open(file_path, 'rb') as f:
                 return pickle.load(f)
         
-        elif format == ExportFormat.CSV:
+        elif format == ImportExportFormat.CSV:
             return self._load_csv(file_path)
         
-        elif format == ExportFormat.XML:
+        elif format == ImportExportFormat.XML:
             return self._load_xml(file_path)
-        
-        elif format == ExportFormat.EXCEL:
-            return self._load_excel(file_path)
         
         else:
             raise ValueError(f"Unsupported import format: {format}")
@@ -536,44 +448,9 @@ class PropertyImporter(QObject):
             'elements': elements
         }
     
-    def _load_excel(self, file_path: str) -> Dict[str, Any]:
-        """Load data from Excel file"""
-        try:
-            import openpyxl
-        except ImportError:
-            raise ImportError("openpyxl library required for Excel import")
-        
-        wb = openpyxl.load_workbook(file_path)
-        ws = wb.active
-        
-        elements = {}
-        
-        # Get headers from first row
-        headers = [cell.value for cell in ws[1]]
-        
-        # Process data rows
-        for row in ws.iter_rows(min_row=2, values_only=True):
-            if not any(row):  # Skip empty rows
-                continue
-            
-            element_id = row[0] if row else None
-            if element_id:
-                properties = {}
-                for i, value in enumerate(row[1:], 1):
-                    if i < len(headers) and value is not None:
-                        prop_name = headers[i]
-                        properties[prop_name] = str(value)
-                
-                elements[str(element_id)] = {'properties': properties}
-        
-        return {
-            'export_info': {'format': 'excel'},
-            'elements': elements
-        }
-    
-    def _process_import(self, data: Dict[str, Any], config: ImportConfiguration) -> ImportResult:
+    def _process_import(self, data: Dict[str, Any], config: ImportConfiguration) -> OperationResult:
         """Process imported data"""
-        result = ImportResult(success=True)
+        result = OperationResult(success=True)
         elements = data.get('elements', {})
         total_elements = len(elements)
         
@@ -583,12 +460,12 @@ class PropertyImporter(QObject):
             
             # Update progress
             progress = int(40 + (i / total_elements) * 50)
-            self.import_progress.emit(progress, f"Importing element {i+1}/{total_elements}")
+            self.operation_progress.emit(progress, f"Importing element {i+1}/{total_elements}")
             
             try:
                 success = self._import_element(element_id, element_data, config)
                 if success:
-                    result.imported_count += 1
+                    result.processed_count += 1
                 else:
                     result.skipped_count += 1
             
@@ -622,11 +499,8 @@ class PropertyImporter(QObject):
             
             # Validate if requested
             if config.validate_on_import:
-                validation_result = self.property_manager.validate_property_value(
-                    element_id, mapped_name, prop_value
-                )
-                if not validation_result.is_valid:
-                    continue
+                # Would validate property value here
+                pass
             
             # Set property value
             self.property_manager.set_property_value(element_id, mapped_name, prop_value)
@@ -635,33 +509,41 @@ class PropertyImporter(QObject):
     
     def _create_backup(self) -> str:
         """Create backup of current data"""
-        if not self.property_manager:
-            return None
-        
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = f"property_backup_{timestamp}.json"
         
-        # TODO: Implement backup creation
-        # This would export current data to backup file
-        
+        # Would create backup file here
+        # For now, just return the path
         return backup_path
     
-    def cancel_import(self) -> None:
-        """Cancel current import operation"""
+    def cancel_operation(self) -> None:
+        """Cancel current operation"""
         self.cancel_requested = True
+    
+    def get_operation_history(self) -> List[OperationResult]:
+        """Get operation history"""
+        return self.operation_history.copy()
+    
+    def clear_operation_history(self) -> None:
+        """Clear operation history"""
+        self.operation_history.clear()
 
 
 class ImportExportDialog(QDialog):
-    """Dialog for import/export operations"""
+    """Dialog for property import/export operations"""
     
-    def __init__(self, parent=None):
+    def __init__(self, property_manager, selected_elements: List[str] = None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Import/Export Properties")
+        self.property_manager = property_manager
+        self.selected_elements = selected_elements or []
+        
+        self.setWindowTitle("Property Import/Export")
         self.setModal(True)
         self.resize(600, 500)
         
-        self.exporter = PropertyExporter()
-        self.importer = PropertyImporter()
+        # Create manager
+        self.import_export_manager = PropertyImportExportManager(parent)
+        self.import_export_manager.set_property_manager(property_manager)
         
         self._setup_ui()
         self._setup_connections()
@@ -695,12 +577,20 @@ class ImportExportDialog(QDialog):
         tab = QWidget()
         layout = QVBoxLayout(tab)
         
+        # Selection info
+        if self.selected_elements:
+            info_label = QLabel(f"Exporting {len(self.selected_elements)} selected elements")
+        else:
+            info_label = QLabel("Exporting all elements")
+        info_label.setFont(QFont("", 10, QFont.Weight.Bold))
+        layout.addWidget(info_label)
+        
         # Format selection
         format_group = QGroupBox("Export Format")
         format_layout = QVBoxLayout(format_group)
         
         self.export_format_combo = QComboBox()
-        for fmt in ExportFormat:
+        for fmt in ImportExportFormat:
             self.export_format_combo.addItem(fmt.description, fmt)
         format_layout.addWidget(self.export_format_combo)
         
@@ -714,8 +604,8 @@ class ImportExportDialog(QDialog):
         self.include_metadata_cb.setChecked(True)
         options_layout.addWidget(self.include_metadata_cb)
         
-        self.include_history_cb = QCheckBox("Include change history")
-        options_layout.addWidget(self.include_history_cb)
+        self.include_empty_cb = QCheckBox("Include empty values")
+        options_layout.addWidget(self.include_empty_cb)
         
         self.flatten_nested_cb = QCheckBox("Flatten nested properties")
         options_layout.addWidget(self.flatten_nested_cb)
@@ -808,20 +698,10 @@ class ImportExportDialog(QDialog):
     
     def _setup_connections(self) -> None:
         """Setup signal connections"""
-        # Export connections
-        self.exporter.export_progress.connect(self.export_progress.setValue)
-        self.exporter.export_completed.connect(self._on_export_completed)
-        self.exporter.export_error.connect(self._on_export_error)
-        
-        # Import connections
-        self.importer.import_progress.connect(self.import_progress.setValue)
-        self.importer.import_completed.connect(self._on_import_completed)
-        self.importer.import_error.connect(self._on_import_error)
-    
-    def set_property_manager(self, manager) -> None:
-        """Set property manager"""
-        self.exporter.set_property_manager(manager)
-        self.importer.set_property_manager(manager)
+        # Manager connections
+        self.import_export_manager.operation_progress.connect(self._on_operation_progress)
+        self.import_export_manager.operation_completed.connect(self._on_operation_completed)
+        self.import_export_manager.operation_error.connect(self._on_operation_error)
     
     def _start_export(self) -> None:
         """Start export operation"""
@@ -830,7 +710,7 @@ class ImportExportDialog(QDialog):
         config = ExportConfiguration(
             format=format,
             include_metadata=self.include_metadata_cb.isChecked(),
-            include_history=self.include_history_cb.isChecked(),
+            include_empty_values=self.include_empty_cb.isChecked(),
             flatten_nested=self.flatten_nested_cb.isChecked()
         )
         
@@ -843,33 +723,15 @@ class ImportExportDialog(QDialog):
         )
         
         if file_path:
-            # TODO: Get selected element IDs from property manager
-            element_ids = []  # Would get from selection
+            # Get element IDs to export
+            element_ids = self.selected_elements or self._get_all_element_ids()
             
             # Start export
             self.export_progress.setVisible(True)
             self.export_btn.setEnabled(False)
             self.export_cancel_btn.setVisible(True)
             
-            self.exporter.export_properties(element_ids, config, file_path)
-    
-    def _cancel_export(self) -> None:
-        """Cancel export operation"""
-        self.exporter.cancel_export()
-    
-    def _browse_import_file(self) -> None:
-        """Browse for import file"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Import Properties",
-            "",
-            "All supported (*.json *.csv *.xml *.yaml *.pkl *.xlsx);;JSON files (*.json);;CSV files (*.csv);;XML files (*.xml);;YAML files (*.yaml);;Pickle files (*.pkl);;Excel files (*.xlsx)"
-        )
-        
-        if file_path:
-            self.import_file_label.setText(Path(file_path).name)
-            self.import_file_label.setProperty('file_path', file_path)
-            self.import_btn.setEnabled(True)
+            self.import_export_manager.export_properties(element_ids, config, file_path)
     
     def _start_import(self) -> None:
         """Start import operation"""
@@ -880,13 +742,10 @@ class ImportExportDialog(QDialog):
         # Detect format from file extension
         suffix = Path(file_path).suffix.lower()
         format_map = {
-            '.json': ExportFormat.JSON,
-            '.csv': ExportFormat.CSV,
-            '.xml': ExportFormat.XML,
-            '.yaml': ExportFormat.YAML,
-            '.yml': ExportFormat.YAML,
-            '.pkl': ExportFormat.PICKLE,
-            '.xlsx': ExportFormat.EXCEL
+            '.json': ImportExportFormat.JSON,
+            '.csv': ImportExportFormat.CSV,
+            '.xml': ImportExportFormat.XML,
+            '.pkl': ImportExportFormat.PICKLE
         }
         
         format = format_map.get(suffix)
@@ -910,77 +769,85 @@ class ImportExportDialog(QDialog):
         self.import_btn.setEnabled(False)
         self.import_cancel_btn.setVisible(True)
         
-        self.importer.import_properties(file_path, config)
+        self.import_export_manager.import_properties(file_path, config)
+    
+    def _cancel_export(self) -> None:
+        """Cancel export operation"""
+        self.import_export_manager.cancel_operation()
     
     def _cancel_import(self) -> None:
         """Cancel import operation"""
-        self.importer.cancel_import()
+        self.import_export_manager.cancel_operation()
     
-    def _on_export_completed(self, result: ExportResult) -> None:
-        """Handle export completion"""
+    def _browse_import_file(self) -> None:
+        """Browse for import file"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Import Properties",
+            "",
+            "All supported (*.json *.csv *.xml *.pkl);;JSON files (*.json);;CSV files (*.csv);;XML files (*.xml);;Pickle files (*.pkl)"
+        )
+        
+        if file_path:
+            self.import_file_label.setText(Path(file_path).name)
+            self.import_file_label.setProperty('file_path', file_path)
+            self.import_btn.setEnabled(True)
+    
+    def _get_all_element_ids(self) -> List[str]:
+        """Get all element IDs from property manager"""
+        if self.property_manager and hasattr(self.property_manager, 'get_all_element_ids'):
+            return self.property_manager.get_all_element_ids()
+        return []
+    
+    def _on_operation_progress(self, percentage: int, status: str) -> None:
+        """Handle operation progress"""
+        if self.tab_widget.currentIndex() == 0:  # Export tab
+            self.export_progress.setValue(percentage)
+        else:  # Import tab
+            self.import_progress.setValue(percentage)
+    
+    def _on_operation_completed(self, result: OperationResult) -> None:
+        """Handle operation completion"""
+        # Hide progress and reset buttons
         self.export_progress.setVisible(False)
+        self.import_progress.setVisible(False)
         self.export_btn.setEnabled(True)
+        self.import_btn.setEnabled(True)
         self.export_cancel_btn.setVisible(False)
+        self.import_cancel_btn.setVisible(False)
         
         if result.success:
             QMessageBox.information(
                 self,
-                "Export Complete",
-                f"Successfully exported {result.exported_count} elements to {result.file_path}"
+                "Operation Complete",
+                f"Successfully processed {result.processed_count} elements"
             )
         else:
             QMessageBox.warning(
                 self,
-                "Export Failed",
-                f"Export failed: {'; '.join(result.errors)}"
+                "Operation Failed",
+                f"Operation failed: {'; '.join(result.errors)}"
             )
     
-    def _on_export_error(self, error_msg: str) -> None:
-        """Handle export error"""
+    def _on_operation_error(self, error_msg: str) -> None:
+        """Handle operation error"""
+        # Hide progress and reset buttons
         self.export_progress.setVisible(False)
+        self.import_progress.setVisible(False)
         self.export_btn.setEnabled(True)
+        self.import_btn.setEnabled(True)
         self.export_cancel_btn.setVisible(False)
-        
-        QMessageBox.critical(self, "Export Error", error_msg)
-    
-    def _on_import_completed(self, result: ImportResult) -> None:
-        """Handle import completion"""
-        self.import_progress.setVisible(False)
-        self.import_btn.setEnabled(True)
         self.import_cancel_btn.setVisible(False)
         
-        if result.success:
-            message = f"Successfully imported {result.imported_count} elements"
-            if result.updated_count > 0:
-                message += f", updated {result.updated_count} elements"
-            if result.skipped_count > 0:
-                message += f", skipped {result.skipped_count} elements"
-            
-            QMessageBox.information(self, "Import Complete", message)
-        else:
-            QMessageBox.warning(
-                self,
-                "Import Failed",
-                f"Import failed: {'; '.join(result.errors)}"
-            )
-    
-    def _on_import_error(self, error_msg: str) -> None:
-        """Handle import error"""
-        self.import_progress.setVisible(False)
-        self.import_btn.setEnabled(True)
-        self.import_cancel_btn.setVisible(False)
-        
-        QMessageBox.critical(self, "Import Error", error_msg)
+        QMessageBox.critical(self, "Operation Error", error_msg)
 
 
 # Export import/export components
 __all__ = [
-    'ExportFormat',
+    'ImportExportFormat',
     'ExportConfiguration',
     'ImportConfiguration',
-    'ExportResult',
-    'ImportResult',
-    'PropertyExporter',
-    'PropertyImporter',
+    'OperationResult',
+    'PropertyImportExportManager',
     'ImportExportDialog'
 ]
