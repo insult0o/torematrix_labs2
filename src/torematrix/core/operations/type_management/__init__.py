@@ -24,32 +24,30 @@ __all__ = [
     # Core engines
     'BulkTypeOperationEngine',
     'TypeConversionEngine', 
-    'TypeMigrationManager',
-    'ConversionWarningSystem',
-    'BatchProcessor',
     'ProgressTracker',
     'RollbackManager',
-    'PerformanceOptimizer',
     
     # Data classes
     'BulkOperationOptions',
     'BulkOperationResult',
+    'BulkChangePreview',
+    'ElementChange',
     'ConversionResult',
     'ConversionAnalysis',
-    'MigrationResult',
-    'MigrationPlan',
-    'ConversionWarning',
-    'BatchResult',
-    'BatchOptions',
     'OperationProgress',
     'RollbackOperation',
-    'RollbackState',
-    'OptimizationResult',
     
-    # Enums
-    'WarningLevel',
+    # Enums and types
+    'OperationStatus',
+    'ConflictResolution',
+    'ProgressPhase',
+    'RollbackState',
     'ProgressCallback',
-    'OptimizationStrategy',
+    
+    # Functions
+    'start_operation_progress',
+    'update_operation_progress',
+    'complete_operation_progress',
 ]
 
 # Version info
