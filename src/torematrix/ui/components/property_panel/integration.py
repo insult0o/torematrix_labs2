@@ -3,15 +3,14 @@
 from typing import Dict, List, Optional, Any, Callable
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QDockWidget, QSplitter,
-    QTabWidget, QToolBar, QAction, QMenu, QMenuBar, QStatusBar
+    QTabWidget, QToolBar, QMenu, QMenuBar, QStatusBar
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QSettings, QTimer
-from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtGui import QKeySequence, QShortcut, QAction
 
 from .models import PropertyMetadata, PropertyChange
 from .events import PropertyNotificationCenter, PropertyEventType
 from .display import PropertyDisplayWidget
-from .layout import PropertyLayoutManager
 from .editors import PropertyEditorFactory
 
 
