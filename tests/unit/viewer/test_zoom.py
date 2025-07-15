@@ -10,7 +10,7 @@ import time
 import math
 from unittest.mock import Mock, patch, MagicMock
 
-from src.torematrix.ui.viewer.zoom import (
+from src.torematrix.ui.viewer.controls.zoom import (
     ZoomManager,
     ZoomState,
     ZoomPerformanceMetrics
