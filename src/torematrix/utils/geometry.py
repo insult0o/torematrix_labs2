@@ -9,6 +9,8 @@ from typing import Tuple, Optional, List, Union
 from dataclasses import dataclass
 import math
 
+from PyQt6.QtCore import QPointF, QLineF
+
 
 @dataclass
 class Point:
@@ -404,3 +406,106 @@ class GeometryUtils:
         max_y = max(p.y for p in points)
         
         return Rect(min_x, min_y, max_x - min_x, max_y - min_y)
+
+
+def point_distance(p1: QPointF, p2: QPointF) -> float:
+    """Calculate distance between two QPointF objects."""
+    dx = p1.x() - p2.x()
+    dy = p1.y() - p2.y()
+    return math.sqrt(dx * dx + dy * dy)
+
+
+def point_to_line_distance(point: QPointF, line: QLineF) -> float:
+    """Calculate distance from point to line segment."""
+    line_vec = line.p2() - line.p1()
+    point_vec = point - line.p1()
+    line_len_sq = QPointF.dotProduct(line_vec, line_vec)
+    
+    if line_len_sq == 0:
+        return point_distance(point, line.p1())
+    
+    t = max(0, min(1, QPointF.dotProduct(point_vec, line_vec) / line_len_sq))
+    projection = line.p1() + t * line_vec
+    return point_distance(point, projection)
+
+
+def line_intersection(line1: QLineF, line2: QLineF) -> Optional[QPointF]:
+    """Find intersection point of two lines."""
+    intersect_type = line1.intersects(line2)
+    if intersect_type == QLineF.IntersectType.BoundedIntersection:
+        return line1.intersects(line2)[1]
+    return None
+
+
+def simplify_polygon(points: List[QPointF], tolerance: float = 1.0) -> List[QPointF]:
+    """
+    Simplify polygon using Douglas-Peucker algorithm.
+    
+    Args:
+        points: List of polygon vertices
+        tolerance: Maximum distance for point removal
+        
+    Returns:
+        Simplified list of points
+    """
+    if len(points) <= 2:
+        return points[:]
+    
+    # Find point with maximum distance from line between first and last
+    max_dist = 0
+    max_index = 0
+    
+    first_last_line = QLineF(points[0], points[-1])
+    
+    for i in range(1, len(points) - 1):
+        dist = point_to_line_distance(points[i], first_last_line)
+        if dist > max_dist:
+            max_dist = dist
+            max_index = i
+    
+    # If max distance is greater than tolerance, recursively simplify
+    if max_dist > tolerance:
+        # Recursive call for both parts
+        left_part = simplify_polygon(points[:max_index + 1], tolerance)
+        right_part = simplify_polygon(points[max_index:], tolerance)
+        
+        # Combine results (avoid duplicate point at max_index)
+        return left_part[:-1] + right_part
+    else:
+        # All points between first and last can be removed
+        return [points[0], points[-1]]
+
+
+def smooth_polygon(points: List[QPointF], iterations: int = 1) -> List[QPointF]:
+    """
+    Smooth polygon using averaging.
+    
+    Args:
+        points: List of polygon vertices
+        iterations: Number of smoothing iterations
+        
+    Returns:
+        Smoothed list of points
+    """
+    if len(points) < 3:
+        return points[:]
+    
+    smoothed = points[:]
+    
+    for _ in range(iterations):
+        new_points = []
+        n = len(smoothed)
+        
+        for i in range(n):
+            # Average with neighbors
+            prev_idx = (i - 1) % n
+            next_idx = (i + 1) % n
+            
+            avg_x = (smoothed[prev_idx].x() + smoothed[i].x() + smoothed[next_idx].x()) / 3
+            avg_y = (smoothed[prev_idx].y() + smoothed[i].y() + smoothed[next_idx].y()) / 3
+            
+            new_points.append(QPointF(avg_x, avg_y))
+        
+        smoothed = new_points
+    
+    return smoothed
