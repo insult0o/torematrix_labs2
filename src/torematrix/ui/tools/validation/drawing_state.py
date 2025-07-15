@@ -1,58 +1,22 @@
 """
-<<<<<<< HEAD
 Drawing state management system for manual validation interface.
 
+Agent 1 implementation for Issue #26 - Core drawing state management.
 This module provides the core drawing state management for the manual validation
 workflow, including draw mode activation, area selection, and element creation.
-=======
-<<<<<<< HEAD
-Drawing state management system for manual validation interface.
-
-Agent 1 implementation for Issue #27 - Core drawing state management.
->>>>>>> origin/main
 """
 
 import asyncio
 import logging
-<<<<<<< HEAD
-from typing import Optional, Dict, Any, List, Callable, Union
-=======
 from typing import Optional, Dict, Any, List, Callable
->>>>>>> origin/main
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime
 
-<<<<<<< HEAD
-from PyQt6.QtCore import QObject, pyqtSignal, QPoint, QRect, QTimer
-from PyQt6.QtGui import QPixmap, QImage, QPainter, QPen, QColor, QBrush
-from PyQt6.QtWidgets import QWidget
-
-from ...viewer.coordinates import Point, Rectangle
-from ...viewer.layers import LayerElement
-=======
 from PyQt6.QtCore import QObject, pyqtSignal, QTimer
 from PyQt6.QtGui import QPixmap, QColor
 
 from ...viewer.coordinates import Rectangle
-=======
-Drawing State Management for Manual Validation Interface.
-
-This module provides the core state management system for the manual validation
-drawing interface, implementing a state machine pattern with PyQt6 signals.
-"""
-
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional, List, Dict, Any
-from PyQt6.QtCore import QObject, pyqtSignal, QTimer
-from PyQt6.QtGui import QPixmap
-import uuid
-import asyncio
-from datetime import datetime
-
->>>>>>> origin/main
->>>>>>> origin/main
 from ....core.models import Element, ElementType
 
 
@@ -66,10 +30,6 @@ class DrawingMode(Enum):
 
 
 class DrawingState(Enum):
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
     """Current state of the drawing process."""
     IDLE = "idle"
     SELECTING_AREA = "selecting_area"
@@ -87,11 +47,7 @@ class DrawingArea:
     """Represents a drawn area for element creation."""
     rectangle: Rectangle
     preview_image: Optional[QPixmap] = None
-<<<<<<< HEAD
     ocr_result: Optional[Any] = None  # OCRResult will be defined by Agent 2
-=======
-    ocr_result: Optional[Any] = None
->>>>>>> origin/main
     suggested_text: str = ""
     manual_text: str = ""
     element_type: Optional[ElementType] = None
@@ -117,87 +73,12 @@ class DrawingSession:
     def is_complete(self) -> bool:
         """Check if all areas have been processed."""
         return all(area.element_type is not None for area in self.areas)
-<<<<<<< HEAD
-
-
-class DrawingStateManager(QObject):
-    """
-    Manages the drawing state for manual validation interface.
-    
-    This class handles the complete workflow of manual element creation:
-    1. Draw mode activation
-    2. Area selection and drawing
-    3. OCR processing of selected areas
-    4. Text editing and element type selection
-    5. Element creation and validation
-    """
-    
-    # Signals
-=======
-=======
-    """Current state of the drawing operation."""
-    IDLE = "idle"
-    AREA_SELECTING = "area_selecting"
-    AREA_SELECTED = "area_selected"
-    ELEMENT_CREATING = "element_creating"
-    ELEMENT_CREATED = "element_created"
-    OCR_PROCESSING = "ocr_processing"
-    OCR_COMPLETED = "ocr_completed"
-    ERROR = "error"
-
-
-@dataclass(frozen=True)
-class DrawingArea:
-    """Represents a selected drawing area for element creation."""
-    x: int
-    y: int
-    width: int
-    height: int
-    page_number: int
-    area_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: datetime = field(default_factory=datetime.now)
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization."""
-        return {
-            "x": self.x,
-            "y": self.y,
-            "width": self.width,
-            "height": self.height,
-            "page_number": self.page_number,
-            "area_id": self.area_id,
-            "timestamp": self.timestamp.isoformat()
-        }
-
-
-@dataclass(frozen=True)
-class DrawingSession:
-    """Represents a complete drawing session with multiple areas."""
-    session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    areas: List[DrawingArea] = field(default_factory=list)
-    elements: List[Element] = field(default_factory=list)
-    document_path: Optional[str] = None
-    started_at: datetime = field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization."""
-        return {
-            "session_id": self.session_id,
-            "areas": [area.to_dict() for area in self.areas],
-            "elements": [element.to_dict() for element in self.elements],
-            "document_path": self.document_path,
-            "started_at": self.started_at.isoformat(),
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None
-        }
->>>>>>> origin/main
 
 
 class DrawingStateManager(QObject):
     """Core drawing state management for manual validation interface."""
     
     # Signals for UI integration
->>>>>>> origin/main
     mode_changed = pyqtSignal(DrawingMode)
     state_changed = pyqtSignal(DrawingState)
     area_selected = pyqtSignal(DrawingArea)
