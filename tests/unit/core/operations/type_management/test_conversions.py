@@ -15,7 +15,7 @@ from torematrix.core.operations.type_management.conversions import (
     TypeConversionEngine, ConversionResult, ConversionAnalysis,
     DataPreservationStrategy, ConversionStrategy
 )
-from torematrix.core.type_system.registry import TypeRegistry
+from torematrix.core.models.types.registry import TypeRegistry
 
 
 class TestTypeConversionEngine:

@@ -30,9 +30,9 @@ from torematrix.core.operations.type_management.progress import (
 from torematrix.core.operations.type_management.rollback import (
     RollbackManager, RollbackOperation, RollbackState
 )
-from torematrix.core.type_system.registry import TypeRegistry
-from torematrix.core.type_system.validation import TypeValidationEngine, ValidationResult
-from torematrix.core.validation.system import ValidationMessage, ValidationSeverity
+from torematrix.core.models.types.registry import TypeRegistry
+from torematrix.core.models.types.validation import TypeValidationEngine, ValidationResult
+from torematrix.core.models.types.validation import ValidationMessage, ValidationSeverity
 
 
 class TestBulkTypeOperationEngine:
