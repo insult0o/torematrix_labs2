@@ -1,13 +1,20 @@
 """
 Base Operation Classes for Merge/Split Operations
+<<<<<<< HEAD
 
 Provides abstract base classes and result types for all merge/split operations.
+=======
+>>>>>>> origin/main
 """
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
+<<<<<<< HEAD
 from typing import List, Optional, Dict, Any, Union
+=======
+from typing import List, Optional, Dict, Any
+>>>>>>> origin/main
 from datetime import datetime
 import uuid
 

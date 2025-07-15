@@ -1,12 +1,19 @@
 """
 Core Merge Operations
 
+<<<<<<< HEAD
 Implements the MergeOperation class with merge algorithm for combining document elements.
+=======
+Implements the MergeOperation class for combining document elements.
+>>>>>>> origin/main
 """
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
+<<<<<<< HEAD
 from datetime import datetime
+=======
+>>>>>>> origin/main
 import uuid
 import logging
 
