@@ -6,7 +6,7 @@ import logging
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
 
-from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
+from ....models.element import Element as UnifiedElement
 from ..factory import ParserFactory
 from ..types import ProcessingHints
 from ..base import ParserResult

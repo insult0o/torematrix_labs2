@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from enum import Enum
 
-from ..events.base import BaseEvent, EventPriority
+from ..events import Event as BaseEvent, EventPriority
 from ..audit.logger import AuditLogger, AuditLevel, AuditContext
 from .events import ConfigurationChangeEvent, ConfigEventType, FileSystemChangeEvent
 from .runtime import RuntimeConfigurationManager

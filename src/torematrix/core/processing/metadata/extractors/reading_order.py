@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 import statistics
 
-from ....models.element import UnifiedElement
+from ....models.element import Element as UnifiedElement
 from ..algorithms.spatial import BoundingBox
 
 logger = logging.getLogger(__name__)

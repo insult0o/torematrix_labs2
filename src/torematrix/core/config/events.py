@@ -5,7 +5,7 @@ This module provides event-driven configuration change notifications
 with integration to the event bus system.
 """
 
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, Optional, List, Union, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -214,7 +214,7 @@ class ConfigurationChangeEvent(Event):
 class FileSystemChangeEvent(Event):
     """Event for file system changes affecting configuration."""
     
-    file_change: ConfigurationChange
+    file_change: Optional[ConfigurationChange] = None
     
     def __post_init__(self):
         """Initialize base event properties."""

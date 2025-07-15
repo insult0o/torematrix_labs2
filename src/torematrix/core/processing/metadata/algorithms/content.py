@@ -10,7 +10,7 @@ from typing import List, Optional, Set, Dict, Any
 from collections import Counter
 import math
 
-from ....models.element import UnifiedElement
+from ....models.element import Element as UnifiedElement
 from ..models.relationship import Relationship, RelationshipType
 
 logger = logging.getLogger(__name__)

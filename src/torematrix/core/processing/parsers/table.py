@@ -6,7 +6,7 @@ import asyncio
 from typing import Dict, Any, List, Optional, Tuple, Union
 from dataclasses import dataclass
 
-from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
+from ...models.element import Element as UnifiedElement
 from .base import BaseParser, ParserResult, ParserMetadata
 from .types import ElementType, ParserCapabilities, ProcessingHints
 from .exceptions import StructureExtractionError

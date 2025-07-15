@@ -10,7 +10,7 @@ from src.torematrix.core.processing.metadata.extractors.semantic import (
     SemanticConfig,
     ClassificationResult
 )
-from src.torematrix.core.models.element import UnifiedElement
+from src.torematrix.core.models.element import Element as UnifiedElement
 from src.torematrix.core.models.metadata import ElementMetadata
 
 

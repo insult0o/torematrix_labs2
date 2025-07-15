@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Set, Any, Iterator, Tuple
 import networkx as nx
 from dataclasses import asdict
 
-from ...models.element import UnifiedElement
+from ...models.element import Element as UnifiedElement
 from .models.relationship import Relationship, RelationshipType
 
 logger = logging.getLogger(__name__)

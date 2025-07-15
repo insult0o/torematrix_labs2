@@ -6,7 +6,7 @@ from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
 import re
 
-from torematrix_parser.src.torematrix.core.models.element import Element as UnifiedElement
+from ...models.element import Element as UnifiedElement
 from .base import BaseParser, ParserResult, ParserMetadata
 from .types import ElementType, ParserCapabilities, ProcessingHints
 from .advanced.math_detector import MathDetector, FormulaType, FormulaStructure, MathComponent
