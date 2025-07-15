@@ -5,21 +5,54 @@ This package provides tools for manual validation of document elements,
 including drawing interfaces and element creation workflows.
 """
 
+from enum import Enum, auto
+
+class AreaSelectionMode(Enum):
+    """Modes for area selection during validation."""
+    CREATE_NEW = auto()      # Create new element from selection
+    ADJUST_BOUNDARY = auto() # Adjust existing element boundary
+    EXCLUDE_AREA = auto()    # Mark area to exclude from processing
+    MERGE_ELEMENTS = auto()  # Merge multiple elements
+    SPLIT_ELEMENT = auto()   # Split element into multiple
+
+class SelectionConstraint(Enum):
+    """Constraints that can be applied to selections."""
+    NONE = auto()
+    ASPECT_RATIO = auto()
+    FIXED_SIZE = auto()
+    ALIGN_TO_GRID = auto()
+    ALIGN_TO_ELEMENTS = auto()
+
+class ValidationAreaSelector:
+    """Main coordinator for area selection during manual validation."""
+    
+    def __init__(self, viewer, selection_manager, snapping_manager):
+        self.viewer = viewer
+        self.selection_manager = selection_manager
+        self.snapping_manager = snapping_manager
+        self.mode = AreaSelectionMode.CREATE_NEW
+        
+    def set_mode(self, mode):
+        """Set the current selection mode."""
+        self.mode = mode
+
 # Agent 1 - Drawing state management for manual validation (Issue #27)
-from .drawing_state import (
-    DrawingStateManager,
-    DrawingMode,
-    DrawingState,
-    DrawingArea,
-    DrawingSession
-)
+try:
+    from .drawing_state import (
+        DrawingStateManager,
+        DrawingMode,
+        DrawingState,
+        DrawingArea,
+        DrawingSession
+    )
+    _drawing_available = True
+except ImportError:
+    _drawing_available = False
 
 # Agent 1 + Agent 2 - Area selection tools (Issue #26)
 try:
     from .area_select import (
-        ValidationAreaSelector,
-        AreaSelectionMode,
-        SelectionConstraint,
+        ValidationAreaSelector as AdvancedAreaSelector,
         ValidationSelectionConfig,
     )
     from .shapes import (
@@ -46,21 +79,27 @@ except ImportError:
     _area_tools_available = False
 
 __all__ = [
-    # Drawing state management - Agent 1 (Issue #27)
-    'DrawingStateManager',
-    'DrawingMode',
-    'DrawingState',
-    'DrawingArea',
-    'DrawingSession',
+    # Basic validation tools
+    'ValidationAreaSelector',
+    'AreaSelectionMode',
+    'SelectionConstraint',
 ]
+
+# Add drawing state management if available (Issue #27)
+if _drawing_available:
+    __all__.extend([
+        'DrawingStateManager',
+        'DrawingMode',
+        'DrawingState',
+        'DrawingArea',
+        'DrawingSession',
+    ])
 
 # Add area selection tools if available (Issue #26)
 if _area_tools_available:
     __all__.extend([
-        # Area selection - Agent 1
-        'ValidationAreaSelector',
-        'AreaSelectionMode',
-        'SelectionConstraint',
+        # Advanced area selection - Agent 1
+        'AdvancedAreaSelector',
         'ValidationSelectionConfig',
         
         # Shape tools - Agent 1
