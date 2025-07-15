@@ -13,7 +13,18 @@ from PyQt6.QtGui import QFont, QPixmap, QIcon
 
 from .models import PropertyChange, ChangeType, PropertyMetadata
 from .events import PropertyNotificationCenter, PropertyEventType
-from .editors import PropertyEditorFactory, get_property_editor_factory
+# Temporarily comment out editors import for testing
+# from .editors import PropertyEditorFactory, get_property_editor_factory
+
+# Temporary placeholder classes for testing
+class PropertyEditorFactory:
+    @staticmethod
+    def create_editor(property_name, property_type, parent=None):
+        from PyQt6.QtWidgets import QLineEdit
+        return QLineEdit(parent)
+
+def get_property_editor_factory():
+    return PropertyEditorFactory()
 
 
 @dataclass

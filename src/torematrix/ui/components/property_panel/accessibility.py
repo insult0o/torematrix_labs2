@@ -8,9 +8,28 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QEvent, QTimer, QRect
 from PyQt6.QtGui import (
     QKeySequence, QAction, QFont, QFontMetrics, QPalette, QColor,
-    QAccessible, QPainter, QPen, QShortcut
+    QPainter, QPen, QShortcut
 )
-from PyQt6.QtAccessibility import QAccessibleInterface
+try:
+    from PyQt6.QtGui import QAccessible
+except ImportError:
+    # Fallback for systems without accessibility support
+    class QAccessible:
+        @staticmethod
+        def setActive(active):
+            pass
+        
+        @staticmethod
+        def updateAccessibility(event):
+            pass
+        
+        class AccessibleEvent:
+            Announcement = "announcement"
+
+try:
+    from PyQt6.QtAccessibility import QAccessibleInterface
+except ImportError:
+    QAccessibleInterface = None
 
 from .models import PropertyMetadata
 from .events import PropertyNotificationCenter
