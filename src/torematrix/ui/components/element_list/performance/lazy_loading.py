@@ -1,5 +1,7 @@
 """
 <<<<<<< HEAD
+=======
+<<<<<<< HEAD
 Lazy Loading System for Element Tree View
 
 Provides on-demand loading of tree branches to improve performance with large datasets.
@@ -49,6 +51,7 @@ class LoadingState:
     """Tracks loading state for tree nodes."""
     
 =======
+>>>>>>> origin/main
 Lazy Loading System for Hierarchical Element Lists
 
 Provides efficient on-demand loading of tree branches with priority-based
@@ -93,11 +96,16 @@ except ImportError:
 
 class LoadingState(Enum):
     """Loading states for tree nodes."""
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 >>>>>>> origin/main
     UNLOADED = "unloaded"
     LOADING = "loading"
     LOADED = "loaded"
     ERROR = "error"
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
     
     def __init__(self):
@@ -148,6 +156,7 @@ class LoadingState(Enum):
     def remove_placeholder(self, node_id: str) -> None:
         """Remove placeholder node."""
 =======
+>>>>>>> origin/main
 
 
 @dataclass(order=True)
@@ -223,11 +232,16 @@ class LoadingStateManager:
         
     def remove_placeholder(self, node_id: str):
         """Remove placeholder for node."""
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 >>>>>>> origin/main
         self.placeholders.pop(node_id, None)
 
 
 class LoadingQueue:
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
     """Priority queue for loading requests."""
     
@@ -489,6 +503,7 @@ class LazyLoadingManager(QObject):
         
         # Performance tracking
 =======
+>>>>>>> origin/main
     """Priority queue for load requests."""
     
     def __init__(self, max_size: int = 1000):
@@ -691,11 +706,16 @@ class LazyLoadingManager(QObject):
         self.preload_visible_threshold = 5
         
         # Statistics
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 >>>>>>> origin/main
         self.load_statistics = {
             'total_requests': 0,
             'successful_loads': 0,
             'failed_loads': 0,
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
             'average_load_time': 0.0,
             'cache_hits': 0
@@ -732,6 +752,7 @@ class LazyLoadingManager(QObject):
             parent_index=parent_index,
             priority=priority,
 =======
+>>>>>>> origin/main
             'average_load_time': 0.0
         }
         
@@ -763,6 +784,9 @@ class LazyLoadingManager(QObject):
             priority=priority,
             node_id=node_id,
             parent_index=parent_index,
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 >>>>>>> origin/main
             user_initiated=user_initiated,
             callback=callback
@@ -772,6 +796,8 @@ class LazyLoadingManager(QObject):
         if self.loading_queue.add_request(request):
             self.load_statistics['total_requests'] += 1
             
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
             # Start batch timer if not running
             if not self.batch_timer.isActive():
@@ -848,6 +874,7 @@ class LazyLoadingManager(QObject):
             return
         
 =======
+>>>>>>> origin/main
             # Start batch timer if not already running
             if not self.batch_timer.isActive():
                 self.batch_timer.start(self.batch_timeout)
@@ -912,11 +939,16 @@ class LazyLoadingManager(QObject):
         if self.loading_queue.size() == 0:
             return
             
+<<<<<<< HEAD
+=======
+>>>>>>> origin/main
 >>>>>>> origin/main
         # Get batch of requests
         batch_requests = self.loading_queue.get_batch(self.batch_size)
         if not batch_requests:
             return
+<<<<<<< HEAD
+=======
 <<<<<<< HEAD
         
         # Create batch
@@ -1079,6 +1111,7 @@ class LazyLoadingManager(QObject):
         if 'preload_visible_threshold' in kwargs:
             self.preload_visible_threshold = kwargs['preload_visible_threshold']
 =======
+>>>>>>> origin/main
             
         # Create batch
         batch_id = f"batch_{int(time.time()*1000)}"
@@ -1129,5 +1162,9 @@ __all__ = [
     'PlaceholderNode',
     'LoadWorker',
     'LoadingStateManager'
+<<<<<<< HEAD
 ]
+=======
+]
+>>>>>>> origin/main
 >>>>>>> origin/main
