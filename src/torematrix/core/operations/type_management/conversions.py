@@ -35,6 +35,14 @@ class ConversionRisk(Enum):
     UNSAFE = "unsafe"           # Conversion not recommended
 
 
+class DataPreservationStrategy(Enum):
+    """Strategies for preserving data during conversions"""
+    STRICT = "strict"           # Only preserve fields that exist in target type
+    MERGE = "merge"             # Merge all compatible fields, preserve extras
+    METADATA = "metadata"       # Store extra data in metadata field
+    CUSTOM = "custom"           # Use custom preservation logic
+
+
 @dataclass
 class ConversionRule:
     """Rule for converting between specific types"""

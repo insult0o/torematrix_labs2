@@ -9,45 +9,45 @@ This package provides comprehensive type management operations including:
 - Performance optimization for enterprise workloads
 """
 
-from .bulk_operations import BulkTypeOperationEngine, BulkOperationOptions, BulkOperationResult
+from .bulk_operations import (
+    BulkTypeOperationEngine, BulkOperationOptions, BulkOperationResult,
+    BulkChangePreview, ElementChange, OperationStatus, ConflictResolution
+)
 from .conversions import TypeConversionEngine, ConversionResult, ConversionAnalysis
-from .migrations import TypeMigrationManager, MigrationResult, MigrationPlan
-from .warnings import ConversionWarningSystem, WarningLevel, ConversionWarning
-from .batch_processor import BatchProcessor, BatchResult, BatchOptions
-from .progress import ProgressTracker, OperationProgress, ProgressCallback
+from .progress import (
+    ProgressTracker, OperationProgress, ProgressCallback, ProgressPhase,
+    start_operation_progress, update_operation_progress, complete_operation_progress
+)
 from .rollback import RollbackManager, RollbackOperation, RollbackState
-from .optimization import PerformanceOptimizer, OptimizationStrategy, OptimizationResult
 
 __all__ = [
     # Core engines
     'BulkTypeOperationEngine',
     'TypeConversionEngine', 
-    'TypeMigrationManager',
-    'ConversionWarningSystem',
-    'BatchProcessor',
     'ProgressTracker',
     'RollbackManager',
-    'PerformanceOptimizer',
     
     # Data classes
     'BulkOperationOptions',
     'BulkOperationResult',
+    'BulkChangePreview',
+    'ElementChange',
     'ConversionResult',
     'ConversionAnalysis',
-    'MigrationResult',
-    'MigrationPlan',
-    'ConversionWarning',
-    'BatchResult',
-    'BatchOptions',
     'OperationProgress',
     'RollbackOperation',
-    'RollbackState',
-    'OptimizationResult',
     
-    # Enums
-    'WarningLevel',
+    # Enums and types
+    'OperationStatus',
+    'ConflictResolution',
+    'ProgressPhase',
+    'RollbackState',
     'ProgressCallback',
-    'OptimizationStrategy',
+    
+    # Functions
+    'start_operation_progress',
+    'update_operation_progress',
+    'complete_operation_progress',
 ]
 
 # Version info

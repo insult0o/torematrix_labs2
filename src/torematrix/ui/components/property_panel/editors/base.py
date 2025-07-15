@@ -1,7 +1,7 @@
 """Base property editor classes and interfaces"""
 
 from typing import Any, Optional, Dict, Callable, List
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from enum import Enum
 from dataclasses import dataclass, field
 from PyQt6.QtWidgets import QWidget
@@ -34,7 +34,12 @@ class EditorConfiguration:
     custom_attributes: Dict[str, Any] = field(default_factory=dict)
 
 
-class BasePropertyEditor(QWidget, ABC):
+class CombinedMeta(type(QWidget), ABCMeta):
+    """Combined metaclass for QWidget and ABC"""
+    pass
+
+
+class BasePropertyEditor(QWidget, ABC, metaclass=CombinedMeta):
     """Abstract base class for all property editors"""
     
     # Signals
