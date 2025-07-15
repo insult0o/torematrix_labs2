@@ -13,8 +13,8 @@ from unittest.mock import Mock, patch, MagicMock
 
 # For testing without Qt dependencies
 try:
-    from src.torematrix.ui.viewer.zoom import ZoomManager, ZoomState, ZoomPerformanceMetrics
-    from src.torematrix.ui.viewer.pan import PanManager, PanState, PanConstraints, PanPerformanceMetrics
+    from src.torematrix.ui.viewer.controls.zoom import ZoomManager, ZoomState, ZoomPerformanceMetrics
+    from src.torematrix.ui.viewer.controls.pan import PanManager, PanState, PanConstraints, PanPerformanceMetrics
     from src.torematrix.ui.viewer.rotation import RotationManager, RotationState, RotationConstraints, RotationPerformanceMetrics
     from src.torematrix.ui.viewer.cache import TransformationCache, CoordinateCache
     COMPONENTS_AVAILABLE = True
