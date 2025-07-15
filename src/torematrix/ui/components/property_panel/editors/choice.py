@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 """Choice property editors for dropdown and selection inputs"""
 
 from typing import Any, Optional, List, Union, Dict
@@ -516,7 +515,6 @@ class RadioButtonChoiceEditor(ChoicePropertyEditor):
     def get_radio_buttons(self) -> Dict[str, QRadioButton]:
         """Get the radio buttons dictionary"""
         return self._radio_buttons.copy()
-=======
 """Choice and dropdown property editors with flexible selection options"""
 
 from typing import List, Any, Optional, Dict, Callable
@@ -977,4 +975,3 @@ __all__ = [
     'RadioButtonGroupEditor',
     'TagsEditor'
 ]
->>>>>>> origin/main

@@ -9,14 +9,16 @@ This package provides comprehensive type management operations including:
 - Performance optimization for enterprise workloads
 """
 
-from .bulk_operations import BulkTypeOperationEngine, BulkOperationOptions, BulkOperationResult
+from .bulk_operations import (
+    BulkTypeOperationEngine, BulkOperationOptions, BulkOperationResult,
+    BulkChangePreview, ElementChange, OperationStatus, ConflictResolution
+)
 from .conversions import TypeConversionEngine, ConversionResult, ConversionAnalysis
-from .migrations import TypeMigrationManager, MigrationResult, MigrationPlan
-from .warnings import ConversionWarningSystem, WarningLevel, ConversionWarning
-from .batch_processor import BatchProcessor, BatchResult, BatchOptions
-from .progress import ProgressTracker, OperationProgress, ProgressCallback
+from .progress import (
+    ProgressTracker, OperationProgress, ProgressCallback, ProgressPhase,
+    start_operation_progress, update_operation_progress, complete_operation_progress
+)
 from .rollback import RollbackManager, RollbackOperation, RollbackState
-from .optimization import PerformanceOptimizer, OptimizationStrategy, OptimizationResult
 
 __all__ = [
     # Core engines
