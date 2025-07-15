@@ -36,7 +36,11 @@ class ValidationAreaSelector:
         """Set the current selection mode."""
         self.mode = mode
 
+<<<<<<< HEAD
+# Agent 1 - Core drawing state management (Issue #27)
+=======
 # Agent 1 - Drawing state management for manual validation (Issue #27)
+>>>>>>> origin/main
 try:
     from .drawing_state import (
         DrawingStateManager,
@@ -49,6 +53,9 @@ try:
 except ImportError:
     _drawing_available = False
 
+<<<<<<< HEAD
+# Agent 1 - Area selection tools (Issue #26)
+=======
 # Agent 2 - OCR service integration for manual validation (Issue #27)
 try:
     from .ocr_service import (
@@ -65,6 +72,7 @@ except ImportError:
     _ocr_available = False
 
 # Agent 1 + Agent 2 - Area selection tools (Issue #26)
+>>>>>>> origin/main
 try:
     from .area_select import (
         ValidationAreaSelector as AdvancedAreaSelector,
@@ -79,6 +87,8 @@ try:
         PolygonSelectionTool,
         FreehandSelectionTool,
     )
+<<<<<<< HEAD
+=======
     # Agent 2 - Advanced snapping algorithms
     from .snapping import (
         SnapEngine,
@@ -89,6 +99,7 @@ try:
         MagneticField,
         EdgeDetector,
     )
+>>>>>>> origin/main
     _area_tools_available = True
 except ImportError:
     _area_tools_available = False
@@ -110,6 +121,16 @@ if _drawing_available:
         'DrawingSession',
     ])
 
+<<<<<<< HEAD
+# Add area selection tools if available (Issue #26)
+if _area_tools_available:
+    __all__.extend([
+        # Advanced area selection
+        'AdvancedAreaSelector',
+        'ValidationSelectionConfig',
+        
+        # Shape tools
+=======
 # Add OCR service integration if available (Issue #27)
 if _ocr_available:
     __all__.extend([
@@ -130,6 +151,7 @@ if _area_tools_available:
         'ValidationSelectionConfig',
         
         # Shape tools - Agent 1
+>>>>>>> origin/main
         'SelectionShape',
         'RectangleShape',
         'PolygonShape', 
@@ -137,6 +159,8 @@ if _area_tools_available:
         'RectangleSelectionTool',
         'PolygonSelectionTool',
         'FreehandSelectionTool',
+<<<<<<< HEAD
+=======
         
         # Snapping algorithms - Agent 2
         'SnapEngine',
@@ -146,4 +170,5 @@ if _area_tools_available:
         'SnapConfiguration',
         'MagneticField',
         'EdgeDetector',
+>>>>>>> origin/main
     ])
