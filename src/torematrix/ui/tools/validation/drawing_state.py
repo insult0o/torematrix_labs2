@@ -86,12 +86,7 @@ class DrawingStateManager(QObject):
     session_completed = pyqtSignal(DrawingSession)
     error_occurred = pyqtSignal(str)
     
-<<<<<<< HEAD
-    def __init__(self, parent: Optional[QWidget] = None):
-=======
     def __init__(self, parent=None):
-<<<<<<< HEAD
->>>>>>> origin/main
         super().__init__(parent)
         self.logger = logging.getLogger("torematrix.ui.drawing_state")
         
@@ -101,29 +96,6 @@ class DrawingStateManager(QObject):
         self._current_session: Optional[DrawingSession] = None
         self._current_area: Optional[DrawingArea] = None
         
-<<<<<<< HEAD
-        # Drawing configuration
-        self._drawing_config = {
-            "min_area_size": 10,  # Minimum area size in pixels
-            "max_area_size": 2000,  # Maximum area size in pixels
-            "preview_scale": 1.0,  # Preview image scale
-            "auto_ocr": True,  # Automatically run OCR on area selection
-            "ocr_confidence_threshold": 0.6,  # Minimum OCR confidence
-            "batch_mode": False,  # Enable batch processing
-            "selection_color": QColor(255, 140, 0),  # Orange selection color
-            "preview_color": QColor(0, 255, 0, 100),  # Semi-transparent green
-        }
-        
-        # OCR engine - will be set by Agent 2
-        self._ocr_engine: Optional[Any] = None
-        
-        # Callbacks
-        self._area_validator: Optional[Callable[[DrawingArea], bool]] = None
-        self._element_creator: Optional[Callable[[DrawingArea], Element]] = None
-        self._session_handler: Optional[Callable[[DrawingSession], None]] = None
-        
-        # Timers
-=======
         # Configuration
         self._drawing_config = {
             "min_area_size": 10,
@@ -140,107 +112,48 @@ class DrawingStateManager(QObject):
         self._session_handler = None
         
         # OCR processing timer
->>>>>>> origin/main
         self._ocr_timer = QTimer()
         self._ocr_timer.setSingleShot(True)
         self._ocr_timer.timeout.connect(self._process_ocr_delayed)
         
         self.logger.info("Drawing state manager initialized")
     
-<<<<<<< HEAD
-    def set_drawing_config(self, config: Dict[str, Any]) -> None:
-        """Update drawing configuration."""
-        self._drawing_config.update(config)
-        self.logger.debug(f"Drawing config updated: {config}")
-    
-    def get_drawing_config(self) -> Dict[str, Any]:
-        """Get current drawing configuration."""
-        return self._drawing_config.copy()
-    
-    def set_callbacks(self, 
-                     area_validator: Optional[Callable[[DrawingArea], bool]] = None,
-                     element_creator: Optional[Callable[[DrawingArea], Element]] = None,
-                     session_handler: Optional[Callable[[DrawingSession], None]] = None) -> None:
-        """Set callback functions for validation and creation."""
-        self._area_validator = area_validator
-        self._element_creator = element_creator
-        self._session_handler = session_handler
-        self.logger.debug("Callbacks configured")
-    
-    def initialize_ocr(self, config: Optional[Dict[str, Any]] = None) -> None:
-        """Initialize OCR engine - will be implemented by Agent 2."""
-        self.logger.info("OCR initialization hook called")
-        # Agent 2 will implement OCR engine initialization
-        pass
-    
-    @property
-    def mode(self) -> DrawingMode:
-        """Get current drawing mode."""
-=======
     # Properties for UI integration
     @property
     def mode(self) -> DrawingMode:
->>>>>>> origin/main
         return self._mode
     
     @property
     def state(self) -> DrawingState:
-<<<<<<< HEAD
-        """Get current drawing state."""
-=======
->>>>>>> origin/main
         return self._state
     
     @property
     def current_session(self) -> Optional[DrawingSession]:
-<<<<<<< HEAD
-        """Get current drawing session."""
-=======
->>>>>>> origin/main
         return self._current_session
     
     @property
     def current_area(self) -> Optional[DrawingArea]:
-<<<<<<< HEAD
-        """Get current drawing area."""
         return self._current_area
     
+    # Core state management methods
     def activate_draw_mode(self, batch_mode: bool = False) -> bool:
-        """
-        Activate drawing mode for manual validation.
-        
-        Args:
-            batch_mode: Enable batch processing mode
-            
-        Returns:
-            True if successfully activated
-        """
-        try:
-            if self._mode == DrawingMode.DISABLED:
-                self._mode = DrawingMode.SELECTION
-                self._state = DrawingState.IDLE
-                self._drawing_config["batch_mode"] = batch_mode
-                
-                # Create new session
-                session_id = f"drawing_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-                self._current_session = DrawingSession(
-                    session_id=session_id,
-                    batch_mode=batch_mode
-                )
-                
-                self.mode_changed.emit(self._mode)
-                self.state_changed.emit(self._state)
-                
-                self.logger.info(f"Draw mode activated (batch: {batch_mode})")
-                return True
-            else:
-                self.logger.warning("Draw mode already active")
-                return False
-                
-        except Exception as e:
-            self.logger.error(f"Failed to activate draw mode: {e}")
-            self.error_occurred.emit(f"Failed to activate draw mode: {e}")
+        """Activate drawing mode for manual validation."""
+        if self._mode != DrawingMode.DISABLED:
             return False
+        
+        self._mode = DrawingMode.SELECTION
+        self._state = DrawingState.IDLE
+        self._drawing_config["batch_mode"] = batch_mode
+        
+        # Create new session
+        session_id = f"drawing_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self._current_session = DrawingSession(session_id=session_id, batch_mode=batch_mode)
+        
+        self.mode_changed.emit(self._mode)
+        self.state_changed.emit(self._state)
+        
+        self.logger.info(f"Draw mode activated (batch: {batch_mode})")
+        return True
     
     def deactivate_draw_mode(self) -> bool:
         """
