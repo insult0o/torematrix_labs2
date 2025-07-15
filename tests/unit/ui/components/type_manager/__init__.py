@@ -1,0 +1,1 @@
+"""Type Manager UI Component Tests"""
