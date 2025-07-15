@@ -1,12 +1,18 @@
 """
 Manual validation tools for document processing.
 
+<<<<<<< HEAD
 This package provides tools for manual validation of document elements,
 <<<<<<< HEAD
 including drawing interfaces, area selection, and element creation workflows.
 =======
 including drawing interfaces and element creation workflows.
 >>>>>>> origin/main
+=======
+This package provides a comprehensive set of tools for manual validation
+of document elements, including drawing interfaces, area selection,
+and element creation workflows.
+>>>>>>> main
 """
 
 from enum import Enum, auto
@@ -41,7 +47,11 @@ class ValidationAreaSelector:
         self.mode = mode
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Agent 1 - Drawing state management (Issue #27/#238)
+=======
+# Core drawing system - Agent 1
+>>>>>>> main
 from .drawing_state import (
     DrawingStateManager,
     DrawingMode,
@@ -49,6 +59,7 @@ from .drawing_state import (
     DrawingArea,
     DrawingSession
 )
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 # Agent 1 - Core drawing state management (Issue #27)
@@ -66,27 +77,10 @@ try:
     _drawing_available = True
 except ImportError:
     _drawing_available = False
-
-<<<<<<< HEAD
-# Agent 1 - Area selection tools (Issue #26)
 =======
-# Agent 2 - OCR service integration for manual validation (Issue #27)
-try:
-    from .ocr_service import (
-        ValidationOCRService,
-        ValidationOCRRequest,
-        ValidationOCRResponse,
-        OCRWorkerThread,
-        OCREngine,
-        OCRStatus,
-        OCRValidationHelper
-    )
-    _ocr_available = True
-except ImportError:
-    _ocr_available = False
+>>>>>>> main
 
-# Agent 1 + Agent 2 - Area selection tools (Issue #26)
->>>>>>> origin/main
+# Area selection tools (existing)
 try:
     from .area_select import (
         ValidationAreaSelector as AdvancedAreaSelector,
@@ -101,19 +95,6 @@ try:
         PolygonSelectionTool,
         FreehandSelectionTool,
     )
-<<<<<<< HEAD
-=======
-    # Agent 2 - Advanced snapping algorithms
-    from .snapping import (
-        SnapEngine,
-        SnapTarget,
-        SnapResult,
-        SnapType,
-        SnapConfiguration,
-        MagneticField,
-        EdgeDetector,
-    )
->>>>>>> origin/main
     _area_tools_available = True
 except ImportError:
     _area_tools_available = False
@@ -125,28 +106,24 @@ __all__ = [
     'AreaSelectionMode',
     'SelectionConstraint',
 <<<<<<< HEAD
+<<<<<<< HEAD
     # Drawing state management
+=======
+    # Drawing system - Agent 1
+>>>>>>> main
     'DrawingStateManager',
     'DrawingMode',
     'DrawingState',
     'DrawingArea',
     'DrawingSession',
+<<<<<<< HEAD
 ]
 =======
+=======
+>>>>>>> main
 ]
 
-# Add drawing state management if available (Issue #27)
-if _drawing_available:
-    __all__.extend([
-        'DrawingStateManager',
-        'DrawingMode',
-        'DrawingState',
-        'DrawingArea',
-        'DrawingSession',
-    ])
-
-<<<<<<< HEAD
-# Add area selection tools if available (Issue #26)
+# Add area tools if available
 if _area_tools_available:
     __all__.extend([
         # Advanced area selection
@@ -154,28 +131,6 @@ if _area_tools_available:
         'ValidationSelectionConfig',
         
         # Shape tools
-=======
-# Add OCR service integration if available (Issue #27)
-if _ocr_available:
-    __all__.extend([
-        'ValidationOCRService',
-        'ValidationOCRRequest',
-        'ValidationOCRResponse',
-        'OCRWorkerThread',
-        'OCREngine',
-        'OCRStatus',
-        'OCRValidationHelper',
-    ])
-
-# Add area selection tools if available (Issue #26)
-if _area_tools_available:
-    __all__.extend([
-        # Advanced area selection - Agent 1
-        'AdvancedAreaSelector',
-        'ValidationSelectionConfig',
-        
-        # Shape tools - Agent 1
->>>>>>> origin/main
         'SelectionShape',
         'RectangleShape',
         'PolygonShape', 
@@ -183,17 +138,5 @@ if _area_tools_available:
         'RectangleSelectionTool',
         'PolygonSelectionTool',
         'FreehandSelectionTool',
-<<<<<<< HEAD
-=======
-        
-        # Snapping algorithms - Agent 2
-        'SnapEngine',
-        'SnapTarget',
-        'SnapResult',
-        'SnapType',
-        'SnapConfiguration',
-        'MagneticField',
-        'EdgeDetector',
->>>>>>> origin/main
     ])
 >>>>>>> origin/main

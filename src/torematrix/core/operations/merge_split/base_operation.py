@@ -64,27 +64,72 @@ class BaseOperation(ABC):
     
     @abstractmethod
     def validate(self) -> bool:
+<<<<<<< HEAD
+        """
+        Validate operation parameters and preconditions.
+        
+        Returns:
+            bool: True if operation is valid, False otherwise
+        """
+=======
         """Validate operation parameters and preconditions."""
+>>>>>>> origin/main
         pass
     
     @abstractmethod
     def execute(self) -> OperationResult:
+<<<<<<< HEAD
+        """
+        Execute the operation.
+        
+        Returns:
+            OperationResult: Result of the operation
+        """
+=======
         """Execute the operation."""
+>>>>>>> origin/main
         pass
     
     @abstractmethod
     def preview(self) -> OperationResult:
+<<<<<<< HEAD
+        """
+        Generate a preview of the operation without executing it.
+        
+        Returns:
+            OperationResult: Preview of the operation result
+        """
+=======
         """Generate a preview of the operation without executing it."""
+>>>>>>> origin/main
         pass
     
     @abstractmethod
     def can_rollback(self) -> bool:
+<<<<<<< HEAD
+        """
+        Check if the operation can be rolled back.
+        
+        Returns:
+            bool: True if operation can be rolled back
+        """
+=======
         """Check if the operation can be rolled back."""
+>>>>>>> origin/main
         pass
     
     @abstractmethod
     def rollback(self) -> bool:
+<<<<<<< HEAD
+        """
+        Roll back the operation.
+        
+        Returns:
+            bool: True if rollback was successful
+        """
+=======
         """Roll back the operation."""
+>>>>>>> origin/main
         pass
     
     def _start_execution(self) -> None:
@@ -104,4 +149,42 @@ class BaseOperation(ABC):
             return 0.0
         
         end_time = self._end_time or datetime.now()
+<<<<<<< HEAD
         return (end_time - self._start_time).total_seconds() * 1000
+    
+    def get_operation_info(self) -> Dict[str, Any]:
+        """Get information about the operation."""
+        return {
+            "operation_id": self.operation_id,
+            "status": self.status.value,
+            "execution_time_ms": self.execution_time_ms,
+            "start_time": self._start_time.isoformat() if self._start_time else None,
+            "end_time": self._end_time.isoformat() if self._end_time else None,
+        }
+
+
+@dataclass
+class OperationError(Exception):
+    """Base exception for operation errors."""
+    operation_id: str
+    message: str
+    error_code: str
+    details: Optional[Dict[str, Any]] = None
+    
+    def __str__(self) -> str:
+        return f"Operation {self.operation_id} failed: {self.message} ({self.error_code})"
+
+
+@dataclass
+class ValidationError(OperationError):
+    """Exception for validation errors."""
+    pass
+
+
+@dataclass
+class ExecutionError(OperationError):
+    """Exception for execution errors."""
+    pass
+=======
+        return (end_time - self._start_time).total_seconds() * 1000
+>>>>>>> origin/main
