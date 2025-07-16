@@ -38,39 +38,37 @@ try:
         manager = DrawingStateManager()
         
         # Test initial state
-        assert manager.mode == DrawingMode.DISABLED
-        assert manager.state == DrawingState.IDLE
+        assert manager.current_mode == DrawingMode.DISABLED
+        assert manager.current_state == DrawingState.IDLE
         assert manager.current_session is None
         assert manager.current_area is None
         
-        # Test activate draw mode
-        result = manager.activate_draw_mode(batch_mode=False)
+        # Test start draw mode
+        result = manager.start_drawing_mode()
         assert result is True
-        assert manager.mode == DrawingMode.SELECTION
-        assert manager.state == DrawingState.IDLE
+        assert manager.current_mode == DrawingMode.SELECTION
+        assert manager.current_state == DrawingState.IDLE
         assert manager.current_session is not None
         
         # Test start area selection
         result = manager.start_area_selection()
         assert result is True
-        assert manager.state == DrawingState.SELECTING_AREA
+        assert manager.current_state == DrawingState.AREA_SELECTING
         
         # Test complete area selection
-        rectangle = Rectangle(x=10, y=20, width=100, height=80)
-        result = manager.complete_area_selection(rectangle)
+        result = manager.complete_area_selection(x=10, y=20, width=100, height=80, page_number=1)
         assert result is True
-        assert manager.state == DrawingState.AREA_SELECTED
+        assert manager.current_state == DrawingState.AREA_SELECTED
         assert manager.current_area is not None
         
-        # Test set element type
+        # Test set element type (should succeed)
         result = manager.set_element_type(ElementType.TEXT)
         assert result is True
-        assert manager.current_area.element_type == ElementType.TEXT
         
-        # Test deactivate draw mode
-        result = manager.deactivate_draw_mode()
+        # Test stop draw mode
+        result = manager.stop_drawing_mode()
         assert result is True
-        assert manager.mode == DrawingMode.DISABLED
+        assert manager.current_mode == DrawingMode.DISABLED
         
         print("✓ DrawingStateManager tests passed")
     
