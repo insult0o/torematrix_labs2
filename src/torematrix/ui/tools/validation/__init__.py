@@ -1,57 +1,12 @@
 """
 Manual validation tools for document processing.
 
-<<<<<<< HEAD
-This package provides tools for manual validation of document elements,
-<<<<<<< HEAD
-including drawing interfaces, area selection, and element creation workflows.
-=======
-including drawing interfaces and element creation workflows.
->>>>>>> origin/main
-=======
 This package provides a comprehensive set of tools for manual validation
 of document elements, including drawing interfaces, area selection,
-and element creation workflows.
->>>>>>> main
+hierarchy management, and element creation workflows.
 """
 
-from enum import Enum, auto
-
-class AreaSelectionMode(Enum):
-    """Modes for area selection during validation."""
-    CREATE_NEW = auto()      # Create new element from selection
-    ADJUST_BOUNDARY = auto() # Adjust existing element boundary
-    EXCLUDE_AREA = auto()    # Mark area to exclude from processing
-    MERGE_ELEMENTS = auto()  # Merge multiple elements
-    SPLIT_ELEMENT = auto()   # Split element into multiple
-
-class SelectionConstraint(Enum):
-    """Constraints that can be applied to selections."""
-    NONE = auto()
-    ASPECT_RATIO = auto()
-    FIXED_SIZE = auto()
-    ALIGN_TO_GRID = auto()
-    ALIGN_TO_ELEMENTS = auto()
-
-class ValidationAreaSelector:
-    """Main coordinator for area selection during manual validation."""
-    
-    def __init__(self, viewer, selection_manager, snapping_manager):
-        self.viewer = viewer
-        self.selection_manager = selection_manager
-        self.snapping_manager = snapping_manager
-        self.mode = AreaSelectionMode.CREATE_NEW
-        
-    def set_mode(self, mode):
-        """Set the current selection mode."""
-        self.mode = mode
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-# Agent 1 - Drawing state management (Issue #27/#238)
-=======
-# Core drawing system - Agent 1
->>>>>>> main
+# Agent 1 - Drawing state management for manual validation (Issue #27)
 from .drawing_state import (
     DrawingStateManager,
     DrawingMode,
@@ -59,31 +14,13 @@ from .drawing_state import (
     DrawingArea,
     DrawingSession
 )
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-# Agent 1 - Core drawing state management (Issue #27)
-=======
-# Agent 1 - Drawing state management for manual validation (Issue #27)
->>>>>>> origin/main
-try:
-    from .drawing_state import (
-        DrawingStateManager,
-        DrawingMode,
-        DrawingState,
-        DrawingArea,
-        DrawingSession
-    )
-    _drawing_available = True
-except ImportError:
-    _drawing_available = False
-=======
->>>>>>> main
 
-# Area selection tools (existing)
+# Agent 1 + Agent 2 - Area selection tools (Issue #26)
 try:
     from .area_select import (
-        ValidationAreaSelector as AdvancedAreaSelector,
+        ValidationAreaSelector,
+        AreaSelectionMode,
+        SelectionConstraint,
         ValidationSelectionConfig,
     )
     from .shapes import (
@@ -98,39 +35,75 @@ try:
     _area_tools_available = True
 except ImportError:
     _area_tools_available = False
->>>>>>> origin/main
+
+# Agent 2 - OCR Service Integration (Issue #240)
+try:
+    from .ocr_service import (
+        ValidationOCRService,
+        OCRRequest,
+        OCRResponse,
+        OCRWorkerThread,
+        OCREngine,
+        OCRQualityAssessment,
+        ImagePreprocessor
+    )
+    _ocr_service_available = True
+except ImportError:
+    _ocr_service_available = False
+
+# Agent 2 - Interactive hierarchy tools (Issue #29.2)
+try:
+    from .hierarchy_tools import (
+        HierarchyTreeWidget,
+        HierarchyControlPanel,
+        HierarchyMetricsWidget,
+        HierarchyToolsWidget,
+        HierarchyOperation,
+        ValidationLevel,
+        HierarchyMetrics
+    )
+    _hierarchy_tools_available = True
+except ImportError:
+    _hierarchy_tools_available = False
+
+# Agent 4 - Structure wizard and export system (Issue #245)
+try:
+    from .structure_wizard import (
+        StructureWizard,
+        StructureAnalyzer,
+        StructureMethod,
+        StructureResult,
+        HeuristicWeights
+    )
+    from .export_system import (
+        HierarchyExportWidget,
+        ExportFormat,
+        ExportOptions,
+        ExportGenerator
+    )
+    _structure_wizard_available = True
+except ImportError:
+    _structure_wizard_available = False
 
 __all__ = [
-    # Basic validation tools
-    'ValidationAreaSelector',
-    'AreaSelectionMode',
-    'SelectionConstraint',
-<<<<<<< HEAD
-<<<<<<< HEAD
-    # Drawing state management
-=======
-    # Drawing system - Agent 1
->>>>>>> main
+    # Drawing state management - Agent 1
     'DrawingStateManager',
     'DrawingMode',
     'DrawingState',
     'DrawingArea',
     'DrawingSession',
-<<<<<<< HEAD
-]
-=======
-=======
->>>>>>> main
 ]
 
-# Add area tools if available
+# Add area selection tools if available (Issue #26)
 if _area_tools_available:
     __all__.extend([
-        # Advanced area selection
-        'AdvancedAreaSelector',
+        # Area selection - Agent 1
+        'ValidationAreaSelector',
+        'AreaSelectionMode',
+        'SelectionConstraint',
         'ValidationSelectionConfig',
         
-        # Shape tools
+        # Shape tools - Agent 1
         'SelectionShape',
         'RectangleShape',
         'PolygonShape', 
@@ -139,4 +112,45 @@ if _area_tools_available:
         'PolygonSelectionTool',
         'FreehandSelectionTool',
     ])
->>>>>>> origin/main
+
+# Add OCR service components if available - Agent 2 (Issue #240)
+if _ocr_service_available:
+    __all__.extend([
+        # OCR Service Integration - Agent 2
+        'ValidationOCRService',
+        'OCRRequest',
+        'OCRResponse',
+        'OCRWorkerThread',
+        'OCREngine',
+        'OCRQualityAssessment',
+        'ImagePreprocessor',
+    ])
+
+# Add hierarchy tools if available - Agent 2
+if _hierarchy_tools_available:
+    __all__.extend([
+        # Hierarchy UI Tools - Agent 2 (Issue #29.2)
+        'HierarchyTreeWidget',
+        'HierarchyControlPanel', 
+        'HierarchyMetricsWidget',
+        'HierarchyToolsWidget',
+        'HierarchyOperation',
+        'ValidationLevel',
+        'HierarchyMetrics'
+    ])
+
+# Add structure wizard and export tools if available - Agent 4
+if _structure_wizard_available:
+    __all__.extend([
+        # Structure Wizard - Agent 4 (Issue #245)
+        'StructureWizard',
+        'StructureAnalyzer',
+        'StructureMethod',
+        'StructureResult',
+        'HeuristicWeights',
+        # Export System - Agent 4 (Issue #245)
+        'HierarchyExportWidget',
+        'ExportFormat',
+        'ExportOptions',
+        'ExportGenerator'
+    ])

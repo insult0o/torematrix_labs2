@@ -1,874 +1,437 @@
-<<<<<<< HEAD
-"""Base classes and core data structures for inline editors
-
-Provides abstract base classes and core data structures that all inline
-editors inherit from, ensuring consistent interface and behavior.
-"""
-
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from typing import Any, Optional, Dict, Callable
-from enum import Enum
-
-try:
-    from PyQt6.QtWidgets import QWidget
-    from PyQt6.QtCore import pyqtSignal, QObject
-=======
-<<<<<<< HEAD
-"""Base editor interface and configuration for inline editing system"""
-
-from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any, List, Callable
-from dataclasses import dataclass, field
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import QObject, pyqtSignal
-=======
 """Base classes and interfaces for inline editors
 
 This module provides the foundational classes and interfaces for the
 inline editing system, including the base editor class and common data structures.
 """
 
-from typing import Any, Optional, Dict, List
-from dataclasses import dataclass, field
-from enum import Enum
 from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any, Optional, Dict, Callable, List
+from enum import Enum, auto
 
 try:
     from PyQt6.QtWidgets import QWidget
-    from PyQt6.QtCore import QObject, pyqtSignal
->>>>>>> origin/main
+    from PyQt6.QtCore import pyqtSignal, QObject
+    PYQT6_AVAILABLE = True
 except ImportError:
+    PYQT6_AVAILABLE = False
     # Mock classes for environments without PyQt6
     class QWidget:
-        def __init__(self, parent=None):
-<<<<<<< HEAD
-            pass
-            
+        def __init__(self, parent=None): pass
     class QObject:
-        def __init__(self, parent=None):
-            pass
-=======
-            self.parent_widget = parent
-            
-    class QObject:
-        def __init__(self, parent=None):
-            self.parent_object = parent
->>>>>>> origin/main
-            
-    def pyqtSignal(*args):
-        return lambda: None
+        def __init__(self, parent=None): pass
+    def pyqtSignal(*args): return lambda: None
 
 
 class EditorState(Enum):
-<<<<<<< HEAD
-    """States that an inline editor can be in"""
-    INACTIVE = "inactive"
-    EDITING = "editing"
-    SAVING = "saving"
-    ERROR = "error"
-=======
-    """States of an inline editor"""
-    INACTIVE = "inactive"
-    EDITING = "editing"
-    VALIDATING = "validating"
-    SAVING = "saving"
-    ERROR = "error"
->>>>>>> origin/main
->>>>>>> origin/main
+    """State enumeration for inline editors."""
+    INACTIVE = auto()
+    ACTIVE = auto()
+    EDITING = auto()
+    SAVING = auto()
+    ERROR = auto()
+    VALIDATING = auto()
+
+
+class EditorType(Enum):
+    """Type of editor based on data type."""
+    TEXT = auto()
+    NUMERIC = auto()
+    DATE = auto()
+    BOOLEAN = auto()
+    LIST = auto()
+    RICH_TEXT = auto()
+    MULTILINE = auto()
 
 
 @dataclass
 class EditorConfig:
-<<<<<<< HEAD
-    """Configuration for inline editors"""
-    auto_commit: bool = False
-    commit_delay: int = 500  # milliseconds
+    """Configuration for inline editors."""
+    
+    # Core settings
+    editor_type: EditorType = EditorType.TEXT
     allow_empty: bool = True
-    validation_rules: Optional[Dict[str, Any]] = None
-    placeholder_text: str = ""
-    max_length: Optional[int] = None
-    required: bool = False
+    auto_save: bool = True
+    auto_save_delay: int = 1000  # milliseconds
     
-    def __post_init__(self):
-        if self.validation_rules is None:
-            self.validation_rules = {}
-=======
-<<<<<<< HEAD
-    """Configuration for editor instances"""
-    
-    # Basic configuration
-    auto_focus: bool = True
-    auto_select: bool = True
-    placeholder_text: str = "Enter text..."
-    max_length: int = 10000
-    
-    # Validation settings
-    validation_enabled: bool = True
-    validation_on_change: bool = True
-    validation_rules: List[str] = field(default_factory=list)
-    
-    # Auto-save settings
-    auto_save_enabled: bool = True
-    auto_save_interval: int = 30  # seconds
+    # Validation
+    validators: List[Callable[[Any], bool]] = field(default_factory=list)
+    validate_on_change: bool = True
     
     # UI settings
-    border_style: str = "1px solid #ccc"
-    focus_border_style: str = "2px solid #007acc"
-    background_color: str = "#ffffff"
-    text_color: str = "#000000"
-    font_family: str = "Arial, sans-serif"
-    font_size: int = 12
+    placeholder_text: str = ""
+    tooltip_text: str = ""
+    enable_spellcheck: bool = False
     
-    # Behavior settings
-    escape_cancels: bool = True
-    enter_commits: bool = True
-    tab_behavior: str = "indent"  # "indent", "next_field", "commit"
+    # Accessibility
+    aria_label: str = ""
+    aria_description: str = ""
+    enable_screen_reader: bool = True
     
-    # Element context
-    element_id: Optional[str] = None
-    element_type: str = "text"
-    metadata: Dict[str, Any] = field(default_factory=dict)
-=======
-    """Configuration for inline editors"""
-    # Validation settings
-    required: bool = False
-    min_length: Optional[int] = None
+    # Advanced features
+    enable_autocomplete: bool = False
+    autocomplete_source: Optional[Callable[[], List[str]]] = None
+    enable_undo_redo: bool = True
     max_length: Optional[int] = None
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
-    pattern: Optional[str] = None
     
-    # Behavior settings
-    auto_commit: bool = True
-    commit_delay: int = 1000  # milliseconds
-    placeholder: str = ""
-    
-    # Visual settings
-    font_size: int = 12
-    background_color: str = "#ffffff"
-    border_width: int = 1
-    
-    # Accessibility settings
-    accessible_name: str = ""
-    accessible_description: str = ""
-    tab_index: int = 0
-    
-    # Editor type specific settings
-    choices: Optional[List[str]] = None
-    precision: Optional[int] = None
-    prefix: str = ""
-    suffix: str = ""
->>>>>>> origin/main
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert configuration to dictionary"""
-        return {
-<<<<<<< HEAD
-            'auto_focus': self.auto_focus,
-            'auto_select': self.auto_select,
-            'placeholder_text': self.placeholder_text,
-            'max_length': self.max_length,
-            'validation_enabled': self.validation_enabled,
-            'validation_on_change': self.validation_on_change,
-            'validation_rules': self.validation_rules,
-            'auto_save_enabled': self.auto_save_enabled,
-            'auto_save_interval': self.auto_save_interval,
-            'border_style': self.border_style,
-            'focus_border_style': self.focus_border_style,
-            'background_color': self.background_color,
-            'text_color': self.text_color,
-            'font_family': self.font_family,
-            'font_size': self.font_size,
-            'escape_cancels': self.escape_cancels,
-            'enter_commits': self.enter_commits,
-            'tab_behavior': self.tab_behavior,
-            'element_id': self.element_id,
-            'element_type': self.element_type,
-            'metadata': self.metadata
-        }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'EditorConfig':
-        """Create configuration from dictionary"""
-        return cls(**data)
-=======
-            'required': self.required,
-            'min_length': self.min_length,
-            'max_length': self.max_length,
-            'min_value': self.min_value,
-            'max_value': self.max_value,
-            'pattern': self.pattern,
-            'auto_commit': self.auto_commit,
-            'commit_delay': self.commit_delay,
-            'placeholder': self.placeholder,
-            'font_size': self.font_size,
-            'background_color': self.background_color,
-            'border_width': self.border_width,
-            'accessible_name': self.accessible_name,
-            'accessible_description': self.accessible_description,
-            'tab_index': self.tab_index,
-            'choices': self.choices,
-            'precision': self.precision,
-            'prefix': self.prefix,
-            'suffix': self.suffix
-        }
->>>>>>> origin/main
->>>>>>> origin/main
+    def validate(self) -> List[str]:
+        """Validate configuration and return any errors."""
+        errors = []
+        
+        if self.auto_save_delay < 0:
+            errors.append("auto_save_delay must be non-negative")
+            
+        if self.max_length is not None and self.max_length < 0:
+            errors.append("max_length must be positive")
+            
+        if not self.aria_label and self.enable_screen_reader:
+            errors.append("aria_label required when screen reader is enabled")
+            
+        return errors
 
 
-class BaseEditor(QWidget, ABC):
-    """Abstract base class for all inline editors
+@dataclass
+class EditorValidationResult:
+    """Result of editor validation."""
+    is_valid: bool
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
     
-<<<<<<< HEAD
-    Defines the interface that all editors must implement and provides
-    common functionality for value management, validation, and lifecycle.
-=======
-<<<<<<< HEAD
-    This class defines the common interface that all inline editors must implement.
-    It provides signals for editor lifecycle events and abstract methods for
-    core editing functionality.
+    @property
+    def has_errors(self) -> bool:
+        return len(self.errors) > 0
+        
+    @property
+    def has_warnings(self) -> bool:
+        return len(self.warnings) > 0
+
+
+class BaseEditor(QObject, ABC):
+    """Abstract base class for all inline editors.
     
-    Signals:
-        editing_started: Emitted when editing begins
-        editing_finished: Emitted when editing ends (success: bool)
-        content_changed: Emitted when content changes (content: str)
-        validation_failed: Emitted when validation fails (message: str)
-        focus_lost: Emitted when editor loses focus
-        key_pressed: Emitted when key is pressed (key: int)
+    Provides the interface that all inline editors must implement,
+    including lifecycle management, validation, and event handling.
     """
     
-    # Core lifecycle signals
-    editing_started = pyqtSignal()
-    editing_finished = pyqtSignal(bool)  # success
-    content_changed = pyqtSignal(str)    # content
+    # Signals for editor lifecycle
+    editing_started = pyqtSignal(str)  # element_id
+    editing_finished = pyqtSignal(str, object)  # element_id, value
+    editing_cancelled = pyqtSignal(str)  # element_id
+    value_changed = pyqtSignal(str, object)  # element_id, value
+    validation_changed = pyqtSignal(str, EditorValidationResult)  # element_id, result
+    state_changed = pyqtSignal(str, EditorState)  # element_id, state
+    error_occurred = pyqtSignal(str, str)  # element_id, error_message
     
-    # Validation signals
-    validation_failed = pyqtSignal(str)  # error_message
-    validation_passed = pyqtSignal()
-    
-    # Interaction signals
-    focus_lost = pyqtSignal()
-    focus_gained = pyqtSignal()
-    key_pressed = pyqtSignal(int)        # key_code
-    
-    # State signals
-    dirty_changed = pyqtSignal(bool)     # is_dirty
-    readonly_changed = pyqtSignal(bool)  # is_readonly
-    
-    def __init__(self, config: Optional[EditorConfig] = None, parent=None):
+    def __init__(self, element_id: str, config: EditorConfig, parent: Optional[QWidget] = None):
+        """Initialize the editor.
+        
+        Args:
+            element_id: Unique identifier for the element being edited
+            config: Editor configuration
+            parent: Parent widget
+        """
         super().__init__(parent)
-        
-        self.config = config or EditorConfig()
-        self._is_editing = False
-        self._is_dirty = False
-        self._is_readonly = False
-        self._original_content = ""
-        self._current_content = ""
-        
-        # Element context
-        self._element_id: Optional[str] = None
-        self._element_type: str = "text"
-        self._element_metadata: Dict[str, Any] = {}
-        
-        # Validation
-        self._validators: List[Callable[[str], bool]] = []
-        self._validation_messages: List[str] = []
-        
-        # Features
-        self._auto_save_enabled = False
-        self._spell_check_enabled = False
-        self._undo_stack: List[str] = []
-        self._redo_stack: List[str] = []
-        
-        self._setup_editor()
-    
-    def _setup_editor(self):
-        """Setup basic editor functionality"""
-        # Apply configuration
-        self._apply_config()
-        
-        # Setup event handlers
-        self._setup_event_handlers()
-        
-        # Initialize features
-        self._initialize_features()
-    
-    def _apply_config(self):
-        """Apply configuration to editor"""
-        if self.config.auto_focus:
-            self.setFocusPolicy(self.config.auto_focus)
-        
-        # Apply styling
-        self._apply_styling()
-    
-    def _apply_styling(self):
-        """Apply visual styling based on configuration"""
-        style = f"""
-        QWidget {{
-            border: {self.config.border_style};
-            background-color: {self.config.background_color};
-            color: {self.config.text_color};
-            font-family: {self.config.font_family};
-            font-size: {self.config.font_size}px;
-        }}
-        QWidget:focus {{
-            border: {self.config.focus_border_style};
-        }}
-        """
-        self.setStyleSheet(style)
-    
-    def _setup_event_handlers(self):
-        """Setup event handlers for editor interaction"""
-        # Override in subclasses for specific event handling
-        pass
-    
-    def _initialize_features(self):
-        """Initialize editor features based on configuration"""
-        if self.config.auto_save_enabled:
-            self._setup_auto_save()
-        
-        if self.config.validation_enabled:
-            self._setup_validation()
-    
-    def _setup_auto_save(self):
-        """Setup auto-save functionality"""
-        self._auto_save_enabled = True
-        # Auto-save implementation will be provided by mixins
-    
-    def _setup_validation(self):
-        """Setup validation functionality"""
-        # Set up validation rules from configuration
-        for rule in self.config.validation_rules:
-            self._add_validation_rule(rule)
-    
-    def _add_validation_rule(self, rule: str):
-        """Add a validation rule
-        
-        Args:
-            rule: Validation rule name or pattern
-        """
-        # Basic validation rules
-        if rule == "required":
-            self._validators.append(lambda content: bool(content.strip()))
-        elif rule.startswith("max_length:"):
-            max_len = int(rule.split(":")[1])
-            self._validators.append(lambda content: len(content) <= max_len)
-        elif rule.startswith("min_length:"):
-            min_len = int(rule.split(":")[1])
-            self._validators.append(lambda content: len(content) >= min_len)
-    
-    # Abstract methods that must be implemented by subclasses
-    
-    @abstractmethod
-    def start_editing(self, content: str) -> None:
-        """Start editing with given content
-        
-        Args:
-            content: Initial content to edit
-        """
-        pass
-    
-    @abstractmethod
-    def finish_editing(self, save: bool = True) -> Optional[str]:
-        """Finish editing and optionally save changes
-        
-        Args:
-            save: Whether to save changes
-            
-        Returns:
-            Final content if saved, None if cancelled
-        """
-        pass
-    
-    @abstractmethod
-    def get_content(self) -> str:
-        """Get current editor content
-        
-        Returns:
-            Current content as string
-        """
-        pass
-    
-    @abstractmethod
-    def set_content(self, content: str) -> None:
-        """Set editor content
-        
-        Args:
-            content: Content to set
-        """
-        pass
-    
-    @abstractmethod
-    def is_modified(self) -> bool:
-        """Check if content has been modified
-        
-        Returns:
-            True if content is modified
-        """
-        pass
-    
-    # Optional methods with default implementations
-    
-    def cancel_editing(self) -> None:
-        """Cancel editing and revert changes"""
-        self.finish_editing(save=False)
-    
-    def validate_content(self, content: Optional[str] = None) -> bool:
-        """Validate editor content
-        
-        Args:
-            content: Content to validate (current content if None)
-            
-        Returns:
-            True if content is valid
-        """
-        if content is None:
-            content = self.get_content()
-        
-        self._validation_messages.clear()
-        
-        for validator in self._validators:
-            try:
-                if not validator(content):
-                    return False
-            except Exception as e:
-                self._validation_messages.append(str(e))
-                return False
-        
-        return True
-    
-    def get_validation_messages(self) -> List[str]:
-        """Get current validation error messages
-        
-        Returns:
-            List of validation error messages
-        """
-        return self._validation_messages.copy()
-    
-    # Element context methods
-    
-    def set_element_context(self, element_id: str, element_type: str, metadata: Optional[Dict[str, Any]] = None):
-        """Set element context for this editor
-        
-        Args:
-            element_id: Unique element identifier
-            element_type: Type of element being edited
-            metadata: Additional element metadata
-        """
         self._element_id = element_id
-        self._element_type = element_type
-        self._element_metadata = metadata or {}
-        
-        # Update configuration
-        self.config.element_id = element_id
-        self.config.element_type = element_type
-        self.config.metadata = self._element_metadata
-    
-    def get_element_context(self) -> Dict[str, Any]:
-        """Get element context information
-        
-        Returns:
-            Dictionary with element context
-        """
-        return {
-            'element_id': self._element_id,
-            'element_type': self._element_type,
-            'metadata': self._element_metadata
-        }
-    
-    # Configuration methods
-    
-    def update_config(self, config: EditorConfig):
-        """Update editor configuration
-        
-        Args:
-            config: New configuration
-        """
-        self.config = config
-        self._apply_config()
-    
-    def get_config(self) -> EditorConfig:
-        """Get current editor configuration
-        
-        Returns:
-            Current configuration
-        """
-        return self.config
-    
-    # State management methods
-    
-    def is_editing(self) -> bool:
-        """Check if editor is currently in editing mode
-        
-        Returns:
-            True if editing
-        """
-        return self._is_editing
-    
-    def is_dirty(self) -> bool:
-        """Check if editor has unsaved changes
-        
-        Returns:
-            True if dirty
-        """
-        return self._is_dirty
-    
-    def is_readonly(self) -> bool:
-        """Check if editor is in readonly mode
-        
-        Returns:
-            True if readonly
-        """
-        return self._is_readonly
-    
-    def set_readonly(self, readonly: bool):
-        """Set readonly mode
-        
-        Args:
-            readonly: Whether to enable readonly mode
-        """
-        if self._is_readonly != readonly:
-            self._is_readonly = readonly
-            self.readonly_changed.emit(readonly)
-            self._update_visual_state()
-    
-    def _update_visual_state(self):
-        """Update visual appearance based on current state"""
-        # Apply different styling based on state
-        if self._is_readonly:
-            self.setEnabled(False)
-        else:
-            self.setEnabled(True)
-    
-    # Undo/Redo support
-    
-    def can_undo(self) -> bool:
-        """Check if undo is available
-        
-        Returns:
-            True if undo is available
-        """
-        return len(self._undo_stack) > 0
-    
-    def can_redo(self) -> bool:
-        """Check if redo is available
-        
-        Returns:
-            True if redo is available
-        """
-        return len(self._redo_stack) > 0
-    
-    def undo(self) -> bool:
-        """Perform undo operation
-        
-        Returns:
-            True if undo was performed
-        """
-        if self.can_undo():
-            current_content = self.get_content()
-            self._redo_stack.append(current_content)
-            
-            previous_content = self._undo_stack.pop()
-            self.set_content(previous_content)
-            return True
-        return False
-    
-    def redo(self) -> bool:
-        """Perform redo operation
-        
-        Returns:
-            True if redo was performed
-        """
-        if self.can_redo():
-            current_content = self.get_content()
-            self._undo_stack.append(current_content)
-            
-            next_content = self._redo_stack.pop()
-            self.set_content(next_content)
-            return True
-        return False
-    
-    def _push_undo_state(self, content: str):
-        """Push content to undo stack
-        
-        Args:
-            content: Content to save for undo
-        """
-        self._undo_stack.append(content)
-        
-        # Limit undo stack size
-        max_undo_levels = 50
-        if len(self._undo_stack) > max_undo_levels:
-            self._undo_stack.pop(0)
-        
-        # Clear redo stack when new action is performed
-        self._redo_stack.clear()
-    
-    # Utility methods
-    
-    def focus_editor(self):
-        """Give focus to the editor"""
-        self.setFocus()
-    
-    def select_all(self):
-        """Select all content in editor"""
-        # Override in subclasses for specific implementation
-        pass
-    
-    def clear(self):
-        """Clear editor content"""
-        self.set_content("")
-    
-    def get_editor_info(self) -> Dict[str, Any]:
-        """Get information about this editor instance
-        
-        Returns:
-            Dictionary with editor information
-        """
-        return {
-            'editor_type': self.__class__.__name__,
-            'is_editing': self._is_editing,
-            'is_dirty': self._is_dirty,
-            'is_readonly': self._is_readonly,
-            'element_context': self.get_element_context(),
-            'config': self.config.to_dict(),
-            'content_length': len(self.get_content()),
-            'can_undo': self.can_undo(),
-            'can_redo': self.can_redo()
-        }
-=======
-    This class defines the interface that all inline editors must implement.
-    It provides common functionality and signals for the editing workflow.
->>>>>>> origin/main
-    """
-    
-    # Signals
-    editing_started = pyqtSignal()
-    editing_finished = pyqtSignal(bool)  # success
-<<<<<<< HEAD
-    value_changed = pyqtSignal(object)
-    validation_failed = pyqtSignal(str)  # error message
-    save_requested = pyqtSignal()
-    cancel_requested = pyqtSignal()
-    
-    def __init__(self, parent=None, config: Optional[EditorConfig] = None):
-        super().__init__(parent)
-        self.config = config or EditorConfig()
+        self._config = config
         self._state = EditorState.INACTIVE
-        self._original_value = None
         self._current_value = None
+        self._original_value = None
+        self._validation_result = EditorValidationResult(is_valid=True)
         self._is_dirty = False
         
-    @abstractmethod
-    def set_value(self, value: Any) -> bool:
-        """Set the editor value
-        
-        Args:
-            value: Value to set
-            
-        Returns:
-            True if value was set successfully, False otherwise
-        """
-        pass
-        
-    @abstractmethod
-    def get_value(self) -> Any:
-        """Get current editor value
-        
-        Returns:
-            Current value of the editor
-        """
-        pass
-        
-    @abstractmethod
-    def start_editing(self, value: Any = None) -> bool:
-        """Start editing mode
-        
-        Args:
-            value: Optional initial value
-            
-        Returns:
-            True if editing started successfully, False otherwise
-        """
-        pass
-        
-    @abstractmethod
-    def save(self) -> bool:
-        """Save current value and exit editing mode
-        
-        Returns:
-            True if save was successful, False otherwise
-        """
-        pass
-        
-    @abstractmethod
-    def cancel_editing(self) -> bool:
-        """Cancel editing and revert to original value
-        
-        Returns:
-            True if cancel was successful, False otherwise
-        """
-        pass
-        
-    @abstractmethod
-    def validate(self, value: Any = None) -> tuple[bool, str]:
-        """Validate value
-        
-        Args:
-            value: Value to validate (uses current value if None)
-            
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
-        pass
-        
-    # Common functionality
+        # Validate configuration
+        config_errors = config.validate()
+        if config_errors:
+            raise ValueError(f"Invalid editor configuration: {', '.join(config_errors)}")
     
-    def is_editing(self) -> bool:
-        """Check if editor is in editing mode"""
-        return self._state == EditorState.EDITING
-        
-    def is_dirty(self) -> bool:
-        """Check if editor has unsaved changes"""
-        return self._is_dirty
-        
-    def get_state(self) -> EditorState:
-        """Get current editor state"""
+    @property
+    def element_id(self) -> str:
+        """Get the element ID."""
+        return self._element_id
+    
+    @property
+    def config(self) -> EditorConfig:
+        """Get the editor configuration."""
+        return self._config
+    
+    @property
+    def state(self) -> EditorState:
+        """Get the current editor state."""
         return self._state
-        
-    def _set_state(self, state: EditorState):
-        """Set editor state"""
-        self._state = state
-        
-    def _mark_dirty(self, dirty: bool = True):
-        """Mark editor as having changes"""
-        self._is_dirty = dirty
-        
-    def _set_original_value(self, value: Any):
-        """Set the original value for change tracking"""
-        self._original_value = value
-        self._is_dirty = False
-        
-    def _set_current_value(self, value: Any):
-        """Set current value and emit change signal"""
-        self._current_value = value
-        self._is_dirty = (value != self._original_value)
-        self.value_changed.emit(value)
-=======
-    value_changed = pyqtSignal(object)  # new_value
-    validation_failed = pyqtSignal(str)  # error_message
-    save_requested = pyqtSignal()
-    cancel_requested = pyqtSignal()
     
-    def __init__(self, parent: Optional[QWidget] = None):
-        super().__init__(parent)
-        self._state = EditorState.INACTIVE
-        self._config = EditorConfig()
-        self._original_value = None
-        self._current_value = None
-        self._dirty = False
+    @property
+    def current_value(self) -> Any:
+        """Get the current editor value."""
+        return self._current_value
+    
+    @property
+    def original_value(self) -> Any:
+        """Get the original value before editing."""
+        return self._original_value
+    
+    @property
+    def is_dirty(self) -> bool:
+        """Check if the editor value has been modified."""
+        return self._is_dirty
+    
+    @property
+    def validation_result(self) -> EditorValidationResult:
+        """Get the current validation result."""
+        return self._validation_result
+    
+    def _set_state(self, new_state: EditorState) -> None:
+        """Set the editor state and emit signal."""
+        if self._state != new_state:
+            old_state = self._state
+            self._state = new_state
+            self.state_changed.emit(self._element_id, new_state)
+    
+    def _set_dirty(self, dirty: bool) -> None:
+        """Set the dirty flag."""
+        self._is_dirty = dirty
+    
+    def _validate_value(self, value: Any) -> EditorValidationResult:
+        """Validate a value using configured validators."""
+        result = EditorValidationResult(is_valid=True)
         
-    # Abstract methods that must be implemented by subclasses
+        # Check if empty when not allowed
+        if not self._config.allow_empty and (value is None or value == ""):
+            result.is_valid = False
+            result.errors.append("Value cannot be empty")
+            return result
+        
+        # Check max length for strings
+        if (self._config.max_length is not None and 
+            isinstance(value, str) and 
+            len(value) > self._config.max_length):
+            result.is_valid = False
+            result.errors.append(f"Value exceeds maximum length of {self._config.max_length}")
+        
+        # Run custom validators
+        for validator in self._config.validators:
+            try:
+                if not validator(value):
+                    result.is_valid = False
+                    result.errors.append("Custom validation failed")
+            except Exception as e:
+                result.is_valid = False
+                result.errors.append(f"Validation error: {str(e)}")
+        
+        return result
     
     @abstractmethod
-    def get_value(self) -> Any:
-        """Get the current value of the editor"""
+    def create_widget(self, parent: Optional[QWidget] = None) -> QWidget:
+        """Create the editor widget.
+        
+        Args:
+            parent: Parent widget for the editor
+            
+        Returns:
+            The editor widget
+        """
         pass
     
     @abstractmethod
     def set_value(self, value: Any) -> None:
-        """Set the value of the editor"""
+        """Set the editor value.
+        
+        Args:
+            value: The value to set
+        """
         pass
     
     @abstractmethod
-    def start_editing(self, initial_value: Any = None) -> None:
-        """Start editing mode"""
+    def get_value(self) -> Any:
+        """Get the current editor value.
+        
+        Returns:
+            The current value
+        """
         pass
     
-    @abstractmethod
-    def finish_editing(self, save: bool = True) -> None:
-        """Finish editing mode"""
-        pass
-    
-    @abstractmethod
-    def cancel_editing(self) -> None:
-        """Cancel editing and revert to original value"""
-        pass
-    
-    @abstractmethod
-    def validate(self) -> tuple[bool, str]:
-        """Validate current value. Returns (is_valid, error_message)"""
-        pass
-    
-    # Common functionality
-    
-    def get_state(self) -> EditorState:
-        """Get current editor state"""
-        return self._state
-    
-    def set_state(self, state: EditorState) -> None:
-        """Set editor state"""
-        self._state = state
-    
-    def get_config(self) -> EditorConfig:
-        """Get editor configuration"""
-        return self._config
-    
-    def set_config(self, config: EditorConfig) -> None:
-        """Set editor configuration"""
-        self._config = config
-    
-    def is_dirty(self) -> bool:
-        """Check if editor has unsaved changes"""
-        return self._dirty
-    
-    def is_editing(self) -> bool:
-        """Check if editor is in editing mode"""
-        return self._state == EditorState.EDITING
-    
-    def save(self) -> bool:
-        """Save current value"""
+    def start_editing(self, initial_value: Any = None) -> bool:
+        """Start editing with an initial value.
+        
+        Args:
+            initial_value: The initial value to edit
+            
+        Returns:
+            True if editing started successfully
+        """
         try:
-            is_valid, error_msg = self.validate()
-            if not is_valid:
-                self.validation_failed.emit(error_msg)
+            if self._state != EditorState.INACTIVE:
                 return False
             
-            self._original_value = self.get_value()
-            self._dirty = False
+            self._original_value = initial_value
+            self._current_value = initial_value
+            self._is_dirty = False
+            
+            # Validate initial value
+            self._validation_result = self._validate_value(initial_value)
+            
+            self._set_state(EditorState.ACTIVE)
+            self.editing_started.emit(self._element_id)
+            
             return True
             
         except Exception as e:
-            self.validation_failed.emit(str(e))
+            self._handle_error(f"Failed to start editing: {str(e)}")
             return False
     
-    def reset(self) -> None:
-        """Reset to original value"""
-        if self._original_value is not None:
-            self.set_value(self._original_value)
-            self._dirty = False
-    
-    def mark_dirty(self) -> None:
-        """Mark editor as having unsaved changes"""
-        self._dirty = True
+    def finish_editing(self, save: bool = True) -> bool:
+        """Finish editing and optionally save the value.
         
-    def mark_clean(self) -> None:
-        """Mark editor as having no unsaved changes"""
-        self._dirty = False
->>>>>>> origin/main
+        Args:
+            save: Whether to save the current value
+            
+        Returns:
+            True if editing finished successfully
+        """
+        try:
+            if self._state not in [EditorState.ACTIVE, EditorState.EDITING]:
+                return False
+            
+            if save:
+                # Validate before saving
+                current_value = self.get_value()
+                validation_result = self._validate_value(current_value)
+                
+                if not validation_result.is_valid:
+                    self._validation_result = validation_result
+                    self.validation_changed.emit(self._element_id, validation_result)
+                    return False
+                
+                self._current_value = current_value
+                self.editing_finished.emit(self._element_id, current_value)
+            else:
+                self.editing_cancelled.emit(self._element_id)
+            
+            self._set_state(EditorState.INACTIVE)
+            return True
+            
+        except Exception as e:
+            self._handle_error(f"Failed to finish editing: {str(e)}")
+            return False
+    
+    def cancel_editing(self) -> bool:
+        """Cancel editing and revert to original value.
+        
+        Returns:
+            True if editing cancelled successfully
+        """
+        try:
+            if self._state not in [EditorState.ACTIVE, EditorState.EDITING]:
+                return False
+            
+            # Revert to original value
+            self.set_value(self._original_value)
+            self._current_value = self._original_value
+            self._is_dirty = False
+            
+            self.editing_cancelled.emit(self._element_id)
+            self._set_state(EditorState.INACTIVE)
+            
+            return True
+            
+        except Exception as e:
+            self._handle_error(f"Failed to cancel editing: {str(e)}")
+            return False
+    
+    def validate_current_value(self) -> EditorValidationResult:
+        """Validate the current editor value.
+        
+        Returns:
+            Validation result
+        """
+        try:
+            current_value = self.get_value()
+            result = self._validate_value(current_value)
+            self._validation_result = result
+            self.validation_changed.emit(self._element_id, result)
+            return result
+            
+        except Exception as e:
+            result = EditorValidationResult(
+                is_valid=False,
+                errors=[f"Validation failed: {str(e)}"]
+            )
+            self._validation_result = result
+            self.validation_changed.emit(self._element_id, result)
+            return result
+    
+    def _handle_error(self, error_message: str) -> None:
+        """Handle an error condition.
+        
+        Args:
+            error_message: The error message
+        """
+        self._set_state(EditorState.ERROR)
+        self.error_occurred.emit(self._element_id, error_message)
+    
+    def _on_value_changed(self) -> None:
+        """Called when the editor value changes."""
+        try:
+            if self._state == EditorState.ACTIVE:
+                self._set_state(EditorState.EDITING)
+            
+            current_value = self.get_value()
+            self._current_value = current_value
+            self._set_dirty(current_value != self._original_value)
+            
+            # Validate on change if enabled
+            if self._config.validate_on_change:
+                self.validate_current_value()
+            
+            self.value_changed.emit(self._element_id, current_value)
+            
+        except Exception as e:
+            self._handle_error(f"Error handling value change: {str(e)}")
+    
+    def get_accessibility_info(self) -> Dict[str, Any]:
+        """Get accessibility information for the editor.
+        
+        Returns:
+            Dictionary of accessibility properties
+        """
+        return {
+            'element_id': self._element_id,
+            'aria_label': self._config.aria_label,
+            'aria_description': self._config.aria_description,
+            'role': 'textbox',
+            'state': self._state.name.lower(),
+            'is_dirty': self._is_dirty,
+            'validation_errors': self._validation_result.errors if not self._validation_result.is_valid else [],
+            'tooltip': self._config.tooltip_text
+        }
 
 
-# Export public API
-__all__ = [
-    'BaseEditor',
-<<<<<<< HEAD
-    'EditorConfig', 
-    'EditorState'
-]
-=======
-    'EditorState', 
-    'EditorConfig'
-]
->>>>>>> origin/main
->>>>>>> origin/main
+class EditorFactory(ABC):
+    """Abstract factory for creating editors."""
+    
+    @abstractmethod
+    def create_editor(self, element_id: str, editor_type: EditorType, 
+                     config: EditorConfig, parent: Optional[QWidget] = None) -> BaseEditor:
+        """Create an editor instance.
+        
+        Args:
+            element_id: Unique identifier for the element
+            editor_type: Type of editor to create
+            config: Editor configuration
+            parent: Parent widget
+            
+        Returns:
+            Editor instance
+        """
+        pass
+    
+    @abstractmethod
+    def supports_type(self, editor_type: EditorType) -> bool:
+        """Check if this factory supports the given editor type.
+        
+        Args:
+            editor_type: Type to check
+            
+        Returns:
+            True if supported
+        """
+        pass

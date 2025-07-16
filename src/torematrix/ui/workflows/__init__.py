@@ -1,93 +1,42 @@
 """
-Workflow Systems for TORE Matrix Labs V3.
+Workflow Management Module
 
-This package provides workflow management systems for document processing,
-including validation workflows and quality assurance processes.
+This module provides comprehensive workflow management for document processing,
+including validation workflows, automation pipelines, and progress tracking.
 """
 
+# Validation Workflow System (Issue #30 - Agent 1)
 try:
     from .validation import (
         ValidationWorkflowEngine,
         ValidationWorkflow,
         ValidationStep,
-        ValidationIssue,
+        WorkflowStatus,
+        StepStatus,
+        WorkflowTemplate,
+        WorkflowProgress,
+        WorkflowConfiguration,
         ValidationStepType,
-        ValidationStepStatus,
-        ValidationPriority,
-        ChecklistManager,
-        ValidationChecklist,
-        ChecklistExecution,
-        ChecklistCriterion,
-        ChecklistResponse,
-        ChecklistItemType,
-        ChecklistScope,
-        QualityMetricsCalculator,
-        QualityAssessment,
-        QualityMetric,
-        MetricType,
-        MetricScope,
-        ValidationReportGenerator,
-        ValidationReport,
-        ReportConfiguration,
-        ReportType,
-        ReportFormat,
-        ReportScope,
-        BatchValidationEngine,
-        BatchValidationJob,
-        ExportReadinessAssessment,
-        ExportReadinessCheck,
-        BatchProcessingMode,
-        ExportReadinessLevel,
-        BatchValidationStatus
+        ValidationPriority
     )
-    _validation_available = True
+    _validation_workflows_available = True
 except ImportError:
-    _validation_available = False
+    _validation_workflows_available = False
 
 __all__ = []
 
 # Add validation workflow components if available
-if _validation_available:
+if _validation_workflows_available:
     __all__.extend([
-        # Workflow Engine
+        # Core Workflow Engine - Agent 1 (Issue #260)
         'ValidationWorkflowEngine',
         'ValidationWorkflow',
         'ValidationStep',
-        'ValidationIssue',
+        'WorkflowStatus',
+        'StepStatus',
+        'WorkflowTemplate',
+        'WorkflowProgress',
+        'WorkflowConfiguration',
         'ValidationStepType',
-        'ValidationStepStatus',
         'ValidationPriority',
-        
-        # Checklist System
-        'ChecklistManager',
-        'ValidationChecklist',
-        'ChecklistExecution',
-        'ChecklistCriterion',
-        'ChecklistResponse',
-        'ChecklistItemType',
-        'ChecklistScope',
-        
-        # Quality Metrics
-        'QualityMetricsCalculator',
-        'QualityAssessment',
-        'QualityMetric',
-        'MetricType',
-        'MetricScope',
-        
-        # Report Generation
-        'ValidationReportGenerator',
-        'ValidationReport',
-        'ReportConfiguration',
-        'ReportType',
-        'ReportFormat',
-        'ReportScope',
-        
-        # Batch Validation
-        'BatchValidationEngine',
-        'BatchValidationJob',
-        'ExportReadinessAssessment',
-        'ExportReadinessCheck',
-        'BatchProcessingMode',
-        'ExportReadinessLevel',
-        'BatchValidationStatus',
     ])

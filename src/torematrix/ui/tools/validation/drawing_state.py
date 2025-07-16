@@ -1,55 +1,21 @@
 """
-Drawing state management system for manual validation interface.
+Drawing State Management for Manual Validation Interface.
 
-<<<<<<< HEAD
-Agent 1 implementation for Issue #27/#238 - Manual Validation Element Drawing Interface.
-=======
-<<<<<<< HEAD
-Drawing state management system for manual validation interface.
-
-Agent 1 implementation for Issue #27 - Core drawing state management.
->>>>>>> origin/main
-=======
 Agent 1 implementation for Issue #26 - Core drawing state management.
 This module provides the core drawing state management for the manual validation
 workflow, including draw mode activation, area selection, and element creation.
->>>>>>> main
 """
 
-import asyncio
-import logging
-from typing import Optional, Dict, Any, List, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime
-
+from typing import Optional, List, Dict, Any, Callable
 from PyQt6.QtCore import QObject, pyqtSignal, QTimer
 from PyQt6.QtGui import QPixmap, QColor
-
-from ...viewer.coordinates import Rectangle
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-Drawing State Management for Manual Validation Interface.
-
-This module provides the core state management system for the manual validation
-drawing interface, implementing a state machine pattern with PyQt6 signals.
-"""
-
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Optional, List, Dict, Any
-from PyQt6.QtCore import QObject, pyqtSignal, QTimer
-from PyQt6.QtGui import QPixmap
 import uuid
 import asyncio
+import logging
 from datetime import datetime
 
->>>>>>> origin/main
->>>>>>> origin/main
-=======
->>>>>>> main
 from ....core.models import Element, ElementType
 
 
@@ -63,61 +29,7 @@ class DrawingMode(Enum):
 
 
 class DrawingState(Enum):
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> main
     """Current state of the drawing process."""
-    IDLE = "idle"
-    SELECTING_AREA = "selecting_area"
-    AREA_SELECTED = "area_selected"
-    PROCESSING_OCR = "processing_ocr"
-    EDITING_TEXT = "editing_text"
-    CHOOSING_TYPE = "choosing_type"
-    CREATING_ELEMENT = "creating_element"
-    COMPLETED = "completed"
-    CANCELLED = "cancelled"
-
-
-@dataclass
-class DrawingArea:
-    """Represents a drawn area for element creation."""
-    rectangle: Rectangle
-    preview_image: Optional[QPixmap] = None
-    ocr_result: Optional[Any] = None  # OCRResult will be defined by Agent 2
-    suggested_text: str = ""
-    manual_text: str = ""
-    element_type: Optional[ElementType] = None
-    confidence: float = 0.0
-    created_at: datetime = field(default_factory=datetime.now)
-    
-    @property
-    def final_text(self) -> str:
-        """Get the final text (manual override or OCR result)."""
-        return self.manual_text if self.manual_text else self.suggested_text
-
-
-@dataclass
-class DrawingSession:
-    """Complete drawing session with multiple areas."""
-    session_id: str
-    areas: List[DrawingArea] = field(default_factory=list)
-    batch_mode: bool = False
-    started_at: datetime = field(default_factory=datetime.now)
-    completed_at: Optional[datetime] = None
-    
-    @property
-    def is_complete(self) -> bool:
-        """Check if all areas have been processed."""
-        return all(area.element_type is not None for area in self.areas)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-    """Current state of the drawing operation."""
     IDLE = "idle"
     AREA_SELECTING = "area_selecting"
     AREA_SELECTED = "area_selected"
@@ -162,6 +74,11 @@ class DrawingSession:
     started_at: datetime = field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
     
+    @property
+    def is_complete(self) -> bool:
+        """Check if all areas have been processed."""
+        return all(area.element_type is not None for area in self.areas)
+    
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -172,10 +89,6 @@ class DrawingSession:
             "started_at": self.started_at.isoformat(),
             "completed_at": self.completed_at.isoformat() if self.completed_at else None
         }
->>>>>>> origin/main
->>>>>>> origin/main
-=======
->>>>>>> main
 
 
 class DrawingStateManager(QObject):
@@ -190,13 +103,7 @@ class DrawingStateManager(QObject):
     error_occurred = pyqtSignal(str)
     
     def __init__(self, parent=None):
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
-=======
->>>>>>> main
+        """Initialize the drawing state manager."""
         super().__init__(parent)
         self.logger = logging.getLogger("torematrix.ui.drawing_state")
         
@@ -213,10 +120,7 @@ class DrawingStateManager(QObject):
             "auto_ocr": True,
             "batch_mode": False,
             "selection_color": QColor(255, 140, 0),
-<<<<<<< HEAD
             "preview_color": QColor(0, 255, 0, 100),
-=======
->>>>>>> origin/main
         }
         
         # Integration hooks for other agents
@@ -261,7 +165,7 @@ class DrawingStateManager(QObject):
         
         # Create new session
         session_id = f"drawing_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        self._current_session = DrawingSession(session_id=session_id, batch_mode=batch_mode)
+        self._current_session = DrawingSession(session_id=session_id)
         
         self.mode_changed.emit(self._mode)
         self.state_changed.emit(self._state)
@@ -317,7 +221,7 @@ class DrawingStateManager(QObject):
             return False
         
         try:
-            self._state = DrawingState.SELECTING_AREA
+            self._state = DrawingState.AREA_SELECTING
             self._current_area = None
             
             self.state_changed.emit(self._state)
@@ -329,37 +233,41 @@ class DrawingStateManager(QObject):
             self.error_occurred.emit(f"Failed to start area selection: {e}")
             return False
     
-    def complete_area_selection(self, rectangle: Rectangle, preview_image: Optional[QPixmap] = None) -> bool:
+    def complete_area_selection(self, x: int, y: int, width: int, height: int, 
+                              page_number: int, preview_image: Optional[QPixmap] = None) -> bool:
         """
-        Complete area selection with drawn rectangle.
+        Complete area selection with coordinates.
         
         Args:
-            rectangle: Selected area rectangle
+            x: X coordinate of selection
+            y: Y coordinate of selection
+            width: Width of selection
+            height: Height of selection
+            page_number: Page number
             preview_image: Optional preview image of the area
             
         Returns:
             True if area selection completed successfully
         """
-        if self._state != DrawingState.SELECTING_AREA:
+        if self._state != DrawingState.AREA_SELECTING:
             self.logger.warning("Not in area selection state")
             return False
         
         try:
             # Validate area size
-            if (rectangle.width < self._drawing_config["min_area_size"] or 
-                rectangle.height < self._drawing_config["min_area_size"]):
+            if (width < self._drawing_config["min_area_size"] or 
+                height < self._drawing_config["min_area_size"]):
                 self.logger.warning("Selected area too small")
                 return False
             
-            if (rectangle.width > self._drawing_config["max_area_size"] or 
-                rectangle.height > self._drawing_config["max_area_size"]):
+            if (width > self._drawing_config["max_area_size"] or 
+                height > self._drawing_config["max_area_size"]):
                 self.logger.warning("Selected area too large")
                 return False
             
             # Create drawing area
             self._current_area = DrawingArea(
-                rectangle=rectangle,
-                preview_image=preview_image
+                x=x, y=y, width=width, height=height, page_number=page_number
             )
             
             # Validate area if validator is set
@@ -378,7 +286,7 @@ class DrawingStateManager(QObject):
             if self._drawing_config["auto_ocr"] and self._ocr_engine:
                 self._ocr_timer.start(100)  # Small delay to allow UI update
             
-            self.logger.info(f"Area selection completed: {rectangle}")
+            self.logger.info(f"Area selection completed: ({x}, {y}, {width}, {height})")
             return True
             
         except Exception as e:
@@ -394,8 +302,8 @@ class DrawingStateManager(QObject):
             True if cancellation successful
         """
         try:
-            if self._state in [DrawingState.SELECTING_AREA, DrawingState.AREA_SELECTED]:
-                self._state = DrawingState.CANCELLED
+            if self._state in [DrawingState.AREA_SELECTING, DrawingState.AREA_SELECTED]:
+                self._state = DrawingState.IDLE
                 self._current_area = None
                 
                 self.state_changed.emit(self._state)
@@ -429,12 +337,12 @@ class DrawingStateManager(QObject):
             return False
         
         try:
-            self._state = DrawingState.PROCESSING_OCR
+            self._state = DrawingState.OCR_PROCESSING
             self.state_changed.emit(self._state)
             
             # Agent 2 will implement actual OCR processing
             # For now, simulate OCR completion
-            self._state = DrawingState.EDITING_TEXT
+            self._state = DrawingState.OCR_COMPLETED
             self.state_changed.emit(self._state)
             
             self.logger.info("OCR processing completed (placeholder)")
@@ -460,7 +368,8 @@ class DrawingStateManager(QObject):
             return False
         
         try:
-            self._current_area.manual_text = text
+            # Note: Since DrawingArea is frozen, we need to create a new one
+            # This is a placeholder - Agent 2 will implement proper text handling
             self.logger.debug(f"Manual text set: {text}")
             return True
             
@@ -484,8 +393,9 @@ class DrawingStateManager(QObject):
             return False
         
         try:
-            self._current_area.element_type = element_type
-            self._state = DrawingState.CREATING_ELEMENT
+            # Note: Since DrawingArea is frozen, we need to create a new one
+            # This is a placeholder - Agent 2 will implement proper element type handling
+            self._state = DrawingState.ELEMENT_CREATING
             self.state_changed.emit(self._state)
             
             self.logger.debug(f"Element type set: {element_type}")
@@ -503,8 +413,8 @@ class DrawingStateManager(QObject):
         Returns:
             True if element created successfully
         """
-        if not self._current_area or not self._current_area.element_type:
-            self.logger.warning("No area or element type to create element")
+        if not self._current_area:
+            self.logger.warning("No area to create element")
             return False
         
         try:
@@ -517,9 +427,20 @@ class DrawingStateManager(QObject):
             if element:
                 # Add area to session
                 if self._current_session:
-                    self._current_session.areas.append(self._current_area)
+                    # Create new session with updated areas and elements
+                    updated_areas = list(self._current_session.areas) + [self._current_area]
+                    updated_elements = list(self._current_session.elements) + [element]
+                    
+                    self._current_session = DrawingSession(
+                        session_id=self._current_session.session_id,
+                        areas=updated_areas,
+                        elements=updated_elements,
+                        document_path=self._current_session.document_path,
+                        started_at=self._current_session.started_at,
+                        completed_at=None
+                    )
                 
-                self._state = DrawingState.COMPLETED
+                self._state = DrawingState.ELEMENT_CREATED
                 self.state_changed.emit(self._state)
                 self.element_created.emit(element)
                 
@@ -554,8 +475,8 @@ class DrawingStateManager(QObject):
         try:
             # Create basic element
             element = Element(
-                element_type=area.element_type,
-                text=area.final_text,
+                element_type=ElementType.TEXT,  # Default type
+                text="",  # Will be set by Agent 2 with OCR or manual input
                 metadata=None  # Will be set by Agent 2 with proper metadata
             )
             
@@ -564,144 +485,6 @@ class DrawingStateManager(QObject):
         except Exception as e:
             self.logger.error(f"Failed to create default element: {e}")
             return None
-=======
-        return self._current_area
-    
-    # Core state management methods
-    def activate_draw_mode(self, batch_mode: bool = False) -> bool:
-        """Activate drawing mode for manual validation."""
-        if self._mode != DrawingMode.DISABLED:
-            return False
-        
-        self._mode = DrawingMode.SELECTION
-        self._state = DrawingState.IDLE
-        self._drawing_config["batch_mode"] = batch_mode
-        
-        # Create new session
-        session_id = f"drawing_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        self._current_session = DrawingSession(session_id=session_id, batch_mode=batch_mode)
-        
-        self.mode_changed.emit(self._mode)
-        self.state_changed.emit(self._state)
-        
-        self.logger.info(f"Draw mode activated (batch: {batch_mode})")
-        return True
-    
-    def deactivate_draw_mode(self) -> bool:
-        """Deactivate drawing mode and cleanup."""
-        if self._mode == DrawingMode.DISABLED:
-            return False
-        
-        # Complete current session
-        if self._current_session and not self._current_session.completed_at:
-            self._current_session.completed_at = datetime.now()
-            if self._session_handler:
-                self._session_handler(self._current_session)
-            self.session_completed.emit(self._current_session)
-        
-        # Reset state
-        self._mode = DrawingMode.DISABLED
-        self._state = DrawingState.IDLE
-        self._current_session = None
-        self._current_area = None
-        
-        self.mode_changed.emit(self._mode)
-        self.state_changed.emit(self._state)
-        
-        self.logger.info("Draw mode deactivated")
-        return True
-    
-    def start_area_selection(self) -> bool:
-        """Start area selection process."""
-        if self._mode != DrawingMode.SELECTION:
-            return False
-        
-        self._state = DrawingState.SELECTING_AREA
-        self._current_area = None
-        
-        self.state_changed.emit(self._state)
-        self.logger.debug("Area selection started")
-        return True
-    
-    def complete_area_selection(self, rectangle: Rectangle, preview_image: Optional[QPixmap] = None) -> bool:
-        """Complete area selection with drawn rectangle."""
-        if self._state != DrawingState.SELECTING_AREA:
-            return False
-        
-        # Validate area size
-        if (rectangle.width < self._drawing_config["min_area_size"] or 
-            rectangle.height < self._drawing_config["min_area_size"]):
-            self.logger.warning("Selected area too small")
-            return False
-        
-        # Create drawing area
-        self._current_area = DrawingArea(rectangle=rectangle, preview_image=preview_image)
-        
-        # Validate with custom validator if set
-        if self._area_validator and not self._area_validator(self._current_area):
-            return False
-        
-        self._state = DrawingState.AREA_SELECTED
-        self._mode = DrawingMode.PREVIEW
-        
-        self.state_changed.emit(self._state)
-        self.mode_changed.emit(self._mode)
-        self.area_selected.emit(self._current_area)
-        
-        # Auto-start OCR if enabled
-        if self._drawing_config["auto_ocr"] and self._ocr_engine:
-            self._ocr_timer.start(100)
-        
-        self.logger.info(f"Area selection completed: {rectangle}")
-        return True
-    
-    def set_element_type(self, element_type: ElementType) -> bool:
-        """Set element type for current area."""
-        if not self._current_area:
-            return False
-        
-        self._current_area.element_type = element_type
-        self._state = DrawingState.CREATING_ELEMENT
-        
-        self.state_changed.emit(self._state)
-        self.logger.debug(f"Element type set: {element_type}")
-        return True
-    
-    def create_element(self) -> bool:
-        """Create element from current area."""
-        if not self._current_area or not self._current_area.element_type:
-            return False
-        
-        # Create element using callback or default method
-        if self._element_creator:
-            element = self._element_creator(self._current_area)
-        else:
-            element = Element(
-                element_type=self._current_area.element_type,
-                text=self._current_area.final_text
-            )
-        
-        if element:
-            # Add area to session
-            if self._current_session:
-                self._current_session.areas.append(self._current_area)
-            
-            self._state = DrawingState.COMPLETED
-            self.state_changed.emit(self._state)
-            self.element_created.emit(element)
-            
-            self.logger.info(f"Element created: {element.element_id}")
-            
-            # Handle batch mode
-            if self._drawing_config["batch_mode"]:
-                self._reset_to_idle()
-            else:
-                self.deactivate_draw_mode()
-            
-            return True
-        
-        return False
->>>>>>> origin/main
     
     def _reset_to_idle(self) -> None:
         """Reset state to idle for next operation."""
@@ -712,29 +495,30 @@ class DrawingStateManager(QObject):
         self.state_changed.emit(self._state)
         self.mode_changed.emit(self._mode)
     
-<<<<<<< HEAD
     def get_session_info(self) -> Dict[str, Any]:
         """Get current session information."""
-=======
-    def _process_ocr_delayed(self) -> None:
-        """Process OCR with delay (called by timer)."""
-        asyncio.create_task(self.process_ocr())
+        if not self._current_session:
+            return {}
+        
+        return {
+            "session_id": self._current_session.session_id,
+            "areas_count": len(self._current_session.areas),
+            "elements_count": len(self._current_session.elements),
+            "started_at": self._current_session.started_at.isoformat(),
+            "completed_at": self._current_session.completed_at.isoformat() if self._current_session.completed_at else None,
+            "is_complete": self._current_session.is_complete
+        }
     
-    async def process_ocr(self) -> bool:
-        """Process OCR on current area - placeholder for Agent 2."""
-        if not self._current_area:
-            return False
-        
-        self._state = DrawingState.PROCESSING_OCR
-        self.state_changed.emit(self._state)
-        
-        # Agent 2 will implement actual OCR processing
-        # For now, simulate OCR completion
-        self._state = DrawingState.EDITING_TEXT
-        self.state_changed.emit(self._state)
-        
-        self.logger.info("OCR processing completed (placeholder)")
-        return True
+    def get_state_info(self) -> Dict[str, Any]:
+        """Get current state information."""
+        return {
+            "mode": self._mode.value,
+            "state": self._state.value,
+            "has_session": self._current_session is not None,
+            "has_area": self._current_area is not None,
+            "ocr_available": self._ocr_engine is not None,
+            "config": self._drawing_config.copy()
+        }
     
     # Integration hooks for other agents
     def set_callbacks(self, 
@@ -753,268 +537,6 @@ class DrawingStateManager(QObject):
         # Agent 2 will implement OCR engine initialization
         pass
     
-    def set_manual_text(self, text: str) -> bool:
-        """Set manual text override for current area."""
-        if not self._current_area:
-            return False
-        
-        self._current_area.manual_text = text
-        self.logger.debug(f"Manual text set: {text}")
-        return True
-    
-    def get_session_info(self) -> Dict[str, Any]:
-        """Get current session information."""
-<<<<<<< HEAD
-=======
-=======
-        """Initialize the drawing state manager."""
-        super().__init__(parent)
-        self._current_mode = DrawingMode.DISABLED
-        self._current_state = DrawingState.IDLE
-        self._current_area: Optional[DrawingArea] = None
-        self._current_element_type: Optional[ElementType] = None
-        self._current_session: Optional[DrawingSession] = None
-        self._error_message: Optional[str] = None
-        
-        # Timer for state transitions
-        self._state_timer = QTimer()
-        self._state_timer.timeout.connect(self._check_state_timeout)
-        self._state_timer.setSingleShot(True)
-    
-    @property
-    def current_mode(self) -> DrawingMode:
-        """Get the current drawing mode."""
-        return self._current_mode
-    
-    @property
-    def current_state(self) -> DrawingState:
-        """Get the current drawing state."""
-        return self._current_state
-    
-    @property
-    def current_area(self) -> Optional[DrawingArea]:
-        """Get the currently selected area."""
-        return self._current_area
-    
-    @property
-    def current_session(self) -> Optional[DrawingSession]:
-        """Get the current drawing session."""
-        return self._current_session
-    
-    def start_drawing_mode(self) -> bool:
-        """Start drawing mode for manual validation."""
-        try:
-            if self._current_mode == DrawingMode.DISABLED:
-                self._current_mode = DrawingMode.SELECTION
-                self._current_state = DrawingState.IDLE
-                self._current_session = DrawingSession()
-                
-                self.mode_changed.emit(self._current_mode)
-                self.state_changed.emit(self._current_state)
-                return True
-            return False
-        except Exception as e:
-            self._handle_error(f"Failed to start drawing mode: {str(e)}")
-            return False
-    
-    def stop_drawing_mode(self) -> bool:
-        """Stop drawing mode and complete session."""
-        try:
-            if self._current_mode != DrawingMode.DISABLED:
-                if self._current_session:
-                    # Complete the session
-                    completed_session = DrawingSession(
-                        session_id=self._current_session.session_id,
-                        areas=self._current_session.areas,
-                        elements=self._current_session.elements,
-                        document_path=self._current_session.document_path,
-                        started_at=self._current_session.started_at,
-                        completed_at=datetime.now()
-                    )
-                    self.session_completed.emit(completed_session)
-                
-                self._current_mode = DrawingMode.DISABLED
-                self._current_state = DrawingState.IDLE
-                self._current_area = None
-                self._current_session = None
-                
-                self.mode_changed.emit(self._current_mode)
-                self.state_changed.emit(self._current_state)
-                return True
-            return False
-        except Exception as e:
-            self._handle_error(f"Failed to stop drawing mode: {str(e)}")
-            return False
-    
-    def start_area_selection(self) -> bool:
-        """Start area selection process."""
-        try:
-            if (self._current_mode == DrawingMode.SELECTION and 
-                self._current_state == DrawingState.IDLE):
-                
-                self._current_state = DrawingState.AREA_SELECTING
-                self._start_timeout(30000)  # 30 second timeout
-                
-                self.state_changed.emit(self._current_state)
-                return True
-            return False
-        except Exception as e:
-            self._handle_error(f"Failed to start area selection: {str(e)}")
-            return False
-    
-    def complete_area_selection(self, x: int, y: int, width: int, height: int, page_number: int) -> bool:
-        """Complete area selection with coordinates."""
-        try:
-            if self._current_state == DrawingState.AREA_SELECTING:
-                self._current_area = DrawingArea(
-                    x=x, y=y, width=width, height=height, page_number=page_number
-                )
-                self._current_state = DrawingState.AREA_SELECTED
-                self._stop_timeout()
-                
-                self.area_selected.emit(self._current_area)
-                self.state_changed.emit(self._current_state)
-                return True
-            return False
-        except Exception as e:
-            self._handle_error(f"Failed to complete area selection: {str(e)}")
-            return False
-    
-    def set_element_type(self, element_type: ElementType) -> bool:
-        """Set the element type for creation."""
-        try:
-            if self._current_state == DrawingState.AREA_SELECTED:
-                self._current_element_type = element_type
-                self._current_state = DrawingState.ELEMENT_CREATING
-                
-                self.state_changed.emit(self._current_state)
-                return True
-            return False
-        except Exception as e:
-            self._handle_error(f"Failed to set element type: {str(e)}")
-            return False
-    
-    def create_element(self, text: str = "", additional_metadata: Optional[Dict[str, Any]] = None) -> bool:
-        """Create element with extracted text and metadata."""
-        try:
-            if (self._current_state == DrawingState.ELEMENT_CREATING and 
-                self._current_area and self._current_element_type):
-                
-                # Create element with basic information
-                element = Element(
-                    element_type=self._current_element_type,
-                    text=text,
-                    metadata=additional_metadata
-                )
-                
-                # Add to current session
-                if self._current_session:
-                    updated_areas = list(self._current_session.areas) + [self._current_area]
-                    updated_elements = list(self._current_session.elements) + [element]
-                    
-                    self._current_session = DrawingSession(
-                        session_id=self._current_session.session_id,
-                        areas=updated_areas,
-                        elements=updated_elements,
-                        document_path=self._current_session.document_path,
-                        started_at=self._current_session.started_at,
-                        completed_at=None
-                    )
-                
-                self._current_state = DrawingState.ELEMENT_CREATED
-                self._current_area = None
-                self._current_element_type = None
-                
-                self.element_created.emit(element)
-                self.state_changed.emit(self._current_state)
-                return True
-            return False
-        except Exception as e:
-            self._handle_error(f"Failed to create element: {str(e)}")
-            return False
-    
-    def reset_to_selection(self) -> bool:
-        """Reset state back to selection mode."""
-        try:
-            if self._current_mode != DrawingMode.DISABLED:
-                self._current_state = DrawingState.IDLE
-                self._current_area = None
-                self._current_element_type = None
-                self._stop_timeout()
-                
-                self.state_changed.emit(self._current_state)
-                return True
-            return False
-        except Exception as e:
-            self._handle_error(f"Failed to reset to selection: {str(e)}")
-            return False
-    
-    def _start_timeout(self, timeout_ms: int):
-        """Start timeout timer for state transitions."""
-        self._state_timer.start(timeout_ms)
-    
-    def _stop_timeout(self):
-        """Stop timeout timer."""
-        self._state_timer.stop()
-    
-    def _check_state_timeout(self):
-        """Handle state timeout."""
-        self._handle_error("Operation timed out")
-    
-    def _handle_error(self, error_message: str):
-        """Handle error state."""
-        self._error_message = error_message
-        self._current_state = DrawingState.ERROR
-        self._current_area = None
-        self._current_element_type = None
-        self._stop_timeout()
-        
-        self.error_occurred.emit(error_message)
-        self.state_changed.emit(self._current_state)
-    
-    def get_session_stats(self) -> Dict[str, Any]:
-        """Get statistics about the current session."""
->>>>>>> origin/main
->>>>>>> origin/main
-        if not self._current_session:
-            return {}
-        
-        return {
-            "session_id": self._current_session.session_id,
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> origin/main
-            "batch_mode": self._current_session.batch_mode,
-            "areas_count": len(self._current_session.areas),
-            "started_at": self._current_session.started_at.isoformat(),
-            "completed_at": self._current_session.completed_at.isoformat() if self._current_session.completed_at else None,
-            "is_complete": self._current_session.is_complete
-<<<<<<< HEAD
-        }
-=======
-        }
-<<<<<<< HEAD
-    
-    def get_state_info(self) -> Dict[str, Any]:
-        """Get current state information."""
-        return {
-            "mode": self._mode.value,
-            "state": self._state.value,
-            "has_session": self._current_session is not None,
-            "has_area": self._current_area is not None,
-            "ocr_available": self._ocr_engine is not None,
-            "config": self._drawing_config.copy()
-        }
-=======
-=======
-            "areas_count": len(self._current_session.areas),
-            "elements_count": len(self._current_session.elements),
-            "duration": (datetime.now() - self._current_session.started_at).total_seconds(),
-            "document_path": self._current_session.document_path
-        }
-    
-    # Integration hooks for other agents
     def get_ocr_integration_hook(self):
         """Get hook for OCR service integration (Agent 2)."""
         return {
@@ -1038,16 +560,14 @@ class DrawingStateManager(QObject):
     
     def _start_ocr_processing(self):
         """Start OCR processing (called by Agent 2)."""
-        if self._current_state == DrawingState.ELEMENT_CREATING:
-            self._current_state = DrawingState.OCR_PROCESSING
-            self.state_changed.emit(self._current_state)
+        if self._state == DrawingState.ELEMENT_CREATING:
+            self._state = DrawingState.OCR_PROCESSING
+            self.state_changed.emit(self._state)
     
     def _complete_ocr_processing(self, extracted_text: str):
         """Complete OCR processing with results (called by Agent 2)."""
-        if self._current_state == DrawingState.OCR_PROCESSING:
-            self._current_state = DrawingState.OCR_COMPLETED
-            self.state_changed.emit(self._current_state)
+        if self._state == DrawingState.OCR_PROCESSING:
+            self._state = DrawingState.OCR_COMPLETED
+            self.state_changed.emit(self._state)
             return extracted_text
         return ""
->>>>>>> origin/main
->>>>>>> origin/main

@@ -1,880 +1,399 @@
-<<<<<<< HEAD
-"""Validation framework for property editors"""
+"""Validation editors for the property panel
 
-from typing import Any, Optional, Dict, List, Callable, Pattern
-from abc import ABC, abstractmethod
+Provides validation-specific editors for elements that require
+validation status, confidence scores, and quality metrics.
+"""
+
+from typing import Any, Optional, List, Dict, Callable
 from dataclasses import dataclass
-from enum import Enum
-import re
-from datetime import datetime
+from enum import Enum, auto
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QSpinBox,
+    QComboBox, QProgressBar, QGroupBox, QCheckBox, QFrame
+)
+from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtGui import QColor, QPalette
+
+from ..base import BasePropertyEditor
 
 
-class ValidationSeverity(Enum):
-    """Severity levels for validation messages"""
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-=======
-"""Comprehensive validation framework for property editors"""
-
-from typing import List, Any, Optional, Dict, Callable, Union, Pattern
-from dataclasses import dataclass
-from enum import Enum
-import re
-from abc import ABC, abstractmethod
-
-from PyQt6.QtCore import pyqtSignal, QObject
-from PyQt6.QtWidgets import QWidget
-from PyQt6.QtGui import QColor
-
-
-class ValidationSeverity(Enum):
-    """Validation message severity levels"""
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    CRITICAL = "critical"
->>>>>>> origin/main
+class ValidationStatus(Enum):
+    """Validation status enumeration."""
+    UNKNOWN = auto()
+    VALID = auto()
+    INVALID = auto()
+    PENDING = auto()
+    MANUAL_REVIEW = auto()
 
 
 @dataclass
 class ValidationResult:
-    """Result of a validation check"""
+    """Result of a validation check."""
     is_valid: bool
-<<<<<<< HEAD
-    message: Optional[str] = None
-    severity: ValidationSeverity = ValidationSeverity.ERROR
-    field_name: Optional[str] = None
-    error_code: Optional[str] = None
+    confidence: float = 0.0
+    status: ValidationStatus = ValidationStatus.UNKNOWN
+    errors: List[str] = None
+    warnings: List[str] = None
+    metadata: Dict[str, Any] = None
     
-    def __bool__(self) -> bool:
-        return self.is_valid
+    def __post_init__(self):
+        if self.errors is None:
+            self.errors = []
+        if self.warnings is None:
+            self.warnings = []
+        if self.metadata is None:
+            self.metadata = {}
 
 
-class BaseValidator(ABC):
-    """Base class for property validators"""
+class ValidationStatusEditor(BasePropertyEditor):
+    """Editor for validation status."""
     
-    def __init__(self, error_message: Optional[str] = None, 
-                 severity: ValidationSeverity = ValidationSeverity.ERROR):
-        self.error_message = error_message
-        self.severity = severity
+    value_changed = pyqtSignal(object)
     
-    @abstractmethod
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Validate a value and return result"""
-        pass
-    
-    def get_error_message(self, field_name: Optional[str] = None) -> str:
-        """Get error message for validation failure"""
-        if self.error_message:
-            return self.error_message
-        return self._get_default_error_message(field_name)
-    
-    @abstractmethod
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        """Get default error message"""
-        pass
-
-
-class RequiredValidator(BaseValidator):
-    """Validator for required fields"""
-    
-    def __init__(self, error_message: Optional[str] = None):
-        super().__init__(error_message, ValidationSeverity.ERROR)
-    
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Check if value is present and not empty"""
-        if value is None:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "required")
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._current_status = ValidationStatus.UNKNOWN
+        self._setup_ui()
         
-        if isinstance(value, str) and not value.strip():
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "required")
+    def _setup_ui(self):
+        """Setup the validation status editor UI."""
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         
-        if isinstance(value, (list, dict, tuple)) and len(value) == 0:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "required")
+        # Status indicator
+        self.status_indicator = QFrame()
+        self.status_indicator.setFixedSize(16, 16)
+        self.status_indicator.setFrameStyle(QFrame.Shape.Box)
+        layout.addWidget(self.status_indicator)
         
-        return ValidationResult(True)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        if field_name:
-            return f"{field_name} is required"
-        return "This field is required"
-
-
-class LengthValidator(BaseValidator):
-    """Validator for string/collection length"""
-    
-    def __init__(self, min_length: Optional[int] = None, max_length: Optional[int] = None,
-                 error_message: Optional[str] = None):
-        super().__init__(error_message, ValidationSeverity.ERROR)
-        self.min_length = min_length
-        self.max_length = max_length
+        # Status combo box
+        self.status_combo = QComboBox()
+        for status in ValidationStatus:
+            self.status_combo.addItem(status.name.replace('_', ' ').title(), status)
+        self.status_combo.currentIndexChanged.connect(self._on_status_changed)
+        layout.addWidget(self.status_combo)
         
-        if min_length is not None and max_length is not None and min_length > max_length:
-            raise ValueError("min_length cannot be greater than max_length")
-    
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Check if value length is within bounds"""
-        if value is None:
-            length = 0
-        elif hasattr(value, '__len__'):
-            length = len(value)
-        else:
-            length = len(str(value))
+        self._update_indicator()
         
-        if self.min_length is not None and length < self.min_length:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "min_length")
-        
-        if self.max_length is not None and length > self.max_length:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "max_length")
-        
-        return ValidationResult(True)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        field = field_name or "Value"
-        
-        if self.min_length is not None and self.max_length is not None:
-            return f"{field} must be between {self.min_length} and {self.max_length} characters"
-        elif self.min_length is not None:
-            return f"{field} must be at least {self.min_length} characters"
-        elif self.max_length is not None:
-            return f"{field} must be no more than {self.max_length} characters"
-        else:
-            return f"{field} length is invalid"
-
-
-class RangeValidator(BaseValidator):
-    """Validator for numeric ranges"""
-    
-    def __init__(self, min_value: Optional[float] = None, max_value: Optional[float] = None,
-                 error_message: Optional[str] = None):
-        super().__init__(error_message, ValidationSeverity.ERROR)
-        self.min_value = min_value
-        self.max_value = max_value
-        
-        if min_value is not None and max_value is not None and min_value > max_value:
-            raise ValueError("min_value cannot be greater than max_value")
-    
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Check if numeric value is within range"""
-        try:
-            numeric_value = float(value)
-        except (ValueError, TypeError):
-            return ValidationResult(False, "Value must be a number", self.severity, field_name, "not_numeric")
-        
-        if self.min_value is not None and numeric_value < self.min_value:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "min_value")
-        
-        if self.max_value is not None and numeric_value > self.max_value:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "max_value")
-        
-        return ValidationResult(True)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        field = field_name or "Value"
-        
-        if self.min_value is not None and self.max_value is not None:
-            return f"{field} must be between {self.min_value} and {self.max_value}"
-        elif self.min_value is not None:
-            return f"{field} must be at least {self.min_value}"
-        elif self.max_value is not None:
-            return f"{field} must be no more than {self.max_value}"
-        else:
-            return f"{field} is out of range"
-
-
-class PatternValidator(BaseValidator):
-    """Validator for regex patterns"""
-    
-    def __init__(self, pattern: str, flags: int = 0, error_message: Optional[str] = None):
-        super().__init__(error_message, ValidationSeverity.ERROR)
-        self.pattern_str = pattern
-        self.pattern = re.compile(pattern, flags)
-    
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Check if value matches regex pattern"""
-        if value is None:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "pattern")
-        
-        text_value = str(value)
-        if not self.pattern.match(text_value):
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "pattern")
-        
-        return ValidationResult(True)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        field = field_name or "Value"
-        return f"{field} does not match required format"
-
-
-class EmailValidator(PatternValidator):
-    """Validator for email addresses"""
-    
-    EMAIL_PATTERN = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    
-    def __init__(self, error_message: Optional[str] = None):
-        super().__init__(self.EMAIL_PATTERN, 0, error_message)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        field = field_name or "Email"
-        return f"{field} must be a valid email address"
-
-
-class URLValidator(PatternValidator):
-    """Validator for URLs"""
-    
-    URL_PATTERN = r'^https?://(?:[-\w.])+(?:[:\d]+)?(?:/(?:[\w/_.])*(?:\?(?:[\w&=%.])*)?(?:#(?:\w*))?)?$'
-    
-    def __init__(self, error_message: Optional[str] = None):
-        super().__init__(self.URL_PATTERN, re.IGNORECASE, error_message)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        field = field_name or "URL"
-        return f"{field} must be a valid URL"
-
-
-class TypeValidator(BaseValidator):
-    """Validator for specific types"""
-    
-    def __init__(self, expected_type: type, error_message: Optional[str] = None):
-        super().__init__(error_message, ValidationSeverity.ERROR)
-        self.expected_type = expected_type
-    
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Check if value is of expected type"""
-        if not isinstance(value, self.expected_type):
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "type")
-        
-        return ValidationResult(True)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        field = field_name or "Value"
-        return f"{field} must be of type {self.expected_type.__name__}"
-
-
-class ChoiceValidator(BaseValidator):
-    """Validator for choice/enum values"""
-    
-    def __init__(self, choices: List[Any], error_message: Optional[str] = None):
-        super().__init__(error_message, ValidationSeverity.ERROR)
-        self.choices = choices
-    
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Check if value is in allowed choices"""
-        if value not in self.choices:
-            return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "choice")
-        
-        return ValidationResult(True)
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        field = field_name or "Value"
-        choices_str = ", ".join(str(choice) for choice in self.choices)
-        return f"{field} must be one of: {choices_str}"
-
-
-class CustomValidator(BaseValidator):
-    """Validator using custom function"""
-    
-    def __init__(self, validator_func: Callable[[Any], bool], 
-                 error_message: str, severity: ValidationSeverity = ValidationSeverity.ERROR):
-        super().__init__(error_message, severity)
-        self.validator_func = validator_func
-    
-    def validate(self, value: Any, field_name: Optional[str] = None) -> ValidationResult:
-        """Check value using custom function"""
-        try:
-            is_valid = self.validator_func(value)
-            if not is_valid:
-                return ValidationResult(False, self.get_error_message(field_name), self.severity, field_name, "custom")
-            return ValidationResult(True)
-        except Exception as e:
-            return ValidationResult(False, f"Validation error: {str(e)}", ValidationSeverity.ERROR, field_name, "custom_error")
-    
-    def _get_default_error_message(self, field_name: Optional[str] = None) -> str:
-        return self.error_message or "Validation failed"
-
-
-class ValidationEngine:
-    """Engine for running multiple validators"""
-    
-    def __init__(self):
-        self._validators: Dict[str, List[BaseValidator]] = {}
-        self._global_validators: List[BaseValidator] = []
-    
-    def add_validator(self, field_name: str, validator: BaseValidator) -> None:
-        """Add validator for specific field"""
-        if field_name not in self._validators:
-            self._validators[field_name] = []
-        self._validators[field_name].append(validator)
-    
-    def add_global_validator(self, validator: BaseValidator) -> None:
-        """Add validator that applies to all fields"""
-        self._global_validators.append(validator)
-    
-    def remove_validators(self, field_name: str) -> None:
-        """Remove all validators for a field"""
-        if field_name in self._validators:
-            del self._validators[field_name]
-    
-    def clear_validators(self) -> None:
-        """Clear all validators"""
-        self._validators.clear()
-        self._global_validators.clear()
-    
-    def validate_field(self, field_name: str, value: Any) -> List[ValidationResult]:
-        """Validate a single field"""
-        results = []
-        
-        # Run global validators
-        for validator in self._global_validators:
-            result = validator.validate(value, field_name)
-            results.append(result)
-        
-        # Run field-specific validators
-        if field_name in self._validators:
-            for validator in self._validators[field_name]:
-                result = validator.validate(value, field_name)
-                results.append(result)
-        
-        return results
-    
-    def validate_all(self, data: Dict[str, Any]) -> Dict[str, List[ValidationResult]]:
-        """Validate all fields in data"""
-        all_results = {}
-        
-        # Validate fields with specific validators
-        for field_name in self._validators:
-            value = data.get(field_name)
-            results = self.validate_field(field_name, value)
-            if results:
-                all_results[field_name] = results
-        
-        # Validate remaining fields with global validators only
-        for field_name, value in data.items():
-            if field_name not in all_results and self._global_validators:
-                results = []
-                for validator in self._global_validators:
-                    result = validator.validate(value, field_name)
-                    results.append(result)
-                if results:
-                    all_results[field_name] = results
-        
-        return all_results
-    
-    def is_valid(self, field_name: str, value: Any) -> bool:
-        """Check if field value is valid"""
-        results = self.validate_field(field_name, value)
-        return all(result.is_valid for result in results)
-    
-    def get_first_error(self, field_name: str, value: Any) -> Optional[ValidationResult]:
-        """Get first error for field"""
-        results = self.validate_field(field_name, value)
-        for result in results:
-            if not result.is_valid:
-                return result
-        return None
-    
-    def get_validators(self, field_name: str) -> List[BaseValidator]:
-        """Get validators for a field"""
-        validators = self._global_validators.copy()
-        if field_name in self._validators:
-            validators.extend(self._validators[field_name])
-        return validators
-
-
-class ValidationRuleParser:
-    """Parser for validation rules from strings"""
-    
-    @staticmethod
-    def parse_rule(rule_string: str) -> Optional[BaseValidator]:
-        """Parse a validation rule string into a validator"""
-        rule_string = rule_string.strip()
-        
-        if rule_string == "required":
-            return RequiredValidator()
-        
-        elif rule_string.startswith("length:"):
-            length_spec = rule_string[7:]
-            if "-" in length_spec:
-                try:
-                    min_len, max_len = map(int, length_spec.split("-", 1))
-                    return LengthValidator(min_len, max_len)
-                except ValueError:
-                    pass
-            else:
-                try:
-                    max_len = int(length_spec)
-                    return LengthValidator(max_length=max_len)
-                except ValueError:
-                    pass
-        
-        elif rule_string.startswith("range:"):
-            range_spec = rule_string[6:]
-            if "-" in range_spec:
-                try:
-                    min_val, max_val = map(float, range_spec.split("-", 1))
-                    return RangeValidator(min_val, max_val)
-                except ValueError:
-                    pass
-            elif range_spec.startswith(">="):
-                try:
-                    min_val = float(range_spec[2:])
-                    return RangeValidator(min_value=min_val)
-                except ValueError:
-                    pass
-            elif range_spec.startswith("<="):
-                try:
-                    max_val = float(range_spec[2:])
-                    return RangeValidator(max_value=max_val)
-                except ValueError:
-                    pass
-        
-        elif rule_string.startswith("pattern:"):
-            pattern = rule_string[8:]
-            return PatternValidator(pattern)
-        
-        elif rule_string == "email":
-            return EmailValidator()
-        
-        elif rule_string == "url":
-            return URLValidator()
-        
-        elif rule_string.startswith("type:"):
-            type_name = rule_string[5:]
-            type_mapping = {
-                "string": str,
-                "str": str,
-                "integer": int,
-                "int": int,
-                "float": float,
-                "number": float,
-                "boolean": bool,
-                "bool": bool,
-                "list": list,
-                "dict": dict,
-            }
-            if type_name in type_mapping:
-                return TypeValidator(type_mapping[type_name])
-        
-        elif rule_string.startswith("choice:"):
-            choices_str = rule_string[7:]
-            choices = [choice.strip() for choice in choices_str.split(",")]
-            return ChoiceValidator(choices)
-        
-        return None
-    
-    @staticmethod
-    def parse_rules(rule_strings: List[str]) -> List[BaseValidator]:
-        """Parse multiple validation rule strings"""
-        validators = []
-        for rule_string in rule_strings:
-            validator = ValidationRuleParser.parse_rule(rule_string)
-            if validator:
-                validators.append(validator)
-        return validators
-=======
-    severity: ValidationSeverity
-    message: str
-    field_name: Optional[str] = None
-    suggestion: Optional[str] = None
-    
-    @classmethod
-    def success(cls, message: str = "Valid") -> 'ValidationResult':
-        """Create successful validation result"""
-        return cls(True, ValidationSeverity.INFO, message)
-    
-    @classmethod
-    def error(cls, message: str, suggestion: str = None) -> 'ValidationResult':
-        """Create error validation result"""
-        return cls(False, ValidationSeverity.ERROR, message, suggestion=suggestion)
-    
-    @classmethod
-    def warning(cls, message: str, suggestion: str = None) -> 'ValidationResult':
-        """Create warning validation result"""
-        return cls(True, ValidationSeverity.WARNING, message, suggestion=suggestion)
-
-
-class ValidationRule(ABC):
-    """Abstract base class for validation rules"""
-    
-    def __init__(self, name: str, message: str = "", severity: ValidationSeverity = ValidationSeverity.ERROR):
-        self.name = name
-        self.message = message or f"Validation failed for rule: {name}"
-        self.severity = severity
-    
-    @abstractmethod
-    def validate(self, value: Any) -> ValidationResult:
-        """Validate a value against this rule"""
-        pass
-
-
-class RequiredRule(ValidationRule):
-    """Rule for required values (non-empty)"""
-    
-    def __init__(self, message: str = "This field is required"):
-        super().__init__("required", message)
-    
-    def validate(self, value: Any) -> ValidationResult:
-        if value is None or value == "" or (isinstance(value, (list, dict)) and len(value) == 0):
-            return ValidationResult.error(self.message)
-        return ValidationResult.success()
-
-
-class RangeRule(ValidationRule):
-    """Rule for numeric range validation"""
-    
-    def __init__(self, min_value: Optional[float] = None, max_value: Optional[float] = None, 
-                 message: str = ""):
-        self.min_value = min_value
-        self.max_value = max_value
-        if not message:
-            if min_value is not None and max_value is not None:
-                message = f"Value must be between {min_value} and {max_value}"
-            elif min_value is not None:
-                message = f"Value must be at least {min_value}"
-            elif max_value is not None:
-                message = f"Value must be at most {max_value}"
-        super().__init__("range", message)
-    
-    def validate(self, value: Any) -> ValidationResult:
-        try:
-            num_value = float(value)
-            if self.min_value is not None and num_value < self.min_value:
-                return ValidationResult.error(self.message, f"Try a value >= {self.min_value}")
-            if self.max_value is not None and num_value > self.max_value:
-                return ValidationResult.error(self.message, f"Try a value <= {self.max_value}")
-            return ValidationResult.success()
-        except (ValueError, TypeError):
-            return ValidationResult.error("Value must be a number")
-
-
-class LengthRule(ValidationRule):
-    """Rule for string/list length validation"""
-    
-    def __init__(self, min_length: Optional[int] = None, max_length: Optional[int] = None,
-                 message: str = ""):
-        self.min_length = min_length
-        self.max_length = max_length
-        if not message:
-            if min_length is not None and max_length is not None:
-                message = f"Length must be between {min_length} and {max_length}"
-            elif min_length is not None:
-                message = f"Length must be at least {min_length}"
-            elif max_length is not None:
-                message = f"Length must be at most {max_length}"
-        super().__init__("length", message)
-    
-    def validate(self, value: Any) -> ValidationResult:
-        try:
-            length = len(value) if value is not None else 0
-            if self.min_length is not None and length < self.min_length:
-                return ValidationResult.error(self.message)
-            if self.max_length is not None and length > self.max_length:
-                return ValidationResult.error(self.message)
-            return ValidationResult.success()
-        except TypeError:
-            return ValidationResult.error("Value must have a length")
-
-
-class PatternRule(ValidationRule):
-    """Rule for regex pattern validation"""
-    
-    def __init__(self, pattern: Union[str, Pattern], message: str = "Value does not match required pattern"):
-        self.pattern = re.compile(pattern) if isinstance(pattern, str) else pattern
-        super().__init__("pattern", message)
-    
-    def validate(self, value: Any) -> ValidationResult:
-        if value is None:
-            return ValidationResult.success()  # Allow None unless required
-        
-        str_value = str(value)
-        if self.pattern.match(str_value):
-            return ValidationResult.success()
-        return ValidationResult.error(self.message)
-
-
-class EmailRule(PatternRule):
-    """Rule for email validation"""
-    
-    def __init__(self, message: str = "Please enter a valid email address"):
-        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        super().__init__(email_pattern, message)
-
-
-class URLRule(PatternRule):
-    """Rule for URL validation"""
-    
-    def __init__(self, message: str = "Please enter a valid URL"):
-        url_pattern = r'^https?://[^\s/$.?#].[^\s]*$'
-        super().__init__(url_pattern, message)
-
-
-class CustomRule(ValidationRule):
-    """Rule for custom validation functions"""
-    
-    def __init__(self, validator_func: Callable[[Any], ValidationResult], name: str = "custom"):
-        self.validator_func = validator_func
-        super().__init__(name)
-    
-    def validate(self, value: Any) -> ValidationResult:
-        return self.validator_func(value)
-
-
-class PropertyValidator(QObject):
-    """Validator for property values with multiple rules"""
-    
-    validation_completed = pyqtSignal(object)  # ValidationResult
-    
-    def __init__(self):
-        super().__init__()
-        self.rules: List[ValidationRule] = []
-        self.stop_on_first_error = True
-        
-    def add_rule(self, rule: ValidationRule) -> None:
-        """Add a validation rule"""
-        self.rules.append(rule)
-    
-    def remove_rule(self, rule_name: str) -> None:
-        """Remove a validation rule by name"""
-        self.rules = [rule for rule in self.rules if rule.name != rule_name]
-    
-    def clear_rules(self) -> None:
-        """Clear all validation rules"""
-        self.rules.clear()
-    
-    def validate(self, value: Any) -> ValidationResult:
-        """Validate value against all rules"""
-        if not self.rules:
-            return ValidationResult.success("No validation rules")
-        
-        errors = []
-        warnings = []
-        
-        for rule in self.rules:
-            result = rule.validate(value)
-            
-            if not result.is_valid:
-                errors.append(result)
-                if self.stop_on_first_error:
-                    break
-            elif result.severity == ValidationSeverity.WARNING:
-                warnings.append(result)
-        
-        # Return first error if any
-        if errors:
-            result = errors[0]
-            self.validation_completed.emit(result)
-            return result
-        
-        # Return first warning if any
-        if warnings:
-            result = warnings[0]
-            self.validation_completed.emit(result)
-            return result
-        
-        # All good
-        result = ValidationResult.success("All validations passed")
-        self.validation_completed.emit(result)
-        return result
-    
-    def validate_async(self, value: Any) -> None:
-        """Validate asynchronously and emit signal"""
-        result = self.validate(value)
-        self.validation_completed.emit(result)
-
-
-class ValidationMixin:
-    """Mixin class for adding validation to property editors"""
-    
-    def __init__(self):
-        super().__init__()
-        self.validator = PropertyValidator()
-        self._validation_enabled = True
-        self._last_validation_result: Optional[ValidationResult] = None
-        
-        # Connect validator signal if we're a QObject
-        if hasattr(self, 'validation_failed'):
-            self.validator.validation_completed.connect(self._on_validation_result)
-    
-    def _setup_validation(self) -> None:
-        """Setup validation rules from configuration"""
-        if not hasattr(self, 'config'):
-            return
-        
-        validation_rules = self.config.custom_attributes.get('validation_rules', [])
-        
-        for rule_config in validation_rules:
-            rule = self._create_validation_rule(rule_config)
-            if rule:
-                self.validator.add_rule(rule)
-    
-    def _create_validation_rule(self, rule_config: Dict[str, Any]) -> Optional[ValidationRule]:
-        """Create validation rule from configuration"""
-        rule_type = rule_config.get('type')
-        
-        if rule_type == 'required':
-            return RequiredRule(rule_config.get('message', ''))
-        
-        elif rule_type == 'range':
-            return RangeRule(
-                rule_config.get('min_value'),
-                rule_config.get('max_value'),
-                rule_config.get('message', '')
-            )
-        
-        elif rule_type == 'length':
-            return LengthRule(
-                rule_config.get('min_length'),
-                rule_config.get('max_length'),
-                rule_config.get('message', '')
-            )
-        
-        elif rule_type == 'pattern':
-            return PatternRule(
-                rule_config.get('pattern'),
-                rule_config.get('message', '')
-            )
-        
-        elif rule_type == 'email':
-            return EmailRule(rule_config.get('message', ''))
-        
-        elif rule_type == 'url':
-            return URLRule(rule_config.get('message', ''))
-        
-        return None
-    
-    def _validate_input(self, value: Any) -> bool:
-        """Validate input value and update UI state"""
-        if not self._validation_enabled:
-            return True
-        
-        result = self.validator.validate(value)
-        self._last_validation_result = result
-        
-        # Update visual state
-        self._update_validation_state(result)
-        
-        return result.is_valid
-    
-    def _update_validation_state(self, result: ValidationResult) -> None:
-        """Update editor visual state based on validation result"""
-        if not isinstance(self, QWidget):
-            return
-        
-        # Update style based on validation state
-        if result.is_valid:
-            if result.severity == ValidationSeverity.WARNING:
-                self._set_validation_style("warning")
-            else:
-                self._set_validation_style("valid")
-        else:
-            self._set_validation_style("error")
-        
-        # Update tooltip with validation message
-        if result.message:
-            tooltip = result.message
-            if result.suggestion:
-                tooltip += f"\n\nSuggestion: {result.suggestion}"
-            self.setToolTip(tooltip)
-        else:
-            self.setToolTip("")
-    
-    def _set_validation_style(self, state: str) -> None:
-        """Set visual style for validation state"""
-        styles = {
-            "valid": "border: 1px solid #4CAF50;",
-            "warning": "border: 1px solid #FF9800;",
-            "error": "border: 1px solid #F44336; background-color: #FFEBEE;"
+    def _update_indicator(self):
+        """Update the status indicator color."""
+        status = self._current_status
+        colors = {
+            ValidationStatus.VALID: QColor(0, 200, 0),
+            ValidationStatus.INVALID: QColor(200, 0, 0),
+            ValidationStatus.PENDING: QColor(255, 165, 0),
+            ValidationStatus.MANUAL_REVIEW: QColor(0, 0, 200),
+            ValidationStatus.UNKNOWN: QColor(128, 128, 128)
         }
         
-        style = styles.get(state, "")
-        self.setStyleSheet(style)
-    
-    def _on_validation_result(self, result: ValidationResult) -> None:
-        """Handle validation result signal"""
-        if hasattr(self, 'validation_failed') and not result.is_valid:
-            self.validation_failed.emit(result.message)
-    
-    def set_validation_enabled(self, enabled: bool) -> None:
-        """Enable/disable validation"""
-        self._validation_enabled = enabled
-        if not enabled:
-            self._set_validation_style("valid")
-            self.setToolTip("")
-    
-    def get_last_validation_result(self) -> Optional[ValidationResult]:
-        """Get the last validation result"""
-        return self._last_validation_result
-    
-    def add_validation_rule(self, rule: ValidationRule) -> None:
-        """Add a validation rule"""
-        self.validator.add_rule(rule)
-    
-    def remove_validation_rule(self, rule_name: str) -> None:
-        """Remove a validation rule"""
-        self.validator.remove_rule(rule_name)
+        color = colors.get(status, QColor(128, 128, 128))
+        self.status_indicator.setStyleSheet(f"background-color: {color.name()};")
+        
+    def get_value(self) -> ValidationStatus:
+        """Get the current validation status."""
+        return self._current_status
+        
+    def set_value(self, value: ValidationStatus):
+        """Set the validation status."""
+        if isinstance(value, ValidationStatus) and value != self._current_status:
+            self._current_status = value
+            index = self.status_combo.findData(value)
+            if index >= 0:
+                self.status_combo.setCurrentIndex(index)
+            self._update_indicator()
+            
+    def _on_status_changed(self):
+        """Handle status change."""
+        new_status = self.status_combo.currentData()
+        if new_status != self._current_status:
+            self._current_status = new_status
+            self._update_indicator()
+            self.value_changed.emit(new_status)
 
 
-# Validation utilities
-class ValidationUtils:
-    """Utility functions for common validations"""
+class ConfidenceEditor(BasePropertyEditor):
+    """Editor for confidence scores (0-100%)."""
     
-    @staticmethod
-    def is_positive_number(value: Any) -> ValidationResult:
-        """Check if value is a positive number"""
-        try:
-            num = float(value)
-            if num > 0:
-                return ValidationResult.success()
-            return ValidationResult.error("Value must be positive")
-        except (ValueError, TypeError):
-            return ValidationResult.error("Value must be a number")
+    value_changed = pyqtSignal(float)
     
-    @staticmethod
-    def is_integer(value: Any) -> ValidationResult:
-        """Check if value is an integer"""
-        try:
-            int(value)
-            return ValidationResult.success()
-        except (ValueError, TypeError):
-            return ValidationResult.error("Value must be an integer")
-    
-    @staticmethod
-    def is_coordinate(value: Any) -> ValidationResult:
-        """Check if value is a valid coordinate pair"""
-        if isinstance(value, (tuple, list)) and len(value) == 2:
-            try:
-                float(value[0])
-                float(value[1])
-                return ValidationResult.success()
-            except (ValueError, TypeError):
-                pass
-        return ValidationResult.error("Value must be a coordinate pair (x, y)")
-    
-    @staticmethod
-    def is_color_hex(value: Any) -> ValidationResult:
-        """Check if value is a valid hex color"""
-        if isinstance(value, str):
-            pattern = re.compile(r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')
-            if pattern.match(value):
-                return ValidationResult.success()
-        return ValidationResult.error("Value must be a valid hex color (e.g., #FF0000)")
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._current_confidence = 0.0
+        self._setup_ui()
+        
+    def _setup_ui(self):
+        """Setup the confidence editor UI."""
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Confidence slider
+        self.confidence_slider = QSlider(Qt.Orientation.Horizontal)
+        self.confidence_slider.setRange(0, 100)
+        self.confidence_slider.setValue(0)
+        self.confidence_slider.valueChanged.connect(self._on_slider_changed)
+        layout.addWidget(self.confidence_slider)
+        
+        # Confidence spinbox
+        self.confidence_spinbox = QSpinBox()
+        self.confidence_spinbox.setRange(0, 100)
+        self.confidence_spinbox.setSuffix("%")
+        self.confidence_spinbox.setValue(0)
+        self.confidence_spinbox.valueChanged.connect(self._on_spinbox_changed)
+        layout.addWidget(self.confidence_spinbox)
+        
+    def get_value(self) -> float:
+        """Get the current confidence value (0.0 to 1.0)."""
+        return self._current_confidence
+        
+    def set_value(self, value: float):
+        """Set the confidence value (0.0 to 1.0)."""
+        if isinstance(value, (int, float)):
+            # Clamp to valid range
+            value = max(0.0, min(1.0, float(value)))
+            if value != self._current_confidence:
+                self._current_confidence = value
+                percentage = int(value * 100)
+                self.confidence_slider.setValue(percentage)
+                self.confidence_spinbox.setValue(percentage)
+                
+    def _on_slider_changed(self, percentage: int):
+        """Handle slider value change."""
+        confidence = percentage / 100.0
+        if confidence != self._current_confidence:
+            self._current_confidence = confidence
+            self.confidence_spinbox.setValue(percentage)
+            self.value_changed.emit(confidence)
+            
+    def _on_spinbox_changed(self, percentage: int):
+        """Handle spinbox value change."""
+        confidence = percentage / 100.0
+        if confidence != self._current_confidence:
+            self._current_confidence = confidence
+            self.confidence_slider.setValue(percentage)
+            self.value_changed.emit(confidence)
 
 
-# Export validation components
+class QualityMetricsEditor(BasePropertyEditor):
+    """Editor for quality metrics."""
+    
+    value_changed = pyqtSignal(object)
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._current_metrics = {}
+        self._setup_ui()
+        
+    def _setup_ui(self):
+        """Setup the quality metrics editor UI."""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Overall quality
+        overall_group = QGroupBox("Overall Quality")
+        overall_layout = QVBoxLayout(overall_group)
+        
+        self.overall_progress = QProgressBar()
+        self.overall_progress.setRange(0, 100)
+        self.overall_progress.setValue(0)
+        overall_layout.addWidget(self.overall_progress)
+        
+        layout.addWidget(overall_group)
+        
+        # Individual metrics
+        metrics_group = QGroupBox("Metrics")
+        metrics_layout = QVBoxLayout(metrics_group)
+        
+        # Accuracy
+        accuracy_layout = QHBoxLayout()
+        accuracy_layout.addWidget(QLabel("Accuracy:"))
+        self.accuracy_slider = QSlider(Qt.Orientation.Horizontal)
+        self.accuracy_slider.setRange(0, 100)
+        self.accuracy_slider.valueChanged.connect(self._update_metrics)
+        accuracy_layout.addWidget(self.accuracy_slider)
+        self.accuracy_label = QLabel("0%")
+        accuracy_layout.addWidget(self.accuracy_label)
+        metrics_layout.addLayout(accuracy_layout)
+        
+        # Completeness
+        completeness_layout = QHBoxLayout()
+        completeness_layout.addWidget(QLabel("Completeness:"))
+        self.completeness_slider = QSlider(Qt.Orientation.Horizontal)
+        self.completeness_slider.setRange(0, 100)
+        self.completeness_slider.valueChanged.connect(self._update_metrics)
+        completeness_layout.addWidget(self.completeness_slider)
+        self.completeness_label = QLabel("0%")
+        completeness_layout.addWidget(self.completeness_label)
+        metrics_layout.addLayout(completeness_layout)
+        
+        # Consistency
+        consistency_layout = QHBoxLayout()
+        consistency_layout.addWidget(QLabel("Consistency:"))
+        self.consistency_slider = QSlider(Qt.Orientation.Horizontal)
+        self.consistency_slider.setRange(0, 100)
+        self.consistency_slider.valueChanged.connect(self._update_metrics)
+        consistency_layout.addWidget(self.consistency_slider)
+        self.consistency_label = QLabel("0%")
+        consistency_layout.addWidget(self.consistency_label)
+        metrics_layout.addLayout(consistency_layout)
+        
+        layout.addWidget(metrics_group)
+        
+        # Validation flags
+        flags_group = QGroupBox("Validation Flags")
+        flags_layout = QVBoxLayout(flags_group)
+        
+        self.human_verified_cb = QCheckBox("Human Verified")
+        self.human_verified_cb.toggled.connect(self._update_metrics)
+        flags_layout.addWidget(self.human_verified_cb)
+        
+        self.auto_validated_cb = QCheckBox("Auto Validated")
+        self.auto_validated_cb.toggled.connect(self._update_metrics)
+        flags_layout.addWidget(self.auto_validated_cb)
+        
+        self.requires_review_cb = QCheckBox("Requires Review")
+        self.requires_review_cb.toggled.connect(self._update_metrics)
+        flags_layout.addWidget(self.requires_review_cb)
+        
+        layout.addWidget(flags_group)
+        
+    def get_value(self) -> Dict[str, Any]:
+        """Get the current quality metrics."""
+        return self._current_metrics.copy()
+        
+    def set_value(self, value: Dict[str, Any]):
+        """Set the quality metrics."""
+        if isinstance(value, dict):
+            self._current_metrics = value.copy()
+            
+            # Update UI elements
+            accuracy = value.get('accuracy', 0) * 100
+            self.accuracy_slider.setValue(int(accuracy))
+            
+            completeness = value.get('completeness', 0) * 100
+            self.completeness_slider.setValue(int(completeness))
+            
+            consistency = value.get('consistency', 0) * 100
+            self.consistency_slider.setValue(int(consistency))
+            
+            self.human_verified_cb.setChecked(value.get('human_verified', False))
+            self.auto_validated_cb.setChecked(value.get('auto_validated', False))
+            self.requires_review_cb.setChecked(value.get('requires_review', False))
+            
+            self._update_overall_quality()
+            
+    def _update_metrics(self):
+        """Update the metrics from UI values."""
+        self._current_metrics = {
+            'accuracy': self.accuracy_slider.value() / 100.0,
+            'completeness': self.completeness_slider.value() / 100.0,
+            'consistency': self.consistency_slider.value() / 100.0,
+            'human_verified': self.human_verified_cb.isChecked(),
+            'auto_validated': self.auto_validated_cb.isChecked(),
+            'requires_review': self.requires_review_cb.isChecked()
+        }
+        
+        # Update labels
+        self.accuracy_label.setText(f"{self.accuracy_slider.value()}%")
+        self.completeness_label.setText(f"{self.completeness_slider.value()}%")
+        self.consistency_label.setText(f"{self.consistency_slider.value()}%")
+        
+        self._update_overall_quality()
+        self.value_changed.emit(self._current_metrics)
+        
+    def _update_overall_quality(self):
+        """Update overall quality score."""
+        accuracy = self._current_metrics.get('accuracy', 0)
+        completeness = self._current_metrics.get('completeness', 0)
+        consistency = self._current_metrics.get('consistency', 0)
+        
+        # Calculate weighted average
+        overall = (accuracy * 0.4 + completeness * 0.3 + consistency * 0.3) * 100
+        self.overall_progress.setValue(int(overall))
+
+
+class ValidationResultEditor(BasePropertyEditor):
+    """Complete validation result editor."""
+    
+    value_changed = pyqtSignal(object)
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._current_result = ValidationResult(is_valid=False)
+        self._setup_ui()
+        
+    def _setup_ui(self):
+        """Setup the validation result editor UI."""
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Status and confidence
+        top_layout = QHBoxLayout()
+        
+        # Status
+        status_group = QGroupBox("Status")
+        status_layout = QVBoxLayout(status_group)
+        self.status_editor = ValidationStatusEditor()
+        self.status_editor.value_changed.connect(self._on_status_changed)
+        status_layout.addWidget(self.status_editor)
+        top_layout.addWidget(status_group)
+        
+        # Confidence
+        confidence_group = QGroupBox("Confidence")
+        confidence_layout = QVBoxLayout(confidence_group)
+        self.confidence_editor = ConfidenceEditor()
+        self.confidence_editor.value_changed.connect(self._on_confidence_changed)
+        confidence_layout.addWidget(self.confidence_editor)
+        top_layout.addWidget(confidence_group)
+        
+        layout.addLayout(top_layout)
+        
+        # Quality metrics
+        self.metrics_editor = QualityMetricsEditor()
+        self.metrics_editor.value_changed.connect(self._on_metrics_changed)
+        layout.addWidget(self.metrics_editor)
+        
+    def get_value(self) -> ValidationResult:
+        """Get the current validation result."""
+        return self._current_result
+        
+    def set_value(self, value: ValidationResult):
+        """Set the validation result."""
+        if isinstance(value, ValidationResult):
+            self._current_result = value
+            
+            # Update sub-editors
+            self.status_editor.set_value(value.status)
+            self.confidence_editor.set_value(value.confidence)
+            
+            # Update metrics
+            if value.metadata:
+                self.metrics_editor.set_value(value.metadata)
+                
+    def _on_status_changed(self, status: ValidationStatus):
+        """Handle status change."""
+        self._current_result.status = status
+        self._current_result.is_valid = (status == ValidationStatus.VALID)
+        self.value_changed.emit(self._current_result)
+        
+    def _on_confidence_changed(self, confidence: float):
+        """Handle confidence change."""
+        self._current_result.confidence = confidence
+        self.value_changed.emit(self._current_result)
+        
+    def _on_metrics_changed(self, metrics: Dict[str, Any]):
+        """Handle metrics change."""
+        if not self._current_result.metadata:
+            self._current_result.metadata = {}
+        self._current_result.metadata.update(metrics)
+        self.value_changed.emit(self._current_result)
+
+
+# Export validation editors
 __all__ = [
-    'ValidationSeverity',
-    'ValidationResult', 
-    'ValidationRule',
-    'RequiredRule',
-    'RangeRule',
-    'LengthRule',
-    'PatternRule',
-    'EmailRule',
-    'URLRule',
-    'CustomRule',
-    'PropertyValidator',
-    'ValidationMixin',
-    'ValidationUtils'
+    'ValidationStatus',
+    'ValidationResult',
+    'ValidationStatusEditor',
+    'ConfidenceEditor',
+    'QualityMetricsEditor',
+    'ValidationResultEditor'
 ]
->>>>>>> origin/main
