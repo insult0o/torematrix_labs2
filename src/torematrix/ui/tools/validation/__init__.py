@@ -199,6 +199,21 @@ if _ui_components_available:
         'ConfidenceHighlighter',
     ])
 
+# Agent 2 - Interactive Hierarchy UI Tools (Issue #241)
+try:
+    from .hierarchy_tools import (
+        HierarchyTreeWidget,
+        HierarchyControlPanel,
+        HierarchyMetricsWidget,
+        HierarchyToolsWidget,
+        HierarchyOperation,
+        ValidationLevel,
+        HierarchyMetrics
+    )
+    _hierarchy_tools_available = True
+except ImportError:
+    _hierarchy_tools_available = False
+
 # Add integration layer if available - Agent 4 (Issue #244)
 if _integration_layer_available:
     __all__.extend([
@@ -210,4 +225,17 @@ if _integration_layer_available:
         'ValidationStatistics',
         'create_validation_integration',
         'get_integration_statistics',
+    ])
+
+# Add hierarchy UI tools if available - Agent 2 (Issue #241)
+if _hierarchy_tools_available:
+    __all__.extend([
+        # Interactive Hierarchy UI Tools - Agent 2
+        'HierarchyTreeWidget',
+        'HierarchyControlPanel',
+        'HierarchyMetricsWidget',
+        'HierarchyToolsWidget',
+        'HierarchyOperation',
+        'ValidationLevel',
+        'HierarchyMetrics',
     ])
