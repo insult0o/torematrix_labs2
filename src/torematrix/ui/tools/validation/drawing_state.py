@@ -1,9 +1,19 @@
 """
 Drawing state management system for manual validation interface.
 
+<<<<<<< HEAD
+Agent 1 implementation for Issue #27/#238 - Manual Validation Element Drawing Interface.
+=======
+<<<<<<< HEAD
+Drawing state management system for manual validation interface.
+
+Agent 1 implementation for Issue #27 - Core drawing state management.
+>>>>>>> origin/main
+=======
 Agent 1 implementation for Issue #26 - Core drawing state management.
 This module provides the core drawing state management for the manual validation
 workflow, including draw mode activation, area selection, and element creation.
+>>>>>>> main
 """
 
 import asyncio
@@ -17,6 +27,29 @@ from PyQt6.QtCore import QObject, pyqtSignal, QTimer
 from PyQt6.QtGui import QPixmap, QColor
 
 from ...viewer.coordinates import Rectangle
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+Drawing State Management for Manual Validation Interface.
+
+This module provides the core state management system for the manual validation
+drawing interface, implementing a state machine pattern with PyQt6 signals.
+"""
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Optional, List, Dict, Any
+from PyQt6.QtCore import QObject, pyqtSignal, QTimer
+from PyQt6.QtGui import QPixmap
+import uuid
+import asyncio
+from datetime import datetime
+
+>>>>>>> origin/main
+>>>>>>> origin/main
+=======
+>>>>>>> main
 from ....core.models import Element, ElementType
 
 
@@ -30,6 +63,13 @@ class DrawingMode(Enum):
 
 
 class DrawingState(Enum):
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> main
     """Current state of the drawing process."""
     IDLE = "idle"
     SELECTING_AREA = "selecting_area"
@@ -73,6 +113,69 @@ class DrawingSession:
     def is_complete(self) -> bool:
         """Check if all areas have been processed."""
         return all(area.element_type is not None for area in self.areas)
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+    """Current state of the drawing operation."""
+    IDLE = "idle"
+    AREA_SELECTING = "area_selecting"
+    AREA_SELECTED = "area_selected"
+    ELEMENT_CREATING = "element_creating"
+    ELEMENT_CREATED = "element_created"
+    OCR_PROCESSING = "ocr_processing"
+    OCR_COMPLETED = "ocr_completed"
+    ERROR = "error"
+
+
+@dataclass(frozen=True)
+class DrawingArea:
+    """Represents a selected drawing area for element creation."""
+    x: int
+    y: int
+    width: int
+    height: int
+    page_number: int
+    area_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = field(default_factory=datetime.now)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            "x": self.x,
+            "y": self.y,
+            "width": self.width,
+            "height": self.height,
+            "page_number": self.page_number,
+            "area_id": self.area_id,
+            "timestamp": self.timestamp.isoformat()
+        }
+
+
+@dataclass(frozen=True)
+class DrawingSession:
+    """Represents a complete drawing session with multiple areas."""
+    session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    areas: List[DrawingArea] = field(default_factory=list)
+    elements: List[Element] = field(default_factory=list)
+    document_path: Optional[str] = None
+    started_at: datetime = field(default_factory=datetime.now)
+    completed_at: Optional[datetime] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization."""
+        return {
+            "session_id": self.session_id,
+            "areas": [area.to_dict() for area in self.areas],
+            "elements": [element.to_dict() for element in self.elements],
+            "document_path": self.document_path,
+            "started_at": self.started_at.isoformat(),
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None
+        }
+>>>>>>> origin/main
+>>>>>>> origin/main
+=======
+>>>>>>> main
 
 
 class DrawingStateManager(QObject):
@@ -87,6 +190,13 @@ class DrawingStateManager(QObject):
     error_occurred = pyqtSignal(str)
     
     def __init__(self, parent=None):
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> origin/main
+=======
+>>>>>>> main
         super().__init__(parent)
         self.logger = logging.getLogger("torematrix.ui.drawing_state")
         
@@ -103,6 +213,10 @@ class DrawingStateManager(QObject):
             "auto_ocr": True,
             "batch_mode": False,
             "selection_color": QColor(255, 140, 0),
+<<<<<<< HEAD
+            "preview_color": QColor(0, 255, 0, 100),
+=======
+>>>>>>> origin/main
         }
         
         # Integration hooks for other agents
@@ -650,6 +764,8 @@ class DrawingStateManager(QObject):
     
     def get_session_info(self) -> Dict[str, Any]:
         """Get current session information."""
+<<<<<<< HEAD
+=======
 =======
         """Initialize the drawing state manager."""
         super().__init__(parent)
@@ -874,6 +990,9 @@ class DrawingStateManager(QObject):
             "started_at": self._current_session.started_at.isoformat(),
             "completed_at": self._current_session.completed_at.isoformat() if self._current_session.completed_at else None,
             "is_complete": self._current_session.is_complete
+<<<<<<< HEAD
+        }
+=======
         }
 <<<<<<< HEAD
     

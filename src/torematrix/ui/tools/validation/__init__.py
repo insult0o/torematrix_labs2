@@ -1,9 +1,18 @@
 """
 Manual validation tools for document processing.
 
+<<<<<<< HEAD
+This package provides tools for manual validation of document elements,
+<<<<<<< HEAD
+including drawing interfaces, area selection, and element creation workflows.
+=======
+including drawing interfaces and element creation workflows.
+>>>>>>> origin/main
+=======
 This package provides a comprehensive set of tools for manual validation
 of document elements, including drawing interfaces, area selection,
 and element creation workflows.
+>>>>>>> main
 """
 
 from enum import Enum, auto
@@ -37,7 +46,12 @@ class ValidationAreaSelector:
         """Set the current selection mode."""
         self.mode = mode
 
+<<<<<<< HEAD
+<<<<<<< HEAD
+# Agent 1 - Drawing state management (Issue #27/#238)
+=======
 # Core drawing system - Agent 1
+>>>>>>> main
 from .drawing_state import (
     DrawingStateManager,
     DrawingMode,
@@ -45,6 +59,26 @@ from .drawing_state import (
     DrawingArea,
     DrawingSession
 )
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+# Agent 1 - Core drawing state management (Issue #27)
+=======
+# Agent 1 - Drawing state management for manual validation (Issue #27)
+>>>>>>> origin/main
+try:
+    from .drawing_state import (
+        DrawingStateManager,
+        DrawingMode,
+        DrawingState,
+        DrawingArea,
+        DrawingSession
+    )
+    _drawing_available = True
+except ImportError:
+    _drawing_available = False
+=======
+>>>>>>> main
 
 # Area selection tools (existing)
 try:
@@ -64,18 +98,29 @@ try:
     _area_tools_available = True
 except ImportError:
     _area_tools_available = False
+>>>>>>> origin/main
 
 __all__ = [
     # Basic validation tools
     'ValidationAreaSelector',
     'AreaSelectionMode',
     'SelectionConstraint',
+<<<<<<< HEAD
+<<<<<<< HEAD
+    # Drawing state management
+=======
     # Drawing system - Agent 1
+>>>>>>> main
     'DrawingStateManager',
     'DrawingMode',
     'DrawingState',
     'DrawingArea',
     'DrawingSession',
+<<<<<<< HEAD
+]
+=======
+=======
+>>>>>>> main
 ]
 
 # Add area tools if available
@@ -94,3 +139,4 @@ if _area_tools_available:
         'PolygonSelectionTool',
         'FreehandSelectionTool',
     ])
+>>>>>>> origin/main
