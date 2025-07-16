@@ -1,11 +1,19 @@
 """
 Text Merging Algorithms
 
+<<<<<<< HEAD
+Provides intelligent text concatenation algorithms for merge operations.
+"""
+
+import re
+from typing import List, Optional
+=======
 Provides intelligent text concatenation and splitting algorithms for merge/split operations.
 """
 
 import re
 from typing import List, Optional, Tuple, Dict, Any
+>>>>>>> main
 from enum import Enum
 import logging
 
@@ -16,10 +24,16 @@ logger = logging.getLogger(__name__)
 
 class MergeStrategy(Enum):
     """Text merge strategies."""
+<<<<<<< HEAD
+    SIMPLE = "simple"
+    SMART = "smart"
+    PARAGRAPH = "paragraph"
+=======
     SIMPLE = "simple"              # Just concatenate with spaces
     SMART = "smart"                # Intelligent spacing based on content
     PARAGRAPH = "paragraph"        # Merge as paragraphs with line breaks
     PRESERVE_FORMATTING = "preserve"  # Preserve original formatting
+>>>>>>> main
 
 
 class TextMerger:
@@ -27,6 +41,11 @@ class TextMerger:
     
     def __init__(self):
         self.logger = logging.getLogger(__name__ + ".TextMerger")
+<<<<<<< HEAD
+    
+    def merge_texts(self, elements: List[Element], strategy: MergeStrategy = MergeStrategy.SMART) -> str:
+        """Merge text content from multiple elements."""
+=======
         
         # Patterns for smart merging
         self.sentence_end_pattern = re.compile(r'[.!?]\s*$')
@@ -46,6 +65,7 @@ class TextMerger:
         Returns:
             str: Merged text content
         """
+>>>>>>> main
         if not elements:
             return ""
         
@@ -59,8 +79,11 @@ class TextMerger:
             return self._merge_smart(texts)
         elif strategy == MergeStrategy.PARAGRAPH:
             return self._merge_paragraph(texts)
+<<<<<<< HEAD
+=======
         elif strategy == MergeStrategy.PRESERVE_FORMATTING:
             return self._merge_preserve_formatting(texts)
+>>>>>>> main
         else:
             return self._merge_simple(texts)
     
@@ -96,6 +119,10 @@ class TextMerger:
         
         return "\n\n".join(paragraphs)
     
+<<<<<<< HEAD
+    def _determine_separator(self, prev_text: str, next_text: str) -> str:
+        """Determine appropriate separator between two text segments."""
+=======
     def _merge_preserve_formatting(self, texts: List[str]) -> str:
         """Preserve original formatting and spacing."""
         return "".join(texts)
@@ -111,11 +138,19 @@ class TextMerger:
         Returns:
             str: Appropriate separator
         """
+>>>>>>> main
         # No separator needed if previous text ends with whitespace
         if prev_text.endswith((" ", "\t", "\n")):
             return ""
         
         # No separator needed if next text starts with punctuation
+<<<<<<< HEAD
+        if next_text.startswith((".", "!", "?", ",", ":", ";")):
+            return ""
+        
+        # Use line break if previous text ends with sentence-ending punctuation
+        if prev_text.endswith((".", "!", "?")):
+=======
         if self.punctuation_start_pattern.match(next_text):
             return ""
         
@@ -127,6 +162,7 @@ class TextMerger:
         # Use line break if previous text ends with sentence-ending punctuation
         if self.sentence_end_pattern.search(prev_text):
             # Check if next text starts with capital letter (new sentence)
+>>>>>>> main
             if next_text and next_text[0].isupper():
                 return "\n"
         
@@ -134,6 +170,9 @@ class TextMerger:
         return " "
     
     def split_text(self, text: str, split_points: List[int]) -> List[str]:
+<<<<<<< HEAD
+        """Split text at specified positions."""
+=======
         """
         Split text at specified positions.
         
@@ -144,6 +183,7 @@ class TextMerger:
         Returns:
             List[str]: Split text segments
         """
+>>>>>>> main
         if not text or not split_points:
             return [text] if text else []
         
@@ -167,6 +207,9 @@ class TextMerger:
         if start < len(text):
             segments.append(text[start:])
         
+<<<<<<< HEAD
+        return [seg for seg in segments if seg]  # Remove empty segments
+=======
         return [seg for seg in segments if seg]  # Remove empty segments
     
     def find_optimal_split_points(self, text: str, target_segments: int) -> List[int]:
@@ -366,3 +409,4 @@ class TextMerger:
         quality = max(0.0, 1.0 - (average_distance / max_reasonable_distance))
         
         return quality
+>>>>>>> main

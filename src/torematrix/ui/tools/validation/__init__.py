@@ -15,22 +15,26 @@ from .drawing_state import (
     DrawingSession
 )
 
-# Agent 1 - Area selection tools (Issue #26)
-from .area_select import (
-    ValidationAreaSelector,
-    AreaSelectionMode,
-    SelectionConstraint,
-    ValidationSelectionConfig,
-)
-from .shapes import (
-    SelectionShape,
-    RectangleShape,
-    PolygonShape,
-    FreehandShape,
-    RectangleSelectionTool,
-    PolygonSelectionTool,
-    FreehandSelectionTool,
-)
+# Agent 1 + Agent 2 - Area selection tools (Issue #26)
+try:
+    from .area_select import (
+        ValidationAreaSelector,
+        AreaSelectionMode,
+        SelectionConstraint,
+        ValidationSelectionConfig,
+    )
+    from .shapes import (
+        SelectionShape,
+        RectangleShape,
+        PolygonShape,
+        FreehandShape,
+        RectangleSelectionTool,
+        PolygonSelectionTool,
+        FreehandSelectionTool,
+    )
+    _area_tools_available = True
+except ImportError:
+    _area_tools_available = False
 
 # Agent 2 - Interactive hierarchy tools (Issue #29.2)
 try:
@@ -46,6 +50,21 @@ try:
     _hierarchy_tools_available = True
 except ImportError:
     _hierarchy_tools_available = False
+
+# Agent 2 - OCR Service Integration (Issue #240)
+try:
+    from .ocr_service import (
+        ValidationOCRService,
+        OCRRequest,
+        OCRResponse,
+        OCRWorkerThread,
+        OCREngine,
+        OCRQualityAssessment,
+        ImagePreprocessor
+    )
+    _ocr_service_available = True
+except ImportError:
+    _ocr_service_available = False
 
 # Agent 4 - Structure wizard and export system (Issue #245)
 try:
@@ -73,22 +92,26 @@ __all__ = [
     'DrawingState',
     'DrawingArea',
     'DrawingSession',
-    
-    # Area selection tools - Agent 1
-    'ValidationAreaSelector',
-    'AreaSelectionMode',
-    'SelectionConstraint',
-    'ValidationSelectionConfig',
-    
-    # Shape tools - Agent 1
-    'SelectionShape',
-    'RectangleShape',
-    'PolygonShape', 
-    'FreehandShape',
-    'RectangleSelectionTool',
-    'PolygonSelectionTool',
-    'FreehandSelectionTool',
 ]
+
+# Add area selection tools if available (Issue #26)
+if _area_tools_available:
+    __all__.extend([
+        # Area selection - Agent 1
+        'ValidationAreaSelector',
+        'AreaSelectionMode',
+        'SelectionConstraint',
+        'ValidationSelectionConfig',
+        
+        # Shape tools - Agent 1
+        'SelectionShape',
+        'RectangleShape',
+        'PolygonShape', 
+        'FreehandShape',
+        'RectangleSelectionTool',
+        'PolygonSelectionTool',
+        'FreehandSelectionTool',
+    ])
 
 # Add hierarchy tools if available - Agent 2
 if _hierarchy_tools_available:
@@ -101,6 +124,19 @@ if _hierarchy_tools_available:
         'HierarchyOperation',
         'ValidationLevel',
         'HierarchyMetrics'
+    ])
+
+# Add OCR service components if available - Agent 2 (Issue #240)
+if _ocr_service_available:
+    __all__.extend([
+        # OCR Service Integration - Agent 2
+        'ValidationOCRService',
+        'OCRRequest',
+        'OCRResponse',
+        'OCRWorkerThread',
+        'OCREngine',
+        'OCRQualityAssessment',
+        'ImagePreprocessor',
     ])
 
 # Add structure wizard and export tools if available - Agent 4

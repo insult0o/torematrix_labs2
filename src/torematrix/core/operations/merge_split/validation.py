@@ -1,4 +1,13 @@
 """
+<<<<<<< HEAD
+Operation Validation Framework
+
+Provides comprehensive validation for merge/split operation parameters and preconditions.
+"""
+
+from dataclasses import dataclass
+from typing import List, Optional, Dict, Any
+=======
 Validation Framework for Merge/Split Operations
 
 Provides comprehensive validation for operation parameters, preconditions, and feasibility.
@@ -6,13 +15,17 @@ Provides comprehensive validation for operation parameters, preconditions, and f
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any, Set
+>>>>>>> main
 from enum import Enum
 import logging
 
 from torematrix.core.models.element import Element
+<<<<<<< HEAD
+=======
 from torematrix.core.models.metadata import ElementMetadata
 from torematrix.core.models.coordinates import Coordinates
 from torematrix.core.processing.metadata.algorithms.spatial import BoundingBox
+>>>>>>> main
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +38,34 @@ class ValidationLevel(Enum):
 
 
 @dataclass
+<<<<<<< HEAD
+class ValidationResult:
+    """Result of operation validation."""
+    is_valid: bool
+    issues: List[str] = None
+    warnings: List[str] = None
+    
+    def __post_init__(self):
+        if self.issues is None:
+            self.issues = []
+        if self.warnings is None:
+            self.warnings = []
+    
+    def add_error(self, message: str, code: str = "VALIDATION_ERROR"):
+        """Add an error message."""
+        self.issues.append(message)
+        self.is_valid = False
+    
+    def add_warning(self, message: str, code: str = "VALIDATION_WARNING"):
+        """Add a warning message."""
+        self.warnings.append(message)
+    
+    def get_error_summary(self) -> str:
+        """Get a summary of all errors."""
+        if not self.issues:
+            return "No errors found"
+        return "; ".join(self.issues)
+=======
 class ValidationIssue:
     """Represents a validation issue."""
     level: ValidationLevel
@@ -103,6 +144,7 @@ class ValidationResult:
             return "No errors found"
         
         return "; ".join([f"{issue.code}: {issue.message}" for issue in self.issues])
+>>>>>>> main
 
 
 class OperationValidator:
@@ -119,16 +161,22 @@ class OperationValidator:
         "text", "narrative_text", "paragraph", "list_item", "table_cell"
     }
     
+<<<<<<< HEAD
+=======
     # Minimum text length for splitting
     MIN_SPLIT_TEXT_LENGTH = 10
     
     # Maximum elements for merge operation
     MAX_MERGE_ELEMENTS = 50
     
+>>>>>>> main
     def __init__(self):
         self.logger = logging.getLogger(__name__ + ".OperationValidator")
     
     def validate_merge_operation(self, elements: List[Element]) -> ValidationResult:
+<<<<<<< HEAD
+        """Validate a merge operation."""
+=======
         """
         Validate a merge operation.
         
@@ -138,10 +186,34 @@ class OperationValidator:
         Returns:
             ValidationResult: Validation result
         """
+>>>>>>> main
         result = ValidationResult(is_valid=True)
         
         # Basic validation
         if not elements:
+<<<<<<< HEAD
+            result.add_error("No elements provided for merge")
+            return result
+        
+        if len(elements) < 2:
+            result.add_error("At least 2 elements required for merge")
+            return result
+        
+        # Check element types
+        element_types = {elem.element_type for elem in elements}
+        if not element_types.issubset(self.MERGEABLE_TYPES):
+            unmergeable = element_types - self.MERGEABLE_TYPES
+            result.add_error(f"Unmergeable element types: {unmergeable}")
+        
+        # Check for mixed types
+        if len(element_types) > 1:
+            result.add_warning(f"Merging different element types: {element_types}")
+        
+        # Check text content
+        empty_text_count = sum(1 for elem in elements if not elem.text or not elem.text.strip())
+        if empty_text_count > 0:
+            result.add_warning(f"{empty_text_count} elements have no text content")
+=======
             result.add_error("No elements provided for merge", "MERGE_NO_ELEMENTS")
             return result
         
@@ -172,10 +244,14 @@ class OperationValidator:
         
         # Validate spatial relationships
         self._validate_merge_spatial_relationships(elements, result)
+>>>>>>> main
         
         return result
     
     def validate_split_operation(self, element: Element, split_points: List[int]) -> ValidationResult:
+<<<<<<< HEAD
+        """Validate a split operation."""
+=======
         """
         Validate a split operation.
         
@@ -186,10 +262,40 @@ class OperationValidator:
         Returns:
             ValidationResult: Validation result
         """
+>>>>>>> main
         result = ValidationResult(is_valid=True)
         
         # Basic validation
         if not element:
+<<<<<<< HEAD
+            result.add_error("No element provided for split")
+            return result
+        
+        if not split_points:
+            result.add_error("No split points provided")
+            return result
+        
+        # Check element type
+        if element.element_type not in self.SPLITTABLE_TYPES:
+            result.add_error(f"Element type '{element.element_type}' cannot be split")
+        
+        # Check text content
+        if not element.text or len(element.text) < 10:
+            result.add_error("Element text too short for splitting")
+        
+        # Validate split points
+        if element.text:
+            text_length = len(element.text)
+            for point in split_points:
+                if point < 0 or point >= text_length:
+                    result.add_error(f"Split point {point} is out of bounds (0-{text_length})")
+        
+        # Check split points are sorted
+        if split_points != sorted(split_points):
+            result.add_error("Split points must be in ascending order")
+        
+        return result
+=======
             result.add_error("No element provided for split", "SPLIT_NO_ELEMENT")
             return result
         
@@ -387,3 +493,4 @@ class OperationValidator:
                 "SPLIT_NO_LAYOUT_BBOX",
                 element_id=element.element_id
             )
+>>>>>>> main

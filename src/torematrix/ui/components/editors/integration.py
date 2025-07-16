@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 """Element list integration bridge for seamless editing workflow"""
 
 from PyQt6.QtWidgets import QWidget, QVBoxLayout
@@ -38,8 +35,6 @@ class ElementEditorBridge(QObject):
     - Validation and error handling
     - State synchronization
     - Performance optimization
-=======
->>>>>>> origin/main
 """Integration bridge for seamless element list and editor workflow
 
 This module provides the bridge between element lists and inline editors,
@@ -65,20 +60,10 @@ except ImportError:
             
     class QTimer:
         def __init__(self):
-<<<<<<< HEAD
-            self.timeout = MockSignal()
-        def start(self, ms): pass
-        def stop(self): pass
-        def isActive(self): return False
-        
-    class MockSignal:
-        def connect(self, func): pass
-=======
             pass
         def start(self, ms): pass
         def stop(self): pass
         def timeout(self): return lambda: None
->>>>>>> origin/main
             
     def pyqtSignal(*args):
         return lambda: None
@@ -105,17 +90,10 @@ class ElementEditorBridge(QObject):
     2. Creates appropriate editors
     3. Manages editor lifecycle
     4. Handles edit completion and updates
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
->>>>>>> origin/main
     """
     
     # Signals
     edit_requested = pyqtSignal(str, str)  # element_id, element_type
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
     edit_completed = pyqtSignal(str, str, bool)  # element_id, new_content, success
     validation_failed = pyqtSignal(str, str)  # element_id, error_message
     editor_created = pyqtSignal(str, str)  # element_id, editor_type
@@ -474,8 +452,6 @@ class ElementEditorBridge(QObject):
         
         Returns:
             Dictionary mapping element IDs to save success status
-=======
->>>>>>> origin/main
     edit_started = pyqtSignal(str, object)  # element_id, editor
     edit_completed = pyqtSignal(str, object, bool)  # element_id, value, success
     edit_cancelled = pyqtSignal(str)  # element_id
@@ -750,18 +726,11 @@ class ElementEditorBridge(QObject):
         
         Returns:
             Dictionary mapping element_id to save success status
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
->>>>>>> origin/main
         """
         results = {}
         
         for element_id, editor in self.active_editors.items():
             try:
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
                 if hasattr(editor, 'force_save'):
                     results[element_id] = editor.force_save()
                 elif hasattr(editor, 'finish_editing'):
@@ -769,24 +738,15 @@ class ElementEditorBridge(QObject):
                     results[element_id] = True
                 else:
                     results[element_id] = False
-=======
->>>>>>> origin/main
                 success = editor.save()
                 results[element_id] = success
                 
                 if success:
                     self._handle_editing_finished(element_id, True)
-<<<<<<< HEAD
-=======
->>>>>>> origin/main
->>>>>>> origin/main
             except Exception:
                 results[element_id] = False
         
         return results
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
 
 
 class ElementListIntegration:
@@ -989,8 +949,6 @@ class ElementListIntegration:
                 cancelled_count += 1
         
         return cancelled_count
-=======
->>>>>>> origin/main
     
     def get_edit_statistics(self) -> Dict[str, int]:
         """Get editing statistics"""
@@ -1010,9 +968,4 @@ class ElementListIntegration:
 __all__ = [
     'ElementEditorBridge',
     'EditRequest'
-<<<<<<< HEAD
 ]
-=======
-]
->>>>>>> origin/main
->>>>>>> origin/main
