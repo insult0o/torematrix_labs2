@@ -34,27 +34,6 @@ from ....core.models.hierarchy import ElementHierarchy, HierarchyOperations
 from ....core.state import StateManager
 from ....core.events import EventBus
 from ....ui.components.base import BaseWidget
-Interactive hierarchy management tools for document validation.
-
-This module provides UI components for managing document element hierarchies.
-"""
-
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
-from enum import Enum
-import logging
-
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QTreeWidget, QTreeWidgetItem,
-    QToolButton, QCheckBox, QSplitter, QGroupBox, QAbstractItemView
-)
-from PyQt6.QtCore import Qt, pyqtSignal
-
-from torematrix.core.models.element import Element, ElementType
-from torematrix.core.operations.hierarchy import HierarchyManager
-from torematrix.core.events import EventBus
-from torematrix.core.state import StateStore
-from torematrix.utils.geometry import Rect
 
 
 logger = logging.getLogger(__name__)
