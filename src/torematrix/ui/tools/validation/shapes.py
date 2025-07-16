@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Selection shape tools for validation area selection.
 
 This module provides different shape tools (rectangle, polygon, freehand)
@@ -12,7 +11,6 @@ from dataclasses import dataclass, field
 
 from PyQt6.QtCore import Qt, QPointF, QRectF, QLineF
 from PyQt6.QtGui import QPainter, QPainterPath, QPolygonF
-=======
 Shape tools for area selection during manual validation.
 
 This module provides shape classes and tools for creating and manipulating
@@ -38,13 +36,11 @@ class SelectionHandle:
     size: int = 8
     handle_type: str = "corner"  # corner, edge, center
     cursor_type: str = "default"
->>>>>>> origin/main
 
 
 class SelectionShape(ABC):
     """Abstract base class for selection shapes."""
     
-<<<<<<< HEAD
     @abstractmethod
     def draw(self, painter: QPainter):
         """Draw the shape."""
@@ -507,7 +503,6 @@ class FreehandSelectionTool(SelectionTool):
             self.current_shape = None
             return shape
         return None
-=======
     def __init__(self, start_point: QPoint):
         self.start_point = start_point
         self.current_point = start_point
@@ -1195,4 +1190,3 @@ def create_selection_tool(tool_type: str) -> SelectionTool:
 def get_available_tools() -> List[str]:
     """Get list of available selection tools."""
     return ["rectangle", "polygon", "freehand"]
->>>>>>> origin/main

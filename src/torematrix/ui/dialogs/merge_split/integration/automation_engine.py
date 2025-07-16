@@ -40,83 +40,49 @@ from .....core.events import EventBus
 from .....ui.components.base import BaseWidget
 
 logger = logging.getLogger(__name__)
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
 
 
 class RuleType(Enum):
     """Types of automation rules."""
-<<<<<<< HEAD
-    MERGE_SIMILAR = "merge_similar"
-    SPLIT_CONTENT = "split_content"
-    CLEAN_TEXT = "clean_text"
-    CUSTOM = "custom"
-=======
     MERGE_SIMILAR = auto()
     SPLIT_CONTENT = auto()
     CLEAN_TEXT = auto()
     ORGANIZE_HIERARCHY = auto()
     VALIDATE_STRUCTURE = auto()
     CUSTOM = auto()
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
 
 
 class RuleCondition(Enum):
     """Rule condition types."""
-<<<<<<< HEAD
-    ELEMENT_TYPE = "element_type"
-    TEXT_LENGTH = "text_length"
-    SIMILARITY_SCORE = "similarity_score"
-    CUSTOM = "custom"
-=======
     ELEMENT_TYPE = auto()
     TEXT_LENGTH = auto()
     SIMILARITY_SCORE = auto()
     POSITION = auto()
     CUSTOM = auto()
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
 
 
 class RuleAction(Enum):
     """Rule action types."""
-<<<<<<< HEAD
-    MERGE_ELEMENTS = "merge_elements"
-    SPLIT_ELEMENT = "split_element" 
-    MODIFY_TEXT = "modify_text"
-    CUSTOM = "custom"
-=======
     MERGE_ELEMENTS = auto()
     SPLIT_ELEMENT = auto()
     MODIFY_TEXT = auto()
     MOVE_ELEMENT = auto()
     DELETE_ELEMENT = auto()
     CUSTOM = auto()
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
 
 
 class ExecutionMode(Enum):
     """Rule execution modes."""
-<<<<<<< HEAD
-    INTERACTIVE = "interactive"
-    BATCH = "batch"
-    SIMULATION = "simulation"
-=======
     INTERACTIVE = auto()
     BATCH = auto()
     SIMULATION = auto()
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
 
 
 class RuleStatus(Enum):
     """Rule status."""
-<<<<<<< HEAD
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    TESTING = "testing"
-=======
     ACTIVE = auto()
     INACTIVE = auto()
     TESTING = auto()
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
 
 
 @dataclass
@@ -127,24 +93,6 @@ class RuleConditionSpec:
     value: Any = None
     weight: float = 1.0
     
-<<<<<<< HEAD
-    def evaluate(self, element, context: Dict[str, Any]) -> bool:
-        """Evaluate condition against element."""
-        try:
-            if self.condition_type == RuleCondition.ELEMENT_TYPE:
-                element_type = getattr(element, 'element_type', 'unknown')
-                if hasattr(element_type, 'value'):
-                    element_type = element_type.value
-                return self._compare(str(element_type), self.operator, str(self.value))
-            elif self.condition_type == RuleCondition.TEXT_LENGTH:
-                text_length = len(getattr(element, 'text', ''))
-                return self._compare(text_length, self.operator, self.value)
-            elif self.condition_type == RuleCondition.SIMILARITY_SCORE:
-                # Simple similarity implementation
-                return True
-            return False
-        except Exception:
-=======
     def evaluate(self, element: Element, context: Dict[str, Any]) -> bool:
         """Evaluate condition against element."""
         try:
@@ -164,7 +112,6 @@ class RuleConditionSpec:
             return False
         except Exception as e:
             logger.error(f"Error evaluating condition: {e}")
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
             return False
     
     def _compare(self, actual: Any, operator: str, expected: Any) -> bool:
@@ -181,9 +128,6 @@ class RuleConditionSpec:
             return actual < expected
         elif operator == "<=":
             return actual <= expected
-<<<<<<< HEAD
-        return False
-=======
         elif operator == "contains":
             return str(expected).lower() in str(actual).lower()
         return False
@@ -206,28 +150,16 @@ class RuleConditionSpec:
         union = len(words1.union(words2))
         
         return intersection / union if union > 0 else 0.0
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
 
 
 @dataclass
 class RuleActionSpec:
     """Specification for a rule action."""
     action_type: RuleAction
-<<<<<<< HEAD
-    parameters: Dict[str, Any] = None
-    priority: int = 1
-    
-    def __post_init__(self):
-        if self.parameters is None:
-            self.parameters = {}
-    
-    async def execute(self, elements: List, context: Dict[str, Any]) -> Dict[str, Any]:
-=======
     parameters: Dict[str, Any] = field(default_factory=dict)
     priority: int = 1
     
     async def execute(self, elements: List[Element], context: Dict[str, Any]) -> Dict[str, Any]:
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         """Execute action on elements."""
         try:
             if self.action_type == RuleAction.MERGE_ELEMENTS:
@@ -239,16 +171,10 @@ class RuleActionSpec:
             else:
                 return {"success": False, "error": f"Action {self.action_type} not implemented"}
         except Exception as e:
-<<<<<<< HEAD
-            return {"success": False, "error": str(e)}
-    
-    async def _merge_elements(self, elements: List, context: Dict[str, Any]) -> Dict[str, Any]:
-=======
             logger.error(f"Error executing action: {e}")
             return {"success": False, "error": str(e)}
     
     async def _merge_elements(self, elements: List[Element], context: Dict[str, Any]) -> Dict[str, Any]:
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         """Merge elements action."""
         if len(elements) < 2:
             return {"success": False, "error": "Need at least 2 elements to merge"}
@@ -257,14 +183,8 @@ class RuleActionSpec:
         texts = []
         
         for element in elements:
-<<<<<<< HEAD
-            text = getattr(element, 'text', '')
-            if text:
-                texts.append(text)
-=======
             if hasattr(element, 'text') and element.text:
                 texts.append(element.text)
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         
         merged_text = separator.join(texts)
         
@@ -275,33 +195,20 @@ class RuleActionSpec:
             "source_count": len(elements)
         }
     
-<<<<<<< HEAD
-    async def _split_element(self, elements: List, context: Dict[str, Any]) -> Dict[str, Any]:
-=======
     async def _split_element(self, elements: List[Element], context: Dict[str, Any]) -> Dict[str, Any]:
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         """Split element action."""
         if len(elements) != 1:
             return {"success": False, "error": "Need exactly 1 element to split"}
         
         element = elements[0]
-<<<<<<< HEAD
-        text = getattr(element, 'text', '')
-        if not text:
-=======
         if not hasattr(element, 'text') or not element.text:
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
             return {"success": False, "error": "Element has no text to split"}
         
         pattern = self.parameters.get("pattern", r"\s+")
         max_parts = self.parameters.get("max_parts", 10)
         
         import re
-<<<<<<< HEAD
-        parts = re.split(pattern, text, maxsplit=max_parts-1)
-=======
         parts = re.split(pattern, element.text, maxsplit=max_parts-1)
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         parts = [part.strip() for part in parts if part.strip()]
         
         return {
@@ -311,23 +218,11 @@ class RuleActionSpec:
             "part_count": len(parts)
         }
     
-<<<<<<< HEAD
-    async def _modify_text(self, elements: List, context: Dict[str, Any]) -> Dict[str, Any]:
-=======
     async def _modify_text(self, elements: List[Element], context: Dict[str, Any]) -> Dict[str, Any]:
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         """Modify text action."""
         modified_count = 0
         
         for element in elements:
-<<<<<<< HEAD
-            text = getattr(element, 'text', '')
-            if text:
-                if self.parameters.get("trim_whitespace", False):
-                    new_text = text.strip()
-                    if hasattr(element, 'text'):
-                        element.text = new_text
-=======
             if hasattr(element, 'text') and element.text:
                 original_text = element.text
                 modified_text = original_text
@@ -346,7 +241,6 @@ class RuleActionSpec:
                 
                 if modified_text != original_text:
                     element.text = modified_text
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
                     modified_count += 1
         
         return {
@@ -359,21 +253,12 @@ class RuleActionSpec:
 @dataclass
 class AutomationRule:
     """Complete automation rule definition."""
-<<<<<<< HEAD
-    id: str = None
-    name: str = ""
-    description: str = ""
-    rule_type: RuleType = RuleType.CUSTOM
-    conditions: List[RuleConditionSpec] = None
-    actions: List[RuleActionSpec] = None
-=======
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     name: str = ""
     description: str = ""
     rule_type: RuleType = RuleType.CUSTOM
     conditions: List[RuleConditionSpec] = field(default_factory=list)
     actions: List[RuleActionSpec] = field(default_factory=list)
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
     execution_mode: ExecutionMode = ExecutionMode.INTERACTIVE
     status: RuleStatus = RuleStatus.ACTIVE
     priority: int = 1
@@ -381,19 +266,7 @@ class AutomationRule:
     success_count: int = 0
     last_executed: Optional[datetime] = None
     
-<<<<<<< HEAD
-    def __post_init__(self):
-        if self.id is None:
-            self.id = str(uuid.uuid4())
-        if self.conditions is None:
-            self.conditions = []
-        if self.actions is None:
-            self.actions = []
-    
-    async def execute(self, elements: List, context: Dict[str, Any]) -> Dict[str, Any]:
-=======
     async def execute(self, elements: List[Element], context: Dict[str, Any]) -> Dict[str, Any]:
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         """Execute rule on elements."""
         try:
             self.execution_count += 1
@@ -435,21 +308,14 @@ class AutomationRule:
             }
             
         except Exception as e:
-<<<<<<< HEAD
-=======
             logger.error(f"Error executing rule {self.name}: {e}")
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
             return {
                 "success": False,
                 "rule_id": self.id,
                 "error": str(e)
             }
     
-<<<<<<< HEAD
-    def _evaluate_conditions(self, element, context: Dict[str, Any]) -> bool:
-=======
     def _evaluate_conditions(self, element: Element, context: Dict[str, Any]) -> bool:
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         """Evaluate all conditions for element."""
         if not self.conditions:
             return True
@@ -466,15 +332,9 @@ class AutomationRule:
             "id": self.id,
             "name": self.name,
             "description": self.description,
-<<<<<<< HEAD
-            "rule_type": self.rule_type.value,
-            "execution_mode": self.execution_mode.value,
-            "status": self.status.value,
-=======
             "rule_type": self.rule_type.name,
             "execution_mode": self.execution_mode.name,
             "status": self.status.name,
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
             "priority": self.priority,
             "execution_count": self.execution_count,
             "success_count": self.success_count,
@@ -488,15 +348,9 @@ class AutomationRule:
             id=data.get("id", str(uuid.uuid4())),
             name=data.get("name", ""),
             description=data.get("description", ""),
-<<<<<<< HEAD
-            rule_type=RuleType(data.get("rule_type", "custom")),
-            execution_mode=ExecutionMode(data.get("execution_mode", "interactive")),
-            status=RuleStatus(data.get("status", "active")),
-=======
             rule_type=RuleType[data.get("rule_type", "CUSTOM")],
             execution_mode=ExecutionMode[data.get("execution_mode", "INTERACTIVE")],
             status=RuleStatus[data.get("status", "ACTIVE")],
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
             priority=data.get("priority", 1),
             execution_count=data.get("execution_count", 0),
             success_count=data.get("success_count", 0)
@@ -511,13 +365,6 @@ class AutomationRule:
 class AutomationExecutor:
     """Core executor for automation rules."""
     
-<<<<<<< HEAD
-    def __init__(self, state_manager=None, event_bus=None):
-        self.state_manager = state_manager
-        self.event_bus = event_bus
-        self.rules: Dict[str, AutomationRule] = {}
-        self.execution_queue = None  # Placeholder
-=======
     def __init__(self, state_manager: StateManager, event_bus: EventBus):
         self.state_manager = state_manager
         self.event_bus = event_bus
@@ -525,7 +372,6 @@ class AutomationExecutor:
         self.execution_queue = asyncio.Queue()
         self.executor = ThreadPoolExecutor(max_workers=4)
         self._mutex = QMutex()
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
         
         self._load_built_in_rules()
     
@@ -541,14 +387,11 @@ class AutomationExecutor:
                     condition_type=RuleCondition.ELEMENT_TYPE,
                     operator="==",
                     value="TEXT"
-<<<<<<< HEAD
-=======
                 ),
                 RuleConditionSpec(
                     condition_type=RuleCondition.TEXT_LENGTH,
                     operator=">",
                     value=0
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
                 )
             ],
             actions=[
@@ -560,9 +403,6 @@ class AutomationExecutor:
             ]
         )
         
-<<<<<<< HEAD
-        self.rules[text_clean_rule.id] = text_clean_rule
-=======
         # Similar elements merge rule
         merge_similar_rule = AutomationRule(
             name="Merge Similar Elements",
@@ -586,7 +426,6 @@ class AutomationExecutor:
         
         self.rules[text_clean_rule.id] = text_clean_rule
         self.rules[merge_similar_rule.id] = merge_similar_rule
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106
     
     def add_rule(self, rule: AutomationRule):
         """Add rule to executor."""
@@ -600,35 +439,6 @@ class AutomationExecutor:
     def get_active_rules(self) -> List[AutomationRule]:
         """Get active rules."""
         return [rule for rule in self.rules.values() if rule.status == RuleStatus.ACTIVE]
-<<<<<<< HEAD
-
-
-class AutomationControlWidget:
-    """Widget for controlling automation system."""
-    
-    def __init__(self, state_manager=None, event_bus=None, parent=None):
-        self.state_manager = state_manager
-        self.event_bus = event_bus
-        self.automation_executor = AutomationExecutor(state_manager, event_bus)
-        self.tab_widget = None  # Placeholder
-        
-        # Mock PyQt signals
-        self.rule_executed = MockSignal()
-
-
-class MockSignal:
-    """Mock PyQt signal for testing."""
-    
-    def __init__(self):
-        self.callbacks = []
-    
-    def connect(self, callback):
-        self.callbacks.append(callback)
-    
-    def emit(self, *args):
-        for callback in self.callbacks:
-            callback(*args)
-=======
     
     async def execute_rules(self, elements: List[Element], context: Dict[str, Any] = None) -> List[Dict[str, Any]]:
         """Execute all applicable rules on elements."""
@@ -736,4 +546,3 @@ class AutomationControlWidget(BaseWidget):
         """Execute selected rule."""
         # Placeholder for rule execution
         self.execution_log.append("Rule execution placeholder")
->>>>>>> e6094fd44b1f00d20418391f13ed7f24670b3106

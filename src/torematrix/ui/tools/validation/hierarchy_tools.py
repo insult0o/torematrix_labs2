@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Interactive hierarchy management UI tools for manual validation.
 
 Agent 2 implementation for Issue #29.2 - Interactive Hierarchy UI Tools.
@@ -35,7 +34,6 @@ from ....core.models.hierarchy import ElementHierarchy, HierarchyOperations
 from ....core.state import StateManager
 from ....core.events import EventBus
 from ....ui.components.base import BaseWidget
-=======
 Interactive hierarchy management tools for document validation.
 
 This module provides UI components for managing document element hierarchies.
@@ -58,12 +56,10 @@ from torematrix.core.events import EventBus
 from torematrix.core.state import StateStore
 from torematrix.utils.geometry import Rect
 
->>>>>>> origin/main
 
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
 class HierarchyOperation(Enum):
     """Types of hierarchy operations"""
     INDENT = auto()         # Move element deeper in hierarchy
@@ -494,7 +490,6 @@ class HierarchyToolsWidget(QWidget):
         self.state_manager = state_manager
         self.event_bus = event_bus
         self.hierarchy: Optional[ElementHierarchy] = None
-=======
 class HierarchyToolAction(Enum):
     """Actions available in hierarchy tools."""
     MOVE_UP = "move_up"
@@ -717,12 +712,10 @@ class HierarchyToolsWidget(QWidget):
         self.event_bus = None
         self.selected_elements = []
         
->>>>>>> origin/main
         self._setup_ui()
         self._connect_signals()
     
     def _setup_ui(self):
-<<<<<<< HEAD
         """Initialize UI components"""
         layout = QHBoxLayout(self)
         
@@ -867,7 +860,6 @@ class HierarchyToolsWidget(QWidget):
     def select_elements(self, element_ids: List[str]):
         """Select specific elements"""
         self.tree_widget.select_elements(element_ids)
-=======
         """Set up the UI."""
         layout = QHBoxLayout(self)
         
@@ -924,4 +916,3 @@ class HierarchyToolsWidget(QWidget):
     def _on_config_changed(self, config: HierarchyDisplayConfig):
         """Handle configuration change."""
         pass
->>>>>>> origin/main

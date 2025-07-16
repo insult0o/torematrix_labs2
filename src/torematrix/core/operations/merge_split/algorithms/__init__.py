@@ -1,12 +1,9 @@
 """
 Algorithms for Merge/Split Operations
 
-<<<<<<< HEAD
 Core algorithms for text merging, coordinate operations, metadata merging, and hierarchy operations.
-=======
 This module contains the core algorithms for processing elements, coordinates,
 metadata, and hierarchical relationships in merge/split operations.
->>>>>>> main
 """
 
 from .text_merging import TextMerger
@@ -16,12 +13,9 @@ from .hierarchy_ops import HierarchyProcessor
 
 __all__ = [
     "TextMerger",
-<<<<<<< HEAD
     "CoordinateProcessor",
     "MetadataMerger", 
-=======
     "CoordinateProcessor", 
     "MetadataMerger",
->>>>>>> main
     "HierarchyProcessor",
 ]

@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Area selection component for manual validation workflows.
 
 This module provides the ValidationAreaSelector class and related functionality
@@ -33,10 +32,8 @@ class SelectionConstraint(Enum):
     FIXED_SIZE = auto()
     ALIGN_TO_GRID = auto()
     ALIGN_TO_ELEMENTS = auto()
-=======
 Area selection tool for manual validation workflow.
 
-<<<<<<< HEAD
 This module provides the main area selection tool that manages different selection
 modes and coordinates the various shape tools for creating validation areas.
 """
@@ -51,7 +48,6 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import (
     QPainter, QPen, QBrush, QColor, QKeyEvent, QMouseEvent, 
     QWheelEvent, QPainterPath
-=======
 Agent 2 implementation building on Agent 1's foundation.
 This module provides the main area selection tool with advanced snapping algorithms
 and magnetic edge detection for precise element boundary selection.
@@ -68,7 +64,6 @@ from PyQt6.QtCore import (
 from PyQt6.QtGui import (
     QPainter, QPen, QBrush, QColor, QKeyEvent, QMouseEvent, 
     QWheelEvent, QPainterPath, QTransform
->>>>>>> origin/main
 )
 from PyQt6.QtWidgets import QWidget
 
@@ -78,13 +73,10 @@ from .shapes import (
     SelectionShape, RectangleShape, PolygonShape, FreehandShape,
     RectangleSelectionTool, PolygonSelectionTool, FreehandSelectionTool
 )
-<<<<<<< HEAD
-=======
 from .snapping import (
     SnapEngine, SnapTarget, SnapResult, SnapType,
     MagneticField, EdgeDetector, SnapConfiguration
 )
->>>>>>> origin/main
 
 
 class AreaSelectionMode(Enum):
@@ -103,16 +95,12 @@ class SelectionConstraint(Enum):
     FIXED_SIZE = auto()          # Fixed size selection
     ALIGN_TO_GRID = auto()       # Snap to grid
     ALIGN_TO_ELEMENTS = auto()   # Snap to existing elements
-<<<<<<< HEAD
-=======
     MAGNETIC_EDGES = auto()      # Magnetic edge detection
->>>>>>> origin/main
 
 
 @dataclass
 class ValidationSelectionConfig:
     """Configuration for validation area selection."""
-<<<<<<< HEAD
     grid_size: int = 10
     snap_distance: int = 5
     min_selection_size: int = 10
@@ -225,7 +213,6 @@ class ValidationAreaSelector(QObject):
             self.is_selecting = False
             self.current_selection = QRect()
             logger.debug("Selection cancelled")
-=======
     # Visual settings
     selection_color: QColor = field(default_factory=lambda: QColor(0, 120, 215, 100))
     selection_border_color: QColor = field(default_factory=lambda: QColor(0, 120, 215))
@@ -251,8 +238,6 @@ class ValidationAreaSelector(QObject):
     # Multi-selection
     allow_multi_select: bool = True
     multi_select_mode: str = "additive"  # "additive" or "subtractive"
-<<<<<<< HEAD
-=======
     
     # Agent 2: Snapping configuration
     snap_config: SnapConfiguration = field(default_factory=SnapConfiguration)
@@ -260,20 +245,16 @@ class ValidationAreaSelector(QObject):
     edge_detection_sensitivity: float = 0.8  # Edge detection sensitivity
     show_snap_guides: bool = True
     snap_guide_color: QColor = field(default_factory=lambda: QColor(255, 0, 0, 128))
->>>>>>> origin/main
 
 
 class ValidationAreaSelector(QObject):
     """
     Main area selection tool for manual validation workflow.
     
-<<<<<<< HEAD
     This class manages the selection process, coordinates different shape tools,
     and emits signals when selections are completed or modified.
-=======
     Agent 2 enhancement: Adds advanced snapping algorithms and magnetic edge detection
     for precise element boundary selection and improved user experience.
->>>>>>> origin/main
     """
     
     # Signals
@@ -282,17 +263,14 @@ class ValidationAreaSelector(QObject):
     selection_completed = pyqtSignal(object)  # SelectionShape
     selection_cancelled = pyqtSignal()
     mode_changed = pyqtSignal(AreaSelectionMode)
-<<<<<<< HEAD
     
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize the validation area selector."""
-=======
     snap_target_found = pyqtSignal(object)  # SnapTarget
     snap_target_lost = pyqtSignal()
     
     def __init__(self, parent: Optional[QWidget] = None):
         """Initialize the validation area selector with snapping capabilities."""
->>>>>>> origin/main
         super().__init__(parent)
         
         self.widget = parent
@@ -318,9 +296,7 @@ class ValidationAreaSelector(QObject):
         self.selected_indices: Set[int] = set()
         
         # Element references (for snapping/alignment)
-<<<<<<< HEAD
         self.element_boundaries = []
-=======
         self.element_boundaries: List[QRectF] = []
         
         # Agent 2: Snapping engine and magnetic field
@@ -336,14 +312,11 @@ class ValidationAreaSelector(QObject):
         self.snap_timer = QTimer()
         self.snap_timer.setSingleShot(True)
         self.snap_timer.timeout.connect(self._calculate_snap_targets)
->>>>>>> origin/main
         
         # Install event filter if widget provided
         if self.widget:
             self.widget.installEventFilter(self)
     
-<<<<<<< HEAD
-=======
     def set_element_boundaries(self, boundaries: List[QRectF]):
         """Set element boundaries for snapping/alignment."""
         self.element_boundaries = boundaries
@@ -704,7 +677,6 @@ class ValidationAreaSelector(QObject):
         painter.restore()
     
     # Keep existing methods from Agent 1 with minimal changes
->>>>>>> origin/main
     def set_mode(self, mode: AreaSelectionMode):
         """Set the current selection mode."""
         self.mode = mode
@@ -719,7 +691,6 @@ class ValidationAreaSelector(QObject):
     def set_constraint(self, constraint: SelectionConstraint):
         """Set the active selection constraint."""
         self.active_constraint = constraint
-<<<<<<< HEAD
     
     def set_element_boundaries(self, boundaries: List[QRectF]):
         """Set element boundaries for snapping/alignment."""
@@ -778,7 +749,6 @@ class ValidationAreaSelector(QObject):
         # Reset state
         self.is_selecting = False
         self.current_shape = None
-=======
         
         # Update snapping configuration based on constraint
         if constraint == SelectionConstraint.MAGNETIC_EDGES:
@@ -787,7 +757,6 @@ class ValidationAreaSelector(QObject):
             self.config.snap_config.enable_element_snapping = True
         elif constraint == SelectionConstraint.ALIGN_TO_GRID:
             self.config.snap_config.enable_grid_snapping = True
->>>>>>> origin/main
     
     def cancel_selection(self):
         """Cancel the current selection."""
@@ -796,19 +765,14 @@ class ValidationAreaSelector(QObject):
         
         self.is_selecting = False
         self.current_shape = None
-<<<<<<< HEAD
-=======
         self.current_snap_target = None
         self.snap_guides.clear()
         self.magnetic_field.end_interaction()
->>>>>>> origin/main
         self.selection_cancelled.emit()
->>>>>>> origin/main
     
     def clear_selections(self):
         """Clear all selections."""
         self.selections.clear()
-<<<<<<< HEAD
         self.current_selection = QRect()
         logger.debug("All selections cleared")
     
@@ -1072,14 +1036,10 @@ class ValidationAreaSelector(QObject):
                 self.selections.append(rect)
         
         logger.info(f"Imported {len(self.selections)} selections")
-=======
         self.selected_indices.clear()
         self.current_shape = None
-<<<<<<< HEAD
-=======
         self.current_snap_target = None
         self.snap_guides.clear()
->>>>>>> origin/main
     
     def delete_selection(self, index: int):
         """Delete a specific selection."""
@@ -1092,7 +1052,6 @@ class ValidationAreaSelector(QObject):
                 for i in self.selected_indices
             }
     
-<<<<<<< HEAD
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
         """Filter events for the widget."""
         if obj != self.widget:
@@ -1157,8 +1116,6 @@ class ValidationAreaSelector(QObject):
         
         return QPointF(x, y)
     
-=======
->>>>>>> origin/main
     def _apply_shape_constraints(self, shape: SelectionShape):
         """Apply constraints to a shape."""
         if self.active_constraint == SelectionConstraint.ASPECT_RATIO:
@@ -1176,7 +1133,6 @@ class ValidationAreaSelector(QObject):
         min_size = self.config.min_selection_size
         return bounds.width() >= min_size and bounds.height() >= min_size
     
-<<<<<<< HEAD
     def _find_snap_point(self, point: QPointF) -> Optional[QPointF]:
         """Find snap point near element boundaries."""
         threshold = self.config.snap_threshold
@@ -1212,8 +1168,6 @@ class ValidationAreaSelector(QObject):
         
         return None
     
-=======
->>>>>>> origin/main
     def _draw_grid(self, painter: QPainter):
         """Draw alignment grid."""
         painter.save()
@@ -1290,9 +1244,7 @@ class ValidationAreaSelector(QObject):
             )
             painter.drawRect(rect)
         
-<<<<<<< HEAD
         painter.restore()
-=======
         painter.restore()
     
     def eventFilter(self, obj: QObject, event: QEvent) -> bool:
@@ -1325,4 +1277,3 @@ class ValidationAreaSelector(QObject):
                 return True
         
         return False
->>>>>>> origin/main

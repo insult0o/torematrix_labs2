@@ -1,5 +1,4 @@
 """
-<<<<<<< HEAD
 Operation Validation Framework
 
 Provides comprehensive validation for merge/split operation parameters and preconditions.
@@ -7,7 +6,6 @@ Provides comprehensive validation for merge/split operation parameters and preco
 
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
-=======
 Validation Framework for Merge/Split Operations
 
 Provides comprehensive validation for operation parameters, preconditions, and feasibility.
@@ -15,17 +13,13 @@ Provides comprehensive validation for operation parameters, preconditions, and f
 
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any, Set
->>>>>>> main
 from enum import Enum
 import logging
 
 from torematrix.core.models.element import Element
-<<<<<<< HEAD
-=======
 from torematrix.core.models.metadata import ElementMetadata
 from torematrix.core.models.coordinates import Coordinates
 from torematrix.core.processing.metadata.algorithms.spatial import BoundingBox
->>>>>>> main
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +32,6 @@ class ValidationLevel(Enum):
 
 
 @dataclass
-<<<<<<< HEAD
 class ValidationResult:
     """Result of operation validation."""
     is_valid: bool
@@ -65,7 +58,6 @@ class ValidationResult:
         if not self.issues:
             return "No errors found"
         return "; ".join(self.issues)
-=======
 class ValidationIssue:
     """Represents a validation issue."""
     level: ValidationLevel
@@ -144,7 +136,6 @@ class ValidationResult:
             return "No errors found"
         
         return "; ".join([f"{issue.code}: {issue.message}" for issue in self.issues])
->>>>>>> main
 
 
 class OperationValidator:
@@ -161,22 +152,17 @@ class OperationValidator:
         "text", "narrative_text", "paragraph", "list_item", "table_cell"
     }
     
-<<<<<<< HEAD
-=======
     # Minimum text length for splitting
     MIN_SPLIT_TEXT_LENGTH = 10
     
     # Maximum elements for merge operation
     MAX_MERGE_ELEMENTS = 50
     
->>>>>>> main
     def __init__(self):
         self.logger = logging.getLogger(__name__ + ".OperationValidator")
     
     def validate_merge_operation(self, elements: List[Element]) -> ValidationResult:
-<<<<<<< HEAD
         """Validate a merge operation."""
-=======
         """
         Validate a merge operation.
         
@@ -186,12 +172,10 @@ class OperationValidator:
         Returns:
             ValidationResult: Validation result
         """
->>>>>>> main
         result = ValidationResult(is_valid=True)
         
         # Basic validation
         if not elements:
-<<<<<<< HEAD
             result.add_error("No elements provided for merge")
             return result
         
@@ -213,7 +197,6 @@ class OperationValidator:
         empty_text_count = sum(1 for elem in elements if not elem.text or not elem.text.strip())
         if empty_text_count > 0:
             result.add_warning(f"{empty_text_count} elements have no text content")
-=======
             result.add_error("No elements provided for merge", "MERGE_NO_ELEMENTS")
             return result
         
@@ -244,14 +227,11 @@ class OperationValidator:
         
         # Validate spatial relationships
         self._validate_merge_spatial_relationships(elements, result)
->>>>>>> main
         
         return result
     
     def validate_split_operation(self, element: Element, split_points: List[int]) -> ValidationResult:
-<<<<<<< HEAD
         """Validate a split operation."""
-=======
         """
         Validate a split operation.
         
@@ -262,12 +242,10 @@ class OperationValidator:
         Returns:
             ValidationResult: Validation result
         """
->>>>>>> main
         result = ValidationResult(is_valid=True)
         
         # Basic validation
         if not element:
-<<<<<<< HEAD
             result.add_error("No element provided for split")
             return result
         
@@ -295,7 +273,6 @@ class OperationValidator:
             result.add_error("Split points must be in ascending order")
         
         return result
-=======
             result.add_error("No element provided for split", "SPLIT_NO_ELEMENT")
             return result
         
@@ -493,4 +470,3 @@ class OperationValidator:
                 "SPLIT_NO_LAYOUT_BBOX",
                 element_id=element.element_id
             )
->>>>>>> main
