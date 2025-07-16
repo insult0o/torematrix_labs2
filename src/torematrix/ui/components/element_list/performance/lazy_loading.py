@@ -43,7 +43,6 @@ except ImportError:
 
 class LoadingState(Enum):
     """Loading states for tree nodes."""
->>>>>>> origin/main
     UNLOADED = "unloaded"
     LOADING = "loading"
     LOADED = "loaded"
@@ -123,7 +122,6 @@ class LoadingStateManager:
         
     def remove_placeholder(self, node_id: str):
         """Remove placeholder for node."""
->>>>>>> origin/main
         self.placeholders.pop(node_id, None)
 
 
@@ -330,7 +328,6 @@ class LazyLoadingManager(QObject):
         self.preload_visible_threshold = 5
         
         # Statistics
->>>>>>> origin/main
         self.load_statistics = {
             'total_requests': 0,
             'successful_loads': 0,
@@ -366,7 +363,6 @@ class LazyLoadingManager(QObject):
             priority=priority,
             node_id=node_id,
             parent_index=parent_index,
->>>>>>> origin/main
             user_initiated=user_initiated,
             callback=callback
         )
@@ -439,7 +435,6 @@ class LazyLoadingManager(QObject):
         if self.loading_queue.size() == 0:
             return
             
->>>>>>> origin/main
         # Get batch of requests
         batch_requests = self.loading_queue.get_batch(self.batch_size)
         if not batch_requests:
@@ -494,4 +489,3 @@ __all__ = [
     'PlaceholderNode',
     'LoadWorker',
     'LoadingStateManager'
->>>>>>> origin/main
