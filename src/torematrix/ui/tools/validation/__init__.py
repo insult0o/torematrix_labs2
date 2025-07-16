@@ -14,90 +14,71 @@ from .drawing_state import (
     DrawingSession
 )
 
-# Agent 2 - OCR service integration for manual validation (Issue #27)
-from .ocr_service import (
-    ValidationOCRService,
-    ValidationOCRRequest,
-    ValidationOCRResponse,
-    OCRWorkerThread,
-    OCREngine,
-    OCRStatus,
-    OCRValidationHelper
+# Agent 1 - Area selection tools (Issue #26)
+from .area_select import (
+    ValidationAreaSelector,
+    AreaSelectionMode,
+    SelectionConstraint,
+    ValidationSelectionConfig,
+)
+from .shapes import (
+    SelectionShape,
+    RectangleShape,
+    PolygonShape,
+    FreehandShape,
+    RectangleSelectionTool,
+    PolygonSelectionTool,
+    FreehandSelectionTool,
 )
 
-# Agent 1 + Agent 2 - Area selection tools (Issue #26)
+# Agent 2 - Interactive hierarchy tools (Issue #29.2)
 try:
-    from .area_select import (
-        ValidationAreaSelector,
-        AreaSelectionMode,
-        SelectionConstraint,
-        ValidationSelectionConfig,
+    from .hierarchy_tools import (
+        HierarchyTreeWidget,
+        HierarchyControlPanel,
+        HierarchyMetricsWidget,
+        HierarchyToolsWidget,
+        HierarchyOperation,
+        ValidationLevel,
+        HierarchyMetrics
     )
-    from .shapes import (
-        SelectionShape,
-        RectangleShape,
-        PolygonShape,
-        FreehandShape,
-        RectangleSelectionTool,
-        PolygonSelectionTool,
-        FreehandSelectionTool,
-    )
-    # Agent 2 - Advanced snapping algorithms
-    from .snapping import (
-        SnapEngine,
-        SnapTarget,
-        SnapResult,
-        SnapType,
-        SnapConfiguration,
-        MagneticField,
-        EdgeDetector,
-    )
-    _area_tools_available = True
+    _hierarchy_tools_available = True
 except ImportError:
-    _area_tools_available = False
+    _hierarchy_tools_available = False
 
 __all__ = [
-    # Drawing state management - Agent 1 (Issue #27)
+    # Drawing state management - Agent 1
     'DrawingStateManager',
     'DrawingMode',
     'DrawingState',
     'DrawingArea',
     'DrawingSession',
     
-    # OCR service integration - Agent 2 (Issue #27)
-    'ValidationOCRService',
-    'ValidationOCRRequest',
-    'ValidationOCRResponse',
-    'OCRWorkerThread',
-    'OCREngine',
-    'OCRStatus',
-    'OCRValidationHelper',
+    # Area selection tools - Agent 1
+    'ValidationAreaSelector',
+    'AreaSelectionMode',
+    'SelectionConstraint',
+    'ValidationSelectionConfig',
+    
+    # Shape tools - Agent 1
+    'SelectionShape',
+    'RectangleShape',
+    'PolygonShape', 
+    'FreehandShape',
+    'RectangleSelectionTool',
+    'PolygonSelectionTool',
+    'FreehandSelectionTool',
 ]
 
-# Add area selection tools if available (Issue #26)
-if _area_tools_available:
+# Add hierarchy tools if available - Agent 2
+if _hierarchy_tools_available:
     __all__.extend([
-        # Area selection - Agent 1
-        'ValidationAreaSelector',
-        'AreaSelectionMode',
-        'SelectionConstraint',
-        'ValidationSelectionConfig',
-        
-        # Shape tools - Agent 1
-        'SelectionShape',
-        'RectangleShape',
-        'PolygonShape', 
-        'FreehandShape',
-        'RectangleSelectionTool',
-        'PolygonSelectionTool',
-        'FreehandSelectionTool',
-        
-        # Snapping algorithms - Agent 2
-        'SnapEngine',
-        'SnapTarget',
-        'SnapResult',
-        'SnapType',
-        'SnapConfiguration',
-        'MagneticField',
-        'EdgeDetector',
+        # Hierarchy UI Tools - Agent 2 (Issue #29.2)
+        'HierarchyTreeWidget',
+        'HierarchyControlPanel', 
+        'HierarchyMetricsWidget',
+        'HierarchyToolsWidget',
+        'HierarchyOperation',
+        'ValidationLevel',
+        'HierarchyMetrics'
     ])
