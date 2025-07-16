@@ -1,8 +1,9 @@
 """
 Manual validation tools for document processing.
 
-This package provides tools for manual validation of document elements,
-including drawing interfaces and element creation workflows.
+This package provides a comprehensive set of tools for manual validation
+of document elements, including drawing interfaces, area selection,
+hierarchy management, and element creation workflows.
 """
 
 # Agent 1 - Drawing state management for manual validation (Issue #27)
@@ -31,33 +32,9 @@ try:
         PolygonSelectionTool,
         FreehandSelectionTool,
     )
-    # Agent 2 - Advanced snapping algorithms
-    from .snapping import (
-        SnapEngine,
-        SnapTarget,
-        SnapResult,
-        SnapType,
-        SnapConfiguration,
-        MagneticField,
-        EdgeDetector,
-    )
     _area_tools_available = True
 except ImportError:
     _area_tools_available = False
-
-# Agent 2 - Merge/Split UI Components (Issue #235)
-try:
-    from .merge_dialog import MergeDialog
-    from .split_dialog import SplitDialog
-    from .components import (
-        ElementPreview,
-        MetadataConflictResolver,
-        OperationPreview,
-        ValidationWarnings
-    )
-    _merge_split_ui_available = True
-except ImportError:
-    _merge_split_ui_available = False
 
 # Agent 2 - OCR Service Integration (Issue #240)
 try:
@@ -74,47 +51,42 @@ try:
 except ImportError:
     _ocr_service_available = False
 
-# Agent 3 - UI Components & User Experience (Issue #242)
+# Agent 2 - Interactive hierarchy tools (Issue #29.2)
 try:
-    from .wizard import (
-        ValidationWizard,
-        ValidationStep,
-        StepStatus,
-        WizardConfiguration
+    from .hierarchy_tools import (
+        HierarchyTreeWidget,
+        HierarchyControlPanel,
+        HierarchyMetricsWidget,
+        HierarchyToolsWidget,
+        HierarchyOperation,
+        ValidationLevel,
+        HierarchyMetrics
     )
-    from .toolbar import (
-        ValidationToolbar,
-        ToolCategory,
-        ToolConfiguration,
-        ToolAction
-    )
-    from .ocr_dialog import (
-        OCRDialog,
-        OCRDialogConfiguration,
-        OCRPreviewWidget,
-        ConfidenceHighlighter
-    )
-    _ui_components_available = True
+    _hierarchy_tools_available = True
 except ImportError:
-    _ui_components_available = False
+    _hierarchy_tools_available = False
 
-# Agent 4 - Integration & Testing (Issue #244)
+# Agent 4 - Structure wizard and export system (Issue #245)
 try:
-    from .integration import (
-        ValidationToolsIntegration,
-        ValidationMode,
-        IntegrationStatus,
-        ValidationSession,
-        ValidationStatistics,
-        create_validation_integration,
-        get_integration_statistics
+    from .structure_wizard import (
+        StructureWizard,
+        StructureAnalyzer,
+        StructureMethod,
+        StructureResult,
+        HeuristicWeights
     )
-    _integration_layer_available = True
+    from .export_system import (
+        HierarchyExportWidget,
+        ExportFormat,
+        ExportOptions,
+        ExportGenerator
+    )
+    _structure_wizard_available = True
 except ImportError:
-    _integration_layer_available = False
+    _structure_wizard_available = False
 
 __all__ = [
-    # Drawing state management - Agent 1 (Issue #27)
+    # Drawing state management - Agent 1
     'DrawingStateManager',
     'DrawingMode',
     'DrawingState',
@@ -139,29 +111,6 @@ if _area_tools_available:
         'RectangleSelectionTool',
         'PolygonSelectionTool',
         'FreehandSelectionTool',
-        
-        # Snapping algorithms - Agent 2
-        'SnapEngine',
-        'SnapTarget',
-        'SnapResult',
-        'SnapType',
-        'SnapConfiguration',
-        'MagneticField',
-        'EdgeDetector',
-    ])
-
-# Add merge/split UI components if available - Agent 2 (Issue #235)
-if _merge_split_ui_available:
-    __all__.extend([
-        # Merge/Split Dialogs - Agent 2
-        'MergeDialog',
-        'SplitDialog',
-        
-        # Common UI Components - Agent 2
-        'ElementPreview',
-        'MetadataConflictResolver',
-        'OperationPreview',
-        'ValidationWarnings',
     ])
 
 # Add OCR service components if available - Agent 2 (Issue #240)
@@ -177,65 +126,31 @@ if _ocr_service_available:
         'ImagePreprocessor',
     ])
 
-# Add UI components if available - Agent 3 (Issue #242)
-if _ui_components_available:
-    __all__.extend([
-        # Validation Wizard - Agent 3
-        'ValidationWizard',
-        'ValidationStep',
-        'StepStatus',
-        'WizardConfiguration',
-        
-        # Validation Toolbar - Agent 3
-        'ValidationToolbar',
-        'ToolCategory',
-        'ToolConfiguration',
-        'ToolAction',
-        
-        # OCR Dialog - Agent 3
-        'OCRDialog',
-        'OCRDialogConfiguration',
-        'OCRPreviewWidget',
-        'ConfidenceHighlighter',
-    ])
-
-# Agent 2 - Interactive Hierarchy UI Tools (Issue #241)
-try:
-    from .hierarchy_tools import (
-        HierarchyTreeWidget,
-        HierarchyControlPanel,
-        HierarchyMetricsWidget,
-        HierarchyToolsWidget,
-        HierarchyOperation,
-        ValidationLevel,
-        HierarchyMetrics
-    )
-    _hierarchy_tools_available = True
-except ImportError:
-    _hierarchy_tools_available = False
-
-# Add integration layer if available - Agent 4 (Issue #244)
-if _integration_layer_available:
-    __all__.extend([
-        # Integration Layer - Agent 4
-        'ValidationToolsIntegration',
-        'ValidationMode',
-        'IntegrationStatus',
-        'ValidationSession',
-        'ValidationStatistics',
-        'create_validation_integration',
-        'get_integration_statistics',
-    ])
-
-# Add hierarchy UI tools if available - Agent 2 (Issue #241)
+# Add hierarchy tools if available - Agent 2
 if _hierarchy_tools_available:
     __all__.extend([
-        # Interactive Hierarchy UI Tools - Agent 2
+        # Hierarchy UI Tools - Agent 2 (Issue #29.2)
         'HierarchyTreeWidget',
-        'HierarchyControlPanel',
+        'HierarchyControlPanel', 
         'HierarchyMetricsWidget',
         'HierarchyToolsWidget',
         'HierarchyOperation',
         'ValidationLevel',
-        'HierarchyMetrics',
+        'HierarchyMetrics'
+    ])
+
+# Add structure wizard and export tools if available - Agent 4
+if _structure_wizard_available:
+    __all__.extend([
+        # Structure Wizard - Agent 4 (Issue #245)
+        'StructureWizard',
+        'StructureAnalyzer',
+        'StructureMethod',
+        'StructureResult',
+        'HeuristicWeights',
+        # Export System - Agent 4 (Issue #245)
+        'HierarchyExportWidget',
+        'ExportFormat',
+        'ExportOptions',
+        'ExportGenerator'
     ])
