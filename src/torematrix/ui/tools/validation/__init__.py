@@ -59,6 +59,21 @@ try:
 except ImportError:
     _merge_split_ui_available = False
 
+# Agent 2 - Interactive Hierarchy UI Tools (Issue #241)
+try:
+    from .hierarchy_tools import (
+        HierarchyTreeWidget,
+        HierarchyControlPanel,
+        HierarchyMetricsWidget,
+        HierarchyToolsWidget,
+        HierarchyOperation,
+        ValidationLevel,
+        HierarchyMetrics
+    )
+    _hierarchy_tools_available = True
+except ImportError:
+    _hierarchy_tools_available = False
+
 __all__ = [
     # Drawing state management - Agent 1 (Issue #27)
     'DrawingStateManager',
@@ -108,4 +123,17 @@ if _merge_split_ui_available:
         'MetadataConflictResolver',
         'OperationPreview',
         'ValidationWarnings',
+    ])
+
+# Add hierarchy UI tools if available - Agent 2 (Issue #241)
+if _hierarchy_tools_available:
+    __all__.extend([
+        # Interactive Hierarchy UI Tools - Agent 2
+        'HierarchyTreeWidget',
+        'HierarchyControlPanel',
+        'HierarchyMetricsWidget',
+        'HierarchyToolsWidget',
+        'HierarchyOperation',
+        'ValidationLevel',
+        'HierarchyMetrics',
     ])
