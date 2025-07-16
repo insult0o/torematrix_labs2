@@ -64,7 +64,7 @@ class DrawingArea:
         }
 
 
-@dataclass(frozen=True)
+@dataclass
 class DrawingSession:
     """Represents a complete drawing session with multiple areas."""
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
