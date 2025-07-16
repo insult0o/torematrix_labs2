@@ -45,6 +45,20 @@ try:
 except ImportError:
     _area_tools_available = False
 
+# Agent 2 - Merge/Split UI Components (Issue #235)
+try:
+    from .merge_dialog import MergeDialog
+    from .split_dialog import SplitDialog
+    from .components import (
+        ElementPreview,
+        MetadataConflictResolver,
+        OperationPreview,
+        ValidationWarnings
+    )
+    _merge_split_ui_available = True
+except ImportError:
+    _merge_split_ui_available = False
+
 __all__ = [
     # Drawing state management - Agent 1 (Issue #27)
     'DrawingStateManager',
@@ -80,4 +94,18 @@ if _area_tools_available:
         'SnapConfiguration',
         'MagneticField',
         'EdgeDetector',
+    ])
+
+# Add merge/split UI components if available - Agent 2 (Issue #235)
+if _merge_split_ui_available:
+    __all__.extend([
+        # Merge/Split Dialogs - Agent 2
+        'MergeDialog',
+        'SplitDialog',
+        
+        # Common UI Components - Agent 2
+        'ElementPreview',
+        'MetadataConflictResolver',
+        'OperationPreview',
+        'ValidationWarnings',
     ])
