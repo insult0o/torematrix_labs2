@@ -48,7 +48,7 @@ try:
         HierarchyMetrics
     )
     _hierarchy_tools_available = True
-except (ImportError, SyntaxError) as e:
+except ImportError:
     _hierarchy_tools_available = False
 
 # Agent 2 - OCR Service Integration (Issue #240)
